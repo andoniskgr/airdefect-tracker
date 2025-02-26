@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -122,7 +121,7 @@ const Index = () => {
                   type="date"
                   value={formData.date}
                   onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
-                  className="text-lg uppercase"
+                  className="text-lg uppercase w-[160px]"
                 />
               </div>
               <div>
@@ -131,7 +130,7 @@ const Index = () => {
                   type="time"
                   value={formData.time}
                   onChange={(e) => setFormData(prev => ({ ...prev, time: e.target.value }))}
-                  className="text-lg uppercase"
+                  className="text-lg uppercase w-[120px]"
                 />
               </div>
             </div>
@@ -144,7 +143,7 @@ const Index = () => {
                   registration: e.target.value.toUpperCase().slice(0, 6)
                 }))}
                 placeholder="ENTER REGISTRATION"
-                className="text-lg uppercase"
+                className="text-lg uppercase w-[120px]"
                 maxLength={6}
               />
             </div>
@@ -157,7 +156,7 @@ const Index = () => {
                   station: e.target.value.toUpperCase().slice(0, 6)
                 }))}
                 placeholder="ENTER STATION"
-                className="text-lg uppercase"
+                className="text-lg uppercase w-[120px]"
                 maxLength={6}
               />
             </div>
