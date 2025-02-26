@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -5,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/components/ui/use-toast";
-import { format } from 'date-fns';
+import { format, parse } from 'date-fns';
 import { ArrowUpDown } from "lucide-react";
 
 interface DefectRecord {
@@ -93,6 +94,11 @@ const Index = () => {
     setFormData(initialFormState);
   };
 
+  const formatDisplayDate = (date: string) => {
+    const parsedDate = parse(date, 'yyyy-MM-dd', new Date());
+    return format(parsedDate, 'dd/MM/yyyy');
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl fade-in">
       <div className="flex justify-between items-center mb-8">
@@ -117,21 +123,31 @@ const Index = () => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-lg font-medium mb-1 block uppercase">Date</label>
-                <Input
-                  type="date"
-                  value={formData.date}
-                  onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
-                  className="text-lg uppercase w-[160px]"
-                />
+                <div className="text-lg uppercase w-[160px] relative">
+                  <Input
+                    type="date"
+                    value={formData.date}
+                    onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+                    className="opacity-0 absolute inset-0 w-full cursor-pointer"
+                  />
+                  <div className="border border-input bg-background px-3 py-2 rounded-md">
+                    {formatDisplayDate(formData.date)}
+                  </div>
+                </div>
               </div>
               <div>
                 <label className="text-lg font-medium mb-1 block uppercase">Time</label>
-                <Input
-                  type="time"
-                  value={formData.time}
-                  onChange={(e) => setFormData(prev => ({ ...prev, time: e.target.value }))}
-                  className="text-lg uppercase w-[120px]"
-                />
+                <div className="text-lg uppercase w-[120px] relative">
+                  <Input
+                    type="time"
+                    value={formData.time}
+                    onChange={(e) => setFormData(prev => ({ ...prev, time: e.target.value }))}
+                    className="opacity-0 absolute inset-0 w-full cursor-pointer"
+                  />
+                  <div className="border border-input bg-background px-3 py-2 rounded-md">
+                    {formData.time}
+                  </div>
+                </div>
               </div>
             </div>
             <div>
