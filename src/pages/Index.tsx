@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -94,9 +93,79 @@ const Index = () => {
     setFormData(initialFormState);
   };
 
-  const formatDisplayDate = (date: string) => {
-    const parsedDate = parse(date, 'yyyy-MM-dd', new Date());
-    return format(parsedDate, 'dd/MM/yyyy');
+  const handleTimeInput = (value: string) => {
+    const numbers = value.replace(/[^\d]/g, '');
+    if (numbers.length <= 4) {
+      const hours = numbers.slice(0, 2);
+      const minutes = numbers.slice(2, 4);
+      
+      let formattedTime = '';
+      if (hours) {
+        const hoursNum = parseInt(hours);
+        if (hoursNum >= 24) {
+          formattedTime = '23:';
+        } else {
+          formattedTime = hours.padStart(2, '0') + ':';
+        }
+        if (minutes) {
+          const minutesNum = parseInt(minutes);
+          if (minutesNum >= 60) {
+            formattedTime += '59';
+          } else {
+            formattedTime += minutes.padStart(2, '0');
+          }
+        } else if (numbers.length > 2) {
+          formattedTime += '00';
+        }
+      }
+      setFormData(prev => ({ ...prev, time: formattedTime }));
+    }
+  };
+
+  const handleDateInput = (value: string) => {
+    const numbers = value.replace(/[^\d]/g, '');
+    if (numbers.length <= 8) {
+      const day = numbers.slice(0, 2);
+      const month = numbers.slice(2, 4);
+      const year = numbers.slice(4, 8);
+      
+      let formattedDate = '';
+      if (day) {
+        const dayNum = parseInt(day);
+        if (dayNum > 31) {
+          formattedDate = '31/';
+        } else if (dayNum < 1) {
+          formattedDate = '01/';
+        } else {
+          formattedDate = day.padStart(2, '0') + '/';
+        }
+        
+        if (month) {
+          const monthNum = parseInt(month);
+          if (monthNum > 12) {
+            formattedDate += '12/';
+          } else if (monthNum < 1) {
+            formattedDate += '01/';
+          } else {
+            formattedDate += month.padStart(2, '0') + '/';
+          }
+          
+          if (year) {
+            formattedDate += year.padStart(4, '2');
+          }
+        }
+      }
+
+      if (formattedDate) {
+        try {
+          const [d, m, y] = formattedDate.split('/');
+          const isoDate = `${y || '2024'}-${m || '01'}-${d || '01'}`;
+          setFormData(prev => ({ ...prev, date: isoDate }));
+        } catch (e) {
+          console.error('Error parsing date:', e);
+        }
+      }
+    }
   };
 
   return (
@@ -123,65 +192,59 @@ const Index = () => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-lg font-medium mb-1 block uppercase">Date</label>
-                <div className="text-lg uppercase w-[160px] relative">
-                  <Input
-                    type="date"
-                    value={formData.date}
-                    onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
-                    className="opacity-0 absolute inset-0 w-full cursor-pointer"
-                  />
-                  <div className="border border-input bg-background px-3 py-2 rounded-md">
-                    {formatDisplayDate(formData.date)}
-                  </div>
-                </div>
+                <Input
+                  type="text"
+                  value={format(new Date(formData.date), 'dd/MM/yyyy')}
+                  onChange={(e) => handleDateInput(e.target.value)}
+                  placeholder="DD/MM/YYYY"
+                  className="text-lg uppercase w-[160px]"
+                />
               </div>
               <div>
                 <label className="text-lg font-medium mb-1 block uppercase">Time</label>
-                <div className="text-lg uppercase w-[120px] relative">
-                  <Input
-                    type="time"
-                    value={formData.time}
-                    onChange={(e) => setFormData(prev => ({ ...prev, time: e.target.value }))}
-                    className="opacity-0 absolute inset-0 w-full cursor-pointer"
-                  />
-                  <div className="border border-input bg-background px-3 py-2 rounded-md">
-                    {formData.time}
-                  </div>
-                </div>
+                <Input
+                  type="text"
+                  value={formData.time}
+                  onChange={(e) => handleTimeInput(e.target.value)}
+                  placeholder="HH:MM"
+                  className="text-lg uppercase w-[120px]"
+                />
               </div>
             </div>
-            <div>
-              <label className="text-lg font-medium mb-1 block uppercase">Aircraft Registration</label>
-              <Input
-                value={formData.registration}
-                onChange={(e) => setFormData(prev => ({ 
-                  ...prev, 
-                  registration: e.target.value.toUpperCase().slice(0, 6)
-                }))}
-                placeholder="ENTER REGISTRATION"
-                className="text-lg uppercase w-[120px]"
-                maxLength={6}
-              />
-            </div>
-            <div>
-              <label className="text-lg font-medium mb-1 block uppercase">Station</label>
-              <Input
-                value={formData.station}
-                onChange={(e) => setFormData(prev => ({ 
-                  ...prev, 
-                  station: e.target.value.toUpperCase().slice(0, 6)
-                }))}
-                placeholder="ENTER STATION"
-                className="text-lg uppercase w-[120px]"
-                maxLength={6}
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-lg font-medium mb-1 block uppercase">Registration</label>
+                <Input
+                  value={formData.registration}
+                  onChange={(e) => setFormData(prev => ({ 
+                    ...prev, 
+                    registration: e.target.value.toUpperCase().slice(0, 6)
+                  }))}
+                  placeholder="REGISTRATION"
+                  className="text-lg uppercase w-[120px]"
+                  maxLength={6}
+                />
+              </div>
+              <div>
+                <label className="text-lg font-medium mb-1 block uppercase">Station</label>
+                <Input
+                  value={formData.station}
+                  onChange={(e) => setFormData(prev => ({ 
+                    ...prev, 
+                    station: e.target.value.toUpperCase().slice(0, 6)
+                  }))}
+                  placeholder="STATION"
+                  className="text-lg uppercase w-[120px]"
+                  maxLength={6}
+                />
+              </div>
             </div>
             <div>
               <label className="text-lg font-medium mb-1 block uppercase">Defect Description</label>
               <Input
                 value={formData.defect}
                 onChange={(e) => setFormData(prev => ({ ...prev, defect: e.target.value.toUpperCase() }))}
-                placeholder="ENTER DEFECT DESCRIPTION"
+                placeholder="DESCRIPTION"
                 className="text-lg uppercase"
               />
             </div>
@@ -190,7 +253,7 @@ const Index = () => {
               <Input
                 value={formData.remarks}
                 onChange={(e) => setFormData(prev => ({ ...prev, remarks: e.target.value.toUpperCase() }))}
-                placeholder="ENTER REMARKS"
+                placeholder="REMARKS"
                 className="text-lg uppercase"
               />
             </div>
