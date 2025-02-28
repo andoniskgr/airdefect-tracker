@@ -113,13 +113,13 @@ export const AddDefectModal = ({
                 onChange={(value) => setFormData(prev => ({ ...prev, eta: value }))}
               />
             </div>
-{/*             <div>
+            <div>
               <label className="text-lg font-medium mb-1 block uppercase">STD</label>
               <TimePicker
                 value={formData.std}
                 onChange={(value) => setFormData(prev => ({ ...prev, std: value }))}
               />
-            </div> */}
+            </div>
             <div>
               <label className="text-lg font-medium mb-1 block uppercase">UPD</label>
               <TimePicker
