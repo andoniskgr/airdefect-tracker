@@ -7,7 +7,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/components/ui/use-toast";
 import { format } from 'date-fns';
-import { ArrowUpDown, Pencil, Trash, X, Check, Filter } from "lucide-react";
+import { ArrowUpDown, Pencil, Trash, X, Check, FileDown } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import html2pdf from 'html2pdf.js';
 
 interface DefectRecord {
   id: string;
@@ -17,6 +21,10 @@ interface DefectRecord {
   station: string;
   defect: string;
   remarks: string;
+  eta: string;
+  std: string;
+  upd: string;
+  rst: boolean;
   sl: boolean;
   ok: boolean;
 }
@@ -37,29 +45,95 @@ const Index = () => {
     station: '',
     defect: '',
     remarks: '',
+    eta: '',
+    std: '',
+    upd: '',
+    rst: false,
     sl: false,
     ok: false,
   };
 
   const [formData, setFormData] = useState(initialFormState);
-  const [dateInput, setDateInput] = useState(format(new Date(), 'dd/MM/yyyy'));
   const [timeInput, setTimeInput] = useState(format(new Date(), 'HH:mm'));
+  const [etaTimeInput, setEtaTimeInput] = useState('');
+  const [stdTimeInput, setStdTimeInput] = useState('');
+  const [updTimeInput, setUpdTimeInput] = useState('');
 
-  // Reset date and time input when formData changes
-  useEffect(() => {
-    if (formData.date) {
-      try {
-        const date = new Date(formData.date);
-        setDateInput(format(date, 'dd/MM/yyyy'));
-      } catch (e) {
-        console.error('Error formatting date:', e);
+  const openTimePicker = (field: string) => {
+    const now = new Date();
+    const hours = now.getHours().toString().padStart(2, '0');
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    
+    switch(field) {
+      case 'time':
+        setTimeInput(`${hours}:${minutes}`);
+        setFormData(prev => ({ ...prev, time: `${hours}:${minutes}` }));
+        break;
+      case 'eta':
+        setEtaTimeInput(`${hours}:${minutes}`);
+        setFormData(prev => ({ ...prev, eta: `${hours}:${minutes}` }));
+        break;
+      case 'std':
+        setStdTimeInput(`${hours}:${minutes}`);
+        setFormData(prev => ({ ...prev, std: `${hours}:${minutes}` }));
+        break;
+      case 'upd':
+        setUpdTimeInput(`${hours}:${minutes}`);
+        setFormData(prev => ({ ...prev, upd: `${hours}:${minutes}` }));
+        break;
+    }
+  };
+
+  const handleTimeChange = (field: string, value: string) => {
+    // Only allow numbers and format them
+    const numbers = value.replace(/[^\d]/g, '');
+    if (numbers.length <= 4) {
+      const hours = numbers.slice(0, 2);
+      const minutes = numbers.slice(2, 4);
+      
+      let formattedTime = '';
+      if (hours) {
+        const hoursNum = parseInt(hours);
+        if (hoursNum >= 24) {
+          formattedTime = '23:';
+        } else {
+          formattedTime = hours.padStart(2, '0') + ':';
+        }
+        
+        if (minutes) {
+          const minutesNum = parseInt(minutes);
+          if (minutesNum >= 60) {
+            formattedTime += '59';
+          } else {
+            formattedTime += minutes.padStart(2, '0');
+          }
+        } else if (numbers.length > 2) {
+          formattedTime += '00';
+        }
+      }
+      
+      if (formattedTime && formattedTime.includes(':') || formattedTime === '') {
+        switch(field) {
+          case 'time':
+            setTimeInput(formattedTime);
+            setFormData(prev => ({ ...prev, time: formattedTime }));
+            break;
+          case 'eta':
+            setEtaTimeInput(formattedTime);
+            setFormData(prev => ({ ...prev, eta: formattedTime }));
+            break;
+          case 'std':
+            setStdTimeInput(formattedTime);
+            setFormData(prev => ({ ...prev, std: formattedTime }));
+            break;
+          case 'upd':
+            setUpdTimeInput(formattedTime);
+            setFormData(prev => ({ ...prev, upd: formattedTime }));
+            break;
+        }
       }
     }
-    
-    if (formData.time) {
-      setTimeInput(formData.time);
-    }
-  }, [formData.date, formData.time]);
+  };
 
   const handleSort = () => {
     const newOrder = sortOrder === 'asc' ? 'desc' : 'asc';
@@ -158,9 +232,11 @@ const Index = () => {
   };
 
   const resetInputs = () => {
-    setDateInput(format(new Date(), 'dd/MM/yyyy'));
-    setTimeInput(format(new Date(), 'HH:mm'));
-  }
+    setTimeInput('');
+    setEtaTimeInput('');
+    setStdTimeInput('');
+    setUpdTimeInput('');
+  };
 
   const handleDeleteRecord = (id: string) => {
     setRecords(prev => prev.filter(record => record.id !== id));
@@ -174,77 +250,16 @@ const Index = () => {
     setEditingRecord({...record});
     setIsEditModalOpen(true);
     
-    // Set date and time inputs for editing
-    try {
-      const date = new Date(record.date);
-      setDateInput(format(date, 'dd/MM/yyyy'));
-    } catch (e) {
-      console.error('Error formatting date:', e);
-      setDateInput(format(new Date(), 'dd/MM/yyyy'));
-    }
-    
-    setTimeInput(record.time);
+    // Set fields for editing
+    setTimeInput(record.time || '');
+    setEtaTimeInput(record.eta || '');
+    setStdTimeInput(record.std || '');
+    setUpdTimeInput(record.upd || '');
   };
 
-  const handleDateInput = (value: string, isEdit = false) => {
-    setDateInput(value);
-    
-    // Only allow numbers and format them
-    const numbers = value.replace(/[^\d]/g, '');
-    if (numbers.length <= 8) {
-      const day = numbers.slice(0, 2);
-      const month = numbers.slice(2, 4);
-      const year = numbers.slice(4, 8);
-      
-      let formattedDate = '';
-      if (day) {
-        const dayNum = parseInt(day);
-        if (dayNum > 31) {
-          formattedDate = '31/';
-        } else if (dayNum < 1) {
-          formattedDate = '01/';
-        } else {
-          formattedDate = day.padStart(2, '0') + '/';
-        }
-        
-        if (month) {
-          const monthNum = parseInt(month);
-          if (monthNum > 12) {
-            formattedDate += '12/';
-          } else if (monthNum < 1) {
-            formattedDate += '01/';
-          } else {
-            formattedDate += month.padStart(2, '0') + '/';
-          }
-          
-          if (year) {
-            formattedDate += year.padStart(4, '2');
-          }
-        }
-      }
+  const handleEditingTimeChange = (field: string, value: string) => {
+    if (!editingRecord) return;
 
-      if (formattedDate && formattedDate.split('/').length > 2) {
-        try {
-          const [d, m, y] = formattedDate.split('/');
-          const isoDate = `${y || '2024'}-${m || '01'}-${d || '01'}`;
-          
-          if (isEdit && editingRecord) {
-            setEditingRecord({...editingRecord, date: isoDate});
-          } else {
-            setFormData(prev => ({ ...prev, date: isoDate }));
-          }
-          
-          setDateInput(formattedDate);
-        } catch (e) {
-          console.error('Error parsing date:', e);
-        }
-      }
-    }
-  };
-
-  const handleTimeInput = (value: string, isEdit = false) => {
-    setTimeInput(value);
-    
     // Only allow numbers and format them
     const numbers = value.replace(/[^\d]/g, '');
     if (numbers.length <= 4) {
@@ -259,6 +274,7 @@ const Index = () => {
         } else {
           formattedTime = hours.padStart(2, '0') + ':';
         }
+        
         if (minutes) {
           const minutesNum = parseInt(minutes);
           if (minutesNum >= 60) {
@@ -271,15 +287,113 @@ const Index = () => {
         }
       }
       
-      if (formattedTime && formattedTime.includes(':')) {
-        if (isEdit && editingRecord) {
-          setEditingRecord({...editingRecord, time: formattedTime});
-        } else {
-          setFormData(prev => ({ ...prev, time: formattedTime }));
+      if (formattedTime && formattedTime.includes(':') || formattedTime === '') {
+        switch(field) {
+          case 'time':
+            setTimeInput(formattedTime);
+            setEditingRecord({ ...editingRecord, time: formattedTime });
+            break;
+          case 'eta':
+            setEtaTimeInput(formattedTime);
+            setEditingRecord({ ...editingRecord, eta: formattedTime });
+            break;
+          case 'std':
+            setStdTimeInput(formattedTime);
+            setEditingRecord({ ...editingRecord, std: formattedTime });
+            break;
+          case 'upd':
+            setUpdTimeInput(formattedTime);
+            setEditingRecord({ ...editingRecord, upd: formattedTime });
+            break;
         }
-        setTimeInput(formattedTime);
       }
     }
+  };
+
+  const exportToPdf = () => {
+    // Create a temporary hidden div for the PDF export
+    const exportDiv = document.createElement('div');
+    exportDiv.style.position = 'absolute';
+    exportDiv.style.left = '-9999px';
+    exportDiv.className = 'pdf-export';
+    
+    // Create table HTML
+    exportDiv.innerHTML = `
+      <style>
+        .pdf-table {
+          width: 100%;
+          border-collapse: collapse;
+          font-family: Arial, sans-serif;
+        }
+        .pdf-table th {
+          background-color: #f3f4f6;
+          padding: 8px;
+          text-align: left;
+          font-weight: bold;
+          border-bottom: 1px solid #e5e7eb;
+        }
+        .pdf-table td {
+          padding: 8px;
+          border-bottom: 1px solid #e5e7eb;
+        }
+        .pdf-table tr:nth-child(even) {
+          background-color: #f9fafb;
+        }
+        .pdf-table .ok-row {
+          background-color: #F2FCE2;
+        }
+        .pdf-table .sl-row {
+          background-color: #FEF7CD;
+        }
+      </style>
+      <table class="pdf-table">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Registration</th>
+            <th>Station</th>
+            <th>Defect</th>
+            <th>Remarks</th>
+            <th>RST</th>
+            <th>OK</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${filteredRecords.map(record => `
+            <tr class="${record.ok ? 'ok-row' : record.sl ? 'sl-row' : ''}">
+              <td>${record.time}</td>
+              <td>${record.registration}</td>
+              <td>${record.station}</td>
+              <td>${record.defect}</td>
+              <td>${record.remarks}</td>
+              <td>${record.rst ? 'YES' : 'NO'}</td>
+              <td>${record.ok ? 'YES' : 'NO'}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+    
+    document.body.appendChild(exportDiv);
+    
+    // Export to PDF using html2pdf
+    const opt = {
+      margin: 10,
+      filename: 'aircraft_defect_records.pdf',
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+    };
+    
+    html2pdf().from(exportDiv).set(opt).save().then(() => {
+      // Clean up
+      document.body.removeChild(exportDiv);
+      
+      toast({
+        title: "SUCCESS",
+        description: "PDF EXPORT COMPLETE",
+      });
+    });
   };
 
   const filteredRecords = records.filter(record => {
@@ -316,6 +430,13 @@ const Index = () => {
             >
               OK Only
             </Button>
+            <Button
+              onClick={exportToPdf}
+              variant="outline"
+              className="text-sm uppercase ml-2"
+            >
+              <FileDown className="mr-2 h-4 w-4" /> Export PDF
+            </Button>
           </div>
           <Button 
             onClick={() => {
@@ -342,23 +463,54 @@ const Index = () => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-lg font-medium mb-1 block uppercase">Date</label>
-                <Input
-                  type="text"
-                  value={dateInput}
-                  onChange={(e) => handleDateInput(e.target.value)}
-                  placeholder="DD/MM/YYYY"
-                  className="text-lg uppercase w-[160px]"
-                />
+                <div className="relative">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-[160px] justify-start text-left font-normal",
+                          !formData.date && "text-muted-foreground"
+                        )}
+                      >
+                        {formData.date ? format(new Date(formData.date), "dd/MM/yyyy") : "Select date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={formData.date ? new Date(formData.date) : undefined}
+                        onSelect={(date) => {
+                          if (date) {
+                            setFormData({ ...formData, date: format(date, 'yyyy-MM-dd') });
+                          }
+                        }}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
               </div>
               <div>
                 <label className="text-lg font-medium mb-1 block uppercase">Time</label>
-                <Input
-                  type="text"
-                  value={timeInput}
-                  onChange={(e) => handleTimeInput(e.target.value)}
-                  placeholder="HH:MM"
-                  className="text-lg uppercase w-[120px]"
-                />
+                <div className="flex items-center space-x-2">
+                  <Input
+                    type="text"
+                    value={timeInput}
+                    onChange={(e) => handleTimeChange('time', e.target.value)}
+                    placeholder="HH:MM"
+                    className="text-lg uppercase w-[120px]"
+                  />
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    className="px-3"
+                    onClick={() => openTimePicker('time')}
+                  >
+                    <span className="sr-only">Set current time</span>
+                    <Clock />
+                  </Button>
+                </div>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -389,6 +541,71 @@ const Index = () => {
                 />
               </div>
             </div>
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <label className="text-lg font-medium mb-1 block uppercase">ETA</label>
+                <div className="flex items-center space-x-2">
+                  <Input
+                    type="text"
+                    value={etaTimeInput}
+                    onChange={(e) => handleTimeChange('eta', e.target.value)}
+                    placeholder="HH:MM"
+                    className="text-lg uppercase w-full"
+                  />
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    className="px-3"
+                    onClick={() => openTimePicker('eta')}
+                  >
+                    <span className="sr-only">Set current time</span>
+                    <Clock />
+                  </Button>
+                </div>
+              </div>
+              <div>
+                <label className="text-lg font-medium mb-1 block uppercase">STD</label>
+                <div className="flex items-center space-x-2">
+                  <Input
+                    type="text"
+                    value={stdTimeInput}
+                    onChange={(e) => handleTimeChange('std', e.target.value)}
+                    placeholder="HH:MM"
+                    className="text-lg uppercase w-full"
+                  />
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    className="px-3"
+                    onClick={() => openTimePicker('std')}
+                  >
+                    <span className="sr-only">Set current time</span>
+                    <Clock />
+                  </Button>
+                </div>
+              </div>
+              <div>
+                <label className="text-lg font-medium mb-1 block uppercase">UPD</label>
+                <div className="flex items-center space-x-2">
+                  <Input
+                    type="text"
+                    value={updTimeInput}
+                    onChange={(e) => handleTimeChange('upd', e.target.value)}
+                    placeholder="HH:MM"
+                    className="text-lg uppercase w-full"
+                  />
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    className="px-3"
+                    onClick={() => openTimePicker('upd')}
+                  >
+                    <span className="sr-only">Set current time</span>
+                    <Clock />
+                  </Button>
+                </div>
+              </div>
+            </div>
             <div>
               <label className="text-lg font-medium mb-1 block uppercase">Defect Description</label>
               <Input
@@ -407,26 +624,41 @@ const Index = () => {
                 className="text-lg uppercase"
               />
             </div>
-            <div className="flex space-x-6">
-              <div className="flex items-center space-x-2">
+            <div className="flex justify-center space-x-6 mt-2">
+              <div className="flex flex-col items-center space-y-1">
                 <Checkbox
                   id="sl"
                   checked={formData.sl}
                   onCheckedChange={(checked) => 
                     setFormData(prev => ({ ...prev, sl: checked as boolean }))
                   }
+                  className="h-5 w-5"
                 />
                 <label htmlFor="sl" className="text-lg font-medium uppercase">
                   SL
                 </label>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex flex-col items-center space-y-1">
+                <Checkbox
+                  id="rst"
+                  checked={formData.rst}
+                  onCheckedChange={(checked) => 
+                    setFormData(prev => ({ ...prev, rst: checked as boolean }))
+                  }
+                  className="h-5 w-5"
+                />
+                <label htmlFor="rst" className="text-lg font-medium uppercase">
+                  RST
+                </label>
+              </div>
+              <div className="flex flex-col items-center space-y-1">
                 <Checkbox
                   id="ok"
                   checked={formData.ok}
                   onCheckedChange={(checked) => 
                     setFormData(prev => ({ ...prev, ok: checked as boolean }))
                   }
+                  className="h-5 w-5"
                 />
                 <label htmlFor="ok" className="text-lg font-medium uppercase">
                   OK
@@ -468,23 +700,62 @@ const Index = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-lg font-medium mb-1 block uppercase">Date</label>
-                  <Input
-                    type="text"
-                    value={dateInput}
-                    onChange={(e) => handleDateInput(e.target.value, true)}
-                    placeholder="DD/MM/YYYY"
-                    className="text-lg uppercase w-[160px]"
-                  />
+                  <div className="relative">
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-[160px] justify-start text-left font-normal",
+                            !editingRecord.date && "text-muted-foreground"
+                          )}
+                        >
+                          {editingRecord.date ? format(new Date(editingRecord.date), "dd/MM/yyyy") : "Select date"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={editingRecord.date ? new Date(editingRecord.date) : undefined}
+                          onSelect={(date) => {
+                            if (date) {
+                              setEditingRecord({
+                                ...editingRecord,
+                                date: format(date, 'yyyy-MM-dd')
+                              });
+                            }
+                          }}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
                 </div>
                 <div>
                   <label className="text-lg font-medium mb-1 block uppercase">Time</label>
-                  <Input
-                    type="text"
-                    value={timeInput}
-                    onChange={(e) => handleTimeInput(e.target.value, true)}
-                    placeholder="HH:MM"
-                    className="text-lg uppercase w-[120px]"
-                  />
+                  <div className="flex items-center space-x-2">
+                    <Input
+                      type="text"
+                      value={timeInput}
+                      onChange={(e) => handleEditingTimeChange('time', e.target.value)}
+                      placeholder="HH:MM"
+                      className="text-lg uppercase w-[120px]"
+                    />
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      className="px-3"
+                      onClick={() => {
+                        const now = new Date();
+                        const timeStr = format(now, 'HH:mm');
+                        setTimeInput(timeStr);
+                        setEditingRecord({...editingRecord, time: timeStr});
+                      }}
+                    >
+                      <span className="sr-only">Set current time</span>
+                      <Clock />
+                    </Button>
+                  </div>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -515,6 +786,86 @@ const Index = () => {
                   />
                 </div>
               </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="text-lg font-medium mb-1 block uppercase">ETA</label>
+                  <div className="flex items-center space-x-2">
+                    <Input
+                      type="text"
+                      value={etaTimeInput}
+                      onChange={(e) => handleEditingTimeChange('eta', e.target.value)}
+                      placeholder="HH:MM"
+                      className="text-lg uppercase w-full"
+                    />
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      className="px-3"
+                      onClick={() => {
+                        const now = new Date();
+                        const timeStr = format(now, 'HH:mm');
+                        setEtaTimeInput(timeStr);
+                        setEditingRecord({...editingRecord, eta: timeStr});
+                      }}
+                    >
+                      <span className="sr-only">Set current time</span>
+                      <Clock />
+                    </Button>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-lg font-medium mb-1 block uppercase">STD</label>
+                  <div className="flex items-center space-x-2">
+                    <Input
+                      type="text"
+                      value={stdTimeInput}
+                      onChange={(e) => handleEditingTimeChange('std', e.target.value)}
+                      placeholder="HH:MM"
+                      className="text-lg uppercase w-full"
+                    />
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      className="px-3"
+                      onClick={() => {
+                        const now = new Date();
+                        const timeStr = format(now, 'HH:mm');
+                        setStdTimeInput(timeStr);
+                        setEditingRecord({...editingRecord, std: timeStr});
+                      }}
+                    >
+                      <span className="sr-only">Set current time</span>
+                      <Clock />
+                    </Button>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-lg font-medium mb-1 block uppercase">UPD</label>
+                  <div className="flex items-center space-x-2">
+                    <Input
+                      type="text"
+                      value={updTimeInput}
+                      onChange={(e) => handleEditingTimeChange('upd', e.target.value)}
+                      placeholder="HH:MM"
+                      className="text-lg uppercase w-full"
+                    />
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      className="px-3"
+                      onClick={() => {
+                        const now = new Date();
+                        const timeStr = format(now, 'HH:mm');
+                        setUpdTimeInput(timeStr);
+                        setEditingRecord({...editingRecord, upd: timeStr});
+                      }}
+                    >
+                      <span className="sr-only">Set current time</span>
+                      <Clock />
+                    </Button>
+                  </div>
+                </div>
+              </div>
               <div>
                 <label className="text-lg font-medium mb-1 block uppercase">Defect Description</label>
                 <Input
@@ -539,8 +890,8 @@ const Index = () => {
                   className="text-lg uppercase"
                 />
               </div>
-              <div className="flex space-x-6">
-                <div className="flex items-center space-x-2">
+              <div className="flex justify-center space-x-6 mt-2">
+                <div className="flex flex-col items-center space-y-1">
                   <Checkbox
                     id="edit-sl"
                     checked={editingRecord.sl}
@@ -550,12 +901,29 @@ const Index = () => {
                         sl: checked as boolean
                       })
                     }
+                    className="h-5 w-5"
                   />
                   <label htmlFor="edit-sl" className="text-lg font-medium uppercase">
                     SL
                   </label>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex flex-col items-center space-y-1">
+                  <Checkbox
+                    id="edit-rst"
+                    checked={editingRecord.rst}
+                    onCheckedChange={(checked) => 
+                      setEditingRecord({
+                        ...editingRecord, 
+                        rst: checked as boolean
+                      })
+                    }
+                    className="h-5 w-5"
+                  />
+                  <label htmlFor="edit-rst" className="text-lg font-medium uppercase">
+                    RST
+                  </label>
+                </div>
+                <div className="flex flex-col items-center space-y-1">
                   <Checkbox
                     id="edit-ok"
                     checked={editingRecord.ok}
@@ -565,6 +933,7 @@ const Index = () => {
                         ok: checked as boolean
                       })
                     }
+                    className="h-5 w-5"
                   />
                   <label htmlFor="edit-ok" className="text-lg font-medium uppercase">
                     OK
@@ -603,6 +972,10 @@ const Index = () => {
               <TableHead className="text-lg uppercase">Station</TableHead>
               <TableHead className="text-lg uppercase">Defect</TableHead>
               <TableHead className="text-lg uppercase">Remarks</TableHead>
+              <TableHead className="text-lg uppercase">ETA</TableHead>
+              <TableHead className="text-lg uppercase">STD</TableHead>
+              <TableHead className="text-lg uppercase">UPD</TableHead>
+              <TableHead className="text-lg uppercase">RST</TableHead>
               <TableHead className="text-lg uppercase">SL</TableHead>
               <TableHead className="text-lg uppercase">OK</TableHead>
               <TableHead className="text-lg uppercase">Actions</TableHead>
@@ -611,7 +984,7 @@ const Index = () => {
           <TableBody>
             {filteredRecords.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-8 text-lg text-gray-500">
+                <TableCell colSpan={12} className="text-center py-8 text-lg text-gray-500">
                   No records found
                 </TableCell>
               </TableRow>
@@ -631,8 +1004,12 @@ const Index = () => {
                   <TableCell className="text-lg uppercase">{record.station}</TableCell>
                   <TableCell className="text-lg uppercase">{record.defect}</TableCell>
                   <TableCell className="text-lg uppercase">{record.remarks}</TableCell>
-                  <TableCell className="text-lg uppercase">{record.sl ? "YES" : "NO"}</TableCell>
-                  <TableCell className="text-lg uppercase">{record.ok ? "YES" : "NO"}</TableCell>
+                  <TableCell className="text-lg uppercase">{record.eta}</TableCell>
+                  <TableCell className="text-lg uppercase">{record.std}</TableCell>
+                  <TableCell className="text-lg uppercase">{record.upd}</TableCell>
+                  <TableCell className="text-lg uppercase text-center">{record.rst ? "YES" : "NO"}</TableCell>
+                  <TableCell className="text-lg uppercase text-center">{record.sl ? "YES" : "NO"}</TableCell>
+                  <TableCell className="text-lg uppercase text-center">{record.ok ? "YES" : "NO"}</TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
                       <Button 
@@ -664,5 +1041,23 @@ const Index = () => {
     </div>
   );
 };
+
+// Define a Clock component
+const Clock = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <circle cx="12" cy="12" r="10" />
+    <polyline points="12 6 12 12 16 14" />
+  </svg>
+);
 
 export default Index;
