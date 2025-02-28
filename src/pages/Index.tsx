@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -38,6 +39,8 @@ const Index = () => {
   };
 
   const [formData, setFormData] = useState(initialFormState);
+  const [dateInput, setDateInput] = useState(format(new Date(), 'dd/MM/yyyy'));
+  const [timeInput, setTimeInput] = useState(format(new Date(), 'HH:mm'));
 
   const handleSort = () => {
     const newOrder = sortOrder === 'asc' ? 'desc' : 'asc';
@@ -86,14 +89,21 @@ const Index = () => {
     });
 
     setFormData(initialFormState);
+    setDateInput(format(new Date(), 'dd/MM/yyyy'));
+    setTimeInput(format(new Date(), 'HH:mm'));
     setIsModalOpen(false);
   };
 
   const handleClear = () => {
     setFormData(initialFormState);
+    setDateInput(format(new Date(), 'dd/MM/yyyy'));
+    setTimeInput(format(new Date(), 'HH:mm'));
   };
 
   const handleTimeInput = (value: string) => {
+    setTimeInput(value);
+    
+    // Only allow numbers and format them
     const numbers = value.replace(/[^\d]/g, '');
     if (numbers.length <= 4) {
       const hours = numbers.slice(0, 2);
@@ -118,11 +128,18 @@ const Index = () => {
           formattedTime += '00';
         }
       }
-      setFormData(prev => ({ ...prev, time: formattedTime }));
+      
+      if (formattedTime.includes(':')) {
+        setFormData(prev => ({ ...prev, time: formattedTime }));
+        setTimeInput(formattedTime);
+      }
     }
   };
 
   const handleDateInput = (value: string) => {
+    setDateInput(value);
+    
+    // Only allow numbers and format them
     const numbers = value.replace(/[^\d]/g, '');
     if (numbers.length <= 8) {
       const day = numbers.slice(0, 2);
@@ -156,11 +173,12 @@ const Index = () => {
         }
       }
 
-      if (formattedDate) {
+      if (formattedDate && formattedDate.split('/').length > 2) {
         try {
           const [d, m, y] = formattedDate.split('/');
           const isoDate = `${y || '2024'}-${m || '01'}-${d || '01'}`;
           setFormData(prev => ({ ...prev, date: isoDate }));
+          setDateInput(formattedDate);
         } catch (e) {
           console.error('Error parsing date:', e);
         }
@@ -169,12 +187,14 @@ const Index = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl fade-in">
-      <div className="flex justify-between items-center mb-8">
+    <div className="w-full px-4 py-8 fade-in">
+      <div className="flex justify-between items-center mb-8 max-w-[1920px] mx-auto">
         <h1 className="text-3xl font-semibold text-gray-900 uppercase">Aircraft Defect Records</h1>
         <Button 
           onClick={() => {
             setFormData(initialFormState);
+            setDateInput(format(new Date(), 'dd/MM/yyyy'));
+            setTimeInput(format(new Date(), 'HH:mm'));
             setIsModalOpen(true);
           }}
           className="bg-gray-900 text-white hover:bg-gray-800 transition-colors text-lg uppercase"
@@ -194,7 +214,7 @@ const Index = () => {
                 <label className="text-lg font-medium mb-1 block uppercase">Date</label>
                 <Input
                   type="text"
-                  value={format(new Date(formData.date), 'dd/MM/yyyy')}
+                  value={dateInput}
                   onChange={(e) => handleDateInput(e.target.value)}
                   placeholder="DD/MM/YYYY"
                   className="text-lg uppercase w-[160px]"
@@ -204,7 +224,7 @@ const Index = () => {
                 <label className="text-lg font-medium mb-1 block uppercase">Time</label>
                 <Input
                   type="text"
-                  value={formData.time}
+                  value={timeInput}
                   onChange={(e) => handleTimeInput(e.target.value)}
                   placeholder="HH:MM"
                   className="text-lg uppercase w-[120px]"
@@ -305,7 +325,7 @@ const Index = () => {
         </DialogContent>
       </Dialog>
 
-      <div className="bg-white rounded-lg shadow-sm border">
+      <div className="bg-white rounded-lg shadow-sm border max-w-[1920px] mx-auto">
         <Table>
           <TableHeader>
             <TableRow>
