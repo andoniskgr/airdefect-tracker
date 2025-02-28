@@ -1,7 +1,7 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { format } from 'date-fns';
 import { DefectRecord, FilterType } from "@/components/defect-records/DefectRecord.types";
 import { FilterButtons } from "@/components/defect-records/FilterButtons";
@@ -9,6 +9,8 @@ import { RecordsTable } from "@/components/defect-records/RecordsTable";
 import { AddDefectModal } from "@/components/defect-records/AddDefectModal";
 import { EditDefectModal } from "@/components/defect-records/EditDefectModal";
 import { exportToPdf } from '@/utils/pdfExport';
+
+const STORAGE_KEY = 'aircraft-defect-records';
 
 const Index = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -35,6 +37,24 @@ const Index = () => {
   };
 
   const [formData, setFormData] = useState(initialFormState);
+
+  // Load records from localStorage on component mount
+  useEffect(() => {
+    const storedRecords = localStorage.getItem(STORAGE_KEY);
+    if (storedRecords) {
+      try {
+        const parsedRecords = JSON.parse(storedRecords);
+        setRecords(parsedRecords);
+      } catch (error) {
+        console.error('Failed to parse stored records:', error);
+      }
+    }
+  }, []);
+
+  // Save records to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+  }, [records]);
 
   const handleSort = () => {
     const newOrder = sortOrder === 'asc' ? 'desc' : 'asc';

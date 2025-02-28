@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { format } from 'date-fns';
 import { Button } from "@/components/ui/button";
@@ -32,6 +31,7 @@ const Clock = () => (
 
 const TimePicker: React.FC<TimePickerProps> = ({ value, onChange, className }) => {
   const [open, setOpen] = useState(false);
+  const [inputDigits, setInputDigits] = useState<string[]>([]);
   
   // Generate time options in 30-minute intervals
   const timeOptions = [];
@@ -49,36 +49,62 @@ const TimePicker: React.FC<TimePickerProps> = ({ value, onChange, className }) =
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Only allow numbers and format them
-    const numbers = e.target.value.replace(/[^\d]/g, '');
-    if (numbers.length <= 4) {
-      const hours = numbers.slice(0, 2);
-      const minutes = numbers.slice(2, 4);
+    // Get only digit characters
+    const input = e.target.value.replace(/[^\d]/g, '');
+    
+    // Process new digit
+    if (input.length > 0) {
+      // Get the last digit if there are multiple digits entered at once
+      const lastDigit = input.charAt(input.length - 1);
       
-      let formattedTime = '';
-      if (hours) {
-        const hoursNum = parseInt(hours);
-        if (hoursNum >= 24) {
-          formattedTime = '23:';
-        } else {
-          formattedTime = hours.padStart(2, '0') + ':';
+      // Manage the input digits array
+      let newDigits = [...inputDigits];
+      if (input.length > inputDigits.join('').length) {
+        // Add the new digit
+        newDigits.push(lastDigit);
+        if (newDigits.length > 4) {
+          // Keep only the last 4 digits
+          newDigits = newDigits.slice(newDigits.length - 4);
+        }
+      } else {
+        // Handle backspace - remove last digit
+        newDigits.pop();
+      }
+      
+      setInputDigits(newDigits);
+      
+      // Format time based on digits entered
+      let formattedTime = "";
+      if (newDigits.length === 1) {
+        formattedTime = `00:0${newDigits[0]}`;
+      } else if (newDigits.length === 2) {
+        formattedTime = `00:${newDigits[0]}${newDigits[1]}`;
+      } else if (newDigits.length === 3) {
+        formattedTime = `0${newDigits[0]}:${newDigits[1]}${newDigits[2]}`;
+      } else if (newDigits.length === 4) {
+        formattedTime = `${newDigits[0]}${newDigits[1]}:${newDigits[2]}${newDigits[3]}`;
+      }
+      
+      // Validate hours and minutes
+      if (formattedTime) {
+        const [hours, minutes] = formattedTime.split(':').map(num => parseInt(num, 10));
+        
+        // Validate hours (0-23)
+        if (hours > 23) {
+          formattedTime = `23:${minutes < 10 ? '0' + minutes : minutes}`;
         }
         
-        if (minutes) {
-          const minutesNum = parseInt(minutes);
-          if (minutesNum >= 60) {
-            formattedTime += '59';
-          } else {
-            formattedTime += minutes.padStart(2, '0');
-          }
-        } else if (numbers.length > 2) {
-          formattedTime += '00';
+        // Validate minutes (0-59)
+        if (minutes > 59) {
+          formattedTime = `${hours < 10 ? '0' + hours : hours}:59`;
         }
-      }
-      
-      if (formattedTime && formattedTime.includes(':') || formattedTime === '') {
+        
         onChange(formattedTime);
       }
+    } else {
+      // Clear input
+      setInputDigits([]);
+      onChange('');
     }
   };
 
@@ -86,6 +112,11 @@ const TimePicker: React.FC<TimePickerProps> = ({ value, onChange, className }) =
     const now = new Date();
     const timeStr = format(now, 'HH:mm');
     onChange(timeStr);
+    
+    // Set the input digits from the current time
+    const hours = timeStr.substring(0, 2);
+    const minutes = timeStr.substring(3, 5);
+    setInputDigits([...hours.split(''), ...minutes.split('')]);
   };
 
   return (
