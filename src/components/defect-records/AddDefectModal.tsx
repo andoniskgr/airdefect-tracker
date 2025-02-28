@@ -9,40 +9,13 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from 'date-fns';
 import { cn } from "@/lib/utils";
 import { DefectRecord } from './DefectRecord.types';
-
-// Define a Clock component
-const Clock = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <circle cx="12" cy="12" r="10" />
-    <polyline points="12 6 12 12 16 14" />
-  </svg>
-);
+import { TimePicker } from '@/components/ui/time-picker';
 
 interface AddDefectModalProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   formData: Omit<DefectRecord, 'id'>;
   setFormData: React.Dispatch<React.SetStateAction<Omit<DefectRecord, 'id'>>>;
-  timeInput: string;
-  setTimeInput: React.Dispatch<React.SetStateAction<string>>;
-  etaTimeInput: string;
-  setEtaTimeInput: React.Dispatch<React.SetStateAction<string>>;
-  stdTimeInput: string;
-  setStdTimeInput: React.Dispatch<React.SetStateAction<string>>;
-  updTimeInput: string;
-  setUpdTimeInput: React.Dispatch<React.SetStateAction<string>>;
-  handleTimeChange: (field: string, value: string) => void;
-  openTimePicker: (field: string) => void;
   handleClear: () => void;
   handleSubmit: () => void;
 }
@@ -52,16 +25,6 @@ export const AddDefectModal = ({
   onOpenChange, 
   formData, 
   setFormData,
-  timeInput,
-  setTimeInput,
-  etaTimeInput,
-  setEtaTimeInput,
-  stdTimeInput,
-  setStdTimeInput,
-  updTimeInput,
-  setUpdTimeInput,
-  handleTimeChange,
-  openTimePicker,
   handleClear,
   handleSubmit
 }: AddDefectModalProps) => {
@@ -108,24 +71,10 @@ export const AddDefectModal = ({
             </div>
             <div>
               <label className="text-lg font-medium mb-1 block uppercase">Time</label>
-              <div className="flex items-center space-x-2">
-                <Input
-                  type="text"
-                  value={timeInput}
-                  onChange={(e) => handleTimeChange('time', e.target.value)}
-                  placeholder="HH:MM"
-                  className="text-lg uppercase w-[120px]"
-                />
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  className="px-3"
-                  onClick={() => openTimePicker('time')}
-                >
-                  <span className="sr-only">Set current time</span>
-                  <Clock />
-                </Button>
-              </div>
+              <TimePicker
+                value={formData.time}
+                onChange={(value) => setFormData(prev => ({ ...prev, time: value }))}
+              />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -159,66 +108,24 @@ export const AddDefectModal = ({
           <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="text-lg font-medium mb-1 block uppercase">ETA</label>
-              <div className="flex items-center space-x-2">
-                <Input
-                  type="text"
-                  value={etaTimeInput}
-                  onChange={(e) => handleTimeChange('eta', e.target.value)}
-                  placeholder="HH:MM"
-                  className="text-lg uppercase w-full"
-                />
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  className="px-3"
-                  onClick={() => openTimePicker('eta')}
-                >
-                  <span className="sr-only">Set current time</span>
-                  <Clock />
-                </Button>
-              </div>
+              <TimePicker
+                value={formData.eta}
+                onChange={(value) => setFormData(prev => ({ ...prev, eta: value }))}
+              />
             </div>
             <div>
               <label className="text-lg font-medium mb-1 block uppercase">STD</label>
-              <div className="flex items-center space-x-2">
-                <Input
-                  type="text"
-                  value={stdTimeInput}
-                  onChange={(e) => handleTimeChange('std', e.target.value)}
-                  placeholder="HH:MM"
-                  className="text-lg uppercase w-full"
-                />
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  className="px-3"
-                  onClick={() => openTimePicker('std')}
-                >
-                  <span className="sr-only">Set current time</span>
-                  <Clock />
-                </Button>
-              </div>
+              <TimePicker
+                value={formData.std}
+                onChange={(value) => setFormData(prev => ({ ...prev, std: value }))}
+              />
             </div>
             <div>
               <label className="text-lg font-medium mb-1 block uppercase">UPD</label>
-              <div className="flex items-center space-x-2">
-                <Input
-                  type="text"
-                  value={updTimeInput}
-                  onChange={(e) => handleTimeChange('upd', e.target.value)}
-                  placeholder="HH:MM"
-                  className="text-lg uppercase w-full"
-                />
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  className="px-3"
-                  onClick={() => openTimePicker('upd')}
-                >
-                  <span className="sr-only">Set current time</span>
-                  <Clock />
-                </Button>
-              </div>
+              <TimePicker
+                value={formData.upd}
+                onChange={(value) => setFormData(prev => ({ ...prev, upd: value }))}
+              />
             </div>
           </div>
           <div>

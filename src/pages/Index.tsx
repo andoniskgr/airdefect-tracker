@@ -35,86 +35,6 @@ const Index = () => {
   };
 
   const [formData, setFormData] = useState(initialFormState);
-  const [timeInput, setTimeInput] = useState(format(new Date(), 'HH:mm'));
-  const [etaTimeInput, setEtaTimeInput] = useState('');
-  const [stdTimeInput, setStdTimeInput] = useState('');
-  const [updTimeInput, setUpdTimeInput] = useState('');
-
-  const openTimePicker = (field: string) => {
-    const now = new Date();
-    const hours = now.getHours().toString().padStart(2, '0');
-    const minutes = now.getMinutes().toString().padStart(2, '0');
-    
-    switch(field) {
-      case 'time':
-        setTimeInput(`${hours}:${minutes}`);
-        setFormData(prev => ({ ...prev, time: `${hours}:${minutes}` }));
-        break;
-      case 'eta':
-        setEtaTimeInput(`${hours}:${minutes}`);
-        setFormData(prev => ({ ...prev, eta: `${hours}:${minutes}` }));
-        break;
-      case 'std':
-        setStdTimeInput(`${hours}:${minutes}`);
-        setFormData(prev => ({ ...prev, std: `${hours}:${minutes}` }));
-        break;
-      case 'upd':
-        setUpdTimeInput(`${hours}:${minutes}`);
-        setFormData(prev => ({ ...prev, upd: `${hours}:${minutes}` }));
-        break;
-    }
-  };
-
-  const handleTimeChange = (field: string, value: string) => {
-    // Only allow numbers and format them
-    const numbers = value.replace(/[^\d]/g, '');
-    if (numbers.length <= 4) {
-      const hours = numbers.slice(0, 2);
-      const minutes = numbers.slice(2, 4);
-      
-      let formattedTime = '';
-      if (hours) {
-        const hoursNum = parseInt(hours);
-        if (hoursNum >= 24) {
-          formattedTime = '23:';
-        } else {
-          formattedTime = hours.padStart(2, '0') + ':';
-        }
-        
-        if (minutes) {
-          const minutesNum = parseInt(minutes);
-          if (minutesNum >= 60) {
-            formattedTime += '59';
-          } else {
-            formattedTime += minutes.padStart(2, '0');
-          }
-        } else if (numbers.length > 2) {
-          formattedTime += '00';
-        }
-      }
-      
-      if (formattedTime && formattedTime.includes(':') || formattedTime === '') {
-        switch(field) {
-          case 'time':
-            setTimeInput(formattedTime);
-            setFormData(prev => ({ ...prev, time: formattedTime }));
-            break;
-          case 'eta':
-            setEtaTimeInput(formattedTime);
-            setFormData(prev => ({ ...prev, eta: formattedTime }));
-            break;
-          case 'std':
-            setStdTimeInput(formattedTime);
-            setFormData(prev => ({ ...prev, std: formattedTime }));
-            break;
-          case 'upd':
-            setUpdTimeInput(formattedTime);
-            setFormData(prev => ({ ...prev, upd: formattedTime }));
-            break;
-        }
-      }
-    }
-  };
 
   const handleSort = () => {
     const newOrder = sortOrder === 'asc' ? 'desc' : 'asc';
@@ -163,7 +83,6 @@ const Index = () => {
     });
 
     setFormData(initialFormState);
-    resetInputs();
     setIsModalOpen(false);
   };
 
@@ -209,14 +128,6 @@ const Index = () => {
 
   const handleClear = () => {
     setFormData(initialFormState);
-    resetInputs();
-  };
-
-  const resetInputs = () => {
-    setTimeInput('');
-    setEtaTimeInput('');
-    setStdTimeInput('');
-    setUpdTimeInput('');
   };
 
   const handleDeleteRecord = (id: string) => {
@@ -230,65 +141,6 @@ const Index = () => {
   const handleEditRecord = (record: DefectRecord) => {
     setEditingRecord({...record});
     setIsEditModalOpen(true);
-    
-    // Set fields for editing
-    setTimeInput(record.time || '');
-    setEtaTimeInput(record.eta || '');
-    setStdTimeInput(record.std || '');
-    setUpdTimeInput(record.upd || '');
-  };
-
-  const handleEditingTimeChange = (field: string, value: string) => {
-    if (!editingRecord) return;
-
-    // Only allow numbers and format them
-    const numbers = value.replace(/[^\d]/g, '');
-    if (numbers.length <= 4) {
-      const hours = numbers.slice(0, 2);
-      const minutes = numbers.slice(2, 4);
-      
-      let formattedTime = '';
-      if (hours) {
-        const hoursNum = parseInt(hours);
-        if (hoursNum >= 24) {
-          formattedTime = '23:';
-        } else {
-          formattedTime = hours.padStart(2, '0') + ':';
-        }
-        
-        if (minutes) {
-          const minutesNum = parseInt(minutes);
-          if (minutesNum >= 60) {
-            formattedTime += '59';
-          } else {
-            formattedTime += minutes.padStart(2, '0');
-          }
-        } else if (numbers.length > 2) {
-          formattedTime += '00';
-        }
-      }
-      
-      if (formattedTime && formattedTime.includes(':') || formattedTime === '') {
-        switch(field) {
-          case 'time':
-            setTimeInput(formattedTime);
-            setEditingRecord({ ...editingRecord, time: formattedTime });
-            break;
-          case 'eta':
-            setEtaTimeInput(formattedTime);
-            setEditingRecord({ ...editingRecord, eta: formattedTime });
-            break;
-          case 'std':
-            setStdTimeInput(formattedTime);
-            setEditingRecord({ ...editingRecord, std: formattedTime });
-            break;
-          case 'upd':
-            setUpdTimeInput(formattedTime);
-            setEditingRecord({ ...editingRecord, upd: formattedTime });
-            break;
-        }
-      }
-    }
   };
 
   const handleExportToPdf = () => {
@@ -315,7 +167,6 @@ const Index = () => {
           <Button 
             onClick={() => {
               setFormData(initialFormState);
-              resetInputs();
               setIsModalOpen(true);
             }}
             className="bg-gray-900 text-white hover:bg-gray-800 transition-colors text-lg uppercase"
@@ -330,16 +181,6 @@ const Index = () => {
         onOpenChange={setIsModalOpen}
         formData={formData}
         setFormData={setFormData}
-        timeInput={timeInput}
-        setTimeInput={setTimeInput}
-        etaTimeInput={etaTimeInput}
-        setEtaTimeInput={setEtaTimeInput}
-        stdTimeInput={stdTimeInput}
-        setStdTimeInput={setStdTimeInput}
-        updTimeInput={updTimeInput}
-        setUpdTimeInput={setUpdTimeInput}
-        handleTimeChange={handleTimeChange}
-        openTimePicker={openTimePicker}
         handleClear={handleClear}
         handleSubmit={handleSubmit}
       />
@@ -349,15 +190,6 @@ const Index = () => {
         onOpenChange={setIsEditModalOpen}
         editingRecord={editingRecord}
         setEditingRecord={setEditingRecord}
-        timeInput={timeInput}
-        setTimeInput={setTimeInput}
-        etaTimeInput={etaTimeInput}
-        setEtaTimeInput={setEtaTimeInput}
-        stdTimeInput={stdTimeInput}
-        setStdTimeInput={setStdTimeInput}
-        updTimeInput={updTimeInput}
-        setUpdTimeInput={setUpdTimeInput}
-        handleEditingTimeChange={handleEditingTimeChange}
         handleEditSubmit={handleEditSubmit}
       />
 

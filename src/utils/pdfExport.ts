@@ -2,12 +2,14 @@
 import { toast } from "@/hooks/use-toast";
 import html2pdf from 'html2pdf.js';
 import { DefectRecord } from '@/components/defect-records/DefectRecord.types';
+import { format } from 'date-fns';
 
 export const exportToPdf = (filteredRecords: DefectRecord[]) => {
   // Create a temporary hidden div for the PDF export
   const exportDiv = document.createElement('div');
   exportDiv.style.position = 'absolute';
   exportDiv.style.left = '-9999px';
+  document.body.appendChild(exportDiv);
   exportDiv.className = 'pdf-export';
   
   // Create table HTML
@@ -17,17 +19,18 @@ export const exportToPdf = (filteredRecords: DefectRecord[]) => {
         width: 100%;
         border-collapse: collapse;
         font-family: Arial, sans-serif;
+        margin-bottom: 20px;
       }
       .pdf-table th {
         background-color: #f3f4f6;
         padding: 8px;
         text-align: left;
         font-weight: bold;
-        border-bottom: 1px solid #e5e7eb;
+        border: 1px solid #e5e7eb;
       }
       .pdf-table td {
         padding: 8px;
-        border-bottom: 1px solid #e5e7eb;
+        border: 1px solid #e5e7eb;
       }
       .pdf-table tr:nth-child(even) {
         background-color: #f9fafb;
@@ -38,7 +41,13 @@ export const exportToPdf = (filteredRecords: DefectRecord[]) => {
       .pdf-table .sl-row {
         background-color: #FEF7CD;
       }
+      h2 {
+        text-align: center;
+        margin-bottom: 20px;
+        font-family: Arial, sans-serif;
+      }
     </style>
+    <h2>Aircraft Defect Records - ${format(new Date(), 'dd/MM/yyyy')}</h2>
     <table class="pdf-table">
       <thead>
         <tr>
@@ -54,11 +63,11 @@ export const exportToPdf = (filteredRecords: DefectRecord[]) => {
       <tbody>
         ${filteredRecords.map(record => `
           <tr class="${record.ok ? 'ok-row' : record.sl ? 'sl-row' : ''}">
-            <td>${record.time}</td>
-            <td>${record.registration}</td>
-            <td>${record.station}</td>
-            <td>${record.defect}</td>
-            <td>${record.remarks}</td>
+            <td>${record.time || ''}</td>
+            <td>${record.registration || ''}</td>
+            <td>${record.station || ''}</td>
+            <td>${record.defect || ''}</td>
+            <td>${record.remarks || ''}</td>
             <td>${record.rst ? 'YES' : 'NO'}</td>
             <td>${record.ok ? 'YES' : 'NO'}</td>
           </tr>
@@ -66,8 +75,6 @@ export const exportToPdf = (filteredRecords: DefectRecord[]) => {
       </tbody>
     </table>
   `;
-  
-  document.body.appendChild(exportDiv);
   
   // Export to PDF using html2pdf
   const opt = {
@@ -78,13 +85,25 @@ export const exportToPdf = (filteredRecords: DefectRecord[]) => {
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
   };
   
-  html2pdf().from(exportDiv).set(opt).save().then(() => {
-    // Clean up
-    document.body.removeChild(exportDiv);
-    
-    toast({
-      title: "SUCCESS",
-      description: "PDF EXPORT COMPLETE",
+  // Delay slightly to ensure the DOM is ready
+  setTimeout(() => {
+    html2pdf().set(opt).from(exportDiv).save().then(() => {
+      // Clean up
+      document.body.removeChild(exportDiv);
+      
+      toast({
+        title: "SUCCESS",
+        description: "PDF EXPORT COMPLETE",
+      });
+    }).catch(error => {
+      console.error("PDF generation error:", error);
+      document.body.removeChild(exportDiv);
+      
+      toast({
+        title: "ERROR",
+        description: "FAILED TO GENERATE PDF",
+        variant: "destructive"
+      });
     });
-  });
+  }, 100);
 };
