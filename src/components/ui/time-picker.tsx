@@ -121,7 +121,7 @@ const TimePicker: React.FC<TimePickerProps> = ({ value, onChange, className }) =
 
   return (
     <div className={cn("flex items-center gap-2", className)}>
-      <Popover open={open} onOpenChange={setOpen}>
+{/*       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
             variant="outline"
@@ -150,7 +150,7 @@ const TimePicker: React.FC<TimePickerProps> = ({ value, onChange, className }) =
             ))}
           </div>
         </PopoverContent>
-      </Popover>
+      </Popover> */}
       <Input
         type="text"
         value={value}
