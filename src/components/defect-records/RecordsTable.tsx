@@ -24,7 +24,7 @@ export const RecordsTable = ({
         <TableHeader>
           <TableRow>
             <TableHead className="cursor-pointer text-lg uppercase" onClick={handleSort}>
-              Date/Time1
+              Date/Time
               <ArrowUpDown className="ml-2 h-4 w-4 inline" />
             </TableHead>
             <TableHead className="text-lg uppercase">Registration</TableHead>
