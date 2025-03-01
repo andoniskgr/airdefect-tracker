@@ -121,36 +121,6 @@ const TimePicker: React.FC<TimePickerProps> = ({ value, onChange, className }) =
 
   return (
     <div className={cn("flex items-center gap-2", className)}>
-{/*       <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            className={cn(
-              "justify-start text-left font-normal",
-              !value && "text-muted-foreground"
-            )}
-          >
-            {value || 'Select time'}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-2 h-[300px] overflow-y-auto">
-          <div className="grid grid-cols-2 gap-2">
-            {timeOptions.map((time) => (
-              <Button
-                key={time}
-                variant="outline"
-                onClick={() => handleTimeSelection(time)}
-                className={cn(
-                  "justify-center",
-                  time === value && "bg-primary text-primary-foreground"
-                )}
-              >
-                {time}
-              </Button>
-            ))}
-          </div>
-        </PopoverContent>
-      </Popover> */}
       <Input
         type="text"
         value={value}
