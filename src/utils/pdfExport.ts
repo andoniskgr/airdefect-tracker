@@ -1,4 +1,3 @@
-
 import { toast } from "@/hooks/use-toast";
 import html2pdf from 'html2pdf.js';
 import { DefectRecord } from '@/components/defect-records/DefectRecord.types';
@@ -130,4 +129,70 @@ export const exportToPdf = (filteredRecords: DefectRecord[]) => {
       });
     }
   }, 1000);
+};
+
+export const exportToExcel = (filteredRecords: DefectRecord[]) => {
+  if (filteredRecords.length === 0) {
+    toast({
+      title: "WARNING",
+      description: "NO RECORDS TO EXPORT",
+      variant: "destructive",
+    });
+    return;
+  }
+
+  console.log("Starting Excel export with", filteredRecords.length, "records");
+  
+  // CSV header
+  let csvContent = "Date/Time,Registration,Station,Defect,Remarks,ETA,STD,UPD,RST,SL,OK\n";
+  
+  // Add rows for each record
+  filteredRecords.forEach(record => {
+    const formattedDate = format(new Date(record.date), 'dd/MM/yyyy');
+    const rst = record.rst ? "YES" : "NO";
+    const sl = record.sl ? "YES" : "NO";
+    const ok = record.ok ? "YES" : "NO";
+    
+    // Escape commas and quotes in text fields
+    const escapeCSV = (text: string) => {
+      if (!text) return '';
+      const needsQuotes = text.includes(',') || text.includes('"') || text.includes('\n');
+      if (!needsQuotes) return text;
+      return `"${text.replace(/"/g, '""')}"`;
+    };
+    
+    const row = [
+      `${formattedDate} ${record.time}`,
+      escapeCSV(record.registration),
+      escapeCSV(record.station),
+      escapeCSV(record.defect),
+      escapeCSV(record.remarks),
+      escapeCSV(record.eta),
+      escapeCSV(record.std),
+      escapeCSV(record.upd),
+      rst,
+      sl,
+      ok
+    ];
+    
+    csvContent += row.join(',') + '\n';
+  });
+  
+  // Create a Blob and download link
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', 'aircraft_defect_records.csv');
+  document.body.appendChild(link);
+  
+  // Trigger download and clean up
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+  
+  toast({
+    title: "SUCCESS",
+    description: "EXCEL EXPORT COMPLETE",
+  });
 };

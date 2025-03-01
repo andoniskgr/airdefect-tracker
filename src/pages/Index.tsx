@@ -8,7 +8,7 @@ import { FilterButtons } from "@/components/defect-records/FilterButtons";
 import { RecordsTable } from "@/components/defect-records/RecordsTable";
 import { AddDefectModal } from "@/components/defect-records/AddDefectModal";
 import { EditDefectModal } from "@/components/defect-records/EditDefectModal";
-import { exportToPdf } from '@/utils/pdfExport';
+import { exportToPdf, exportToExcel } from '@/utils/pdfExport';
 
 const STORAGE_KEY = 'aircraft-defect-records';
 
@@ -175,6 +175,18 @@ const Index = () => {
     exportToPdf(filteredRecords);
   };
 
+  const handleExportToExcel = () => {
+    if (filteredRecords.length === 0) {
+      toast({
+        title: "WARNING",
+        description: "NO RECORDS TO EXPORT",
+        variant: "destructive",
+      });
+      return;
+    }
+    exportToExcel(filteredRecords);
+  };
+
   const filteredRecords = records.filter(record => {
     if (filter === 'all') return true;
     if (filter === 'sl') return record.sl;
@@ -190,7 +202,8 @@ const Index = () => {
           <FilterButtons 
             filter={filter} 
             setFilter={setFilter} 
-            exportToPdf={handleExportToPdf} 
+            exportToPdf={handleExportToPdf}
+            exportToExcel={handleExportToExcel}
           />
           <Button 
             onClick={() => {

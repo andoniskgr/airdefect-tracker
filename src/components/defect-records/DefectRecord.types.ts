@@ -16,3 +16,4 @@ export interface DefectRecord {
 }
 
 export type FilterType = 'all' | 'sl' | 'ok';
+export type ExportType = 'pdf' | 'excel';
