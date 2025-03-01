@@ -49,11 +49,19 @@ export const AddDefectModal = ({
 
   // Set focus on registration field when modal opens
   useEffect(() => {
-    if (isOpen && registrationRef.current) {
-      // Use a slightly longer delay to ensure DOM is fully ready
-      setTimeout(() => {
-        registrationRef.current?.focus();
-      }, 300);
+    if (isOpen) {
+      // Use a more aggressive approach to ensure focus works
+      const focusInterval = setInterval(() => {
+        if (registrationRef.current) {
+          registrationRef.current.focus();
+          clearInterval(focusInterval);
+        }
+      }, 100);
+      
+      // Clear interval after a reasonable time to prevent memory leaks
+      setTimeout(() => clearInterval(focusInterval), 2000);
+      
+      return () => clearInterval(focusInterval);
     }
   }, [isOpen]);
 
@@ -128,9 +136,20 @@ export const AddDefectModal = ({
     }
   };
 
+  // Additional logging to debug focus issues
+  useEffect(() => {
+    if (isOpen) {
+      console.log("Modal opened, registration ref exists:", !!registrationRef.current);
+    }
+  }, [isOpen]);
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md" onOpenAutoFocus={(e) => {
+        e.preventDefault(); // Prevent default autofocus behavior
+        // Force focus on registration field
+        setTimeout(() => registrationRef.current?.focus(), 50);
+      }}>
         <DialogHeader>
           <DialogTitle className="text-2xl uppercase">Record Aircraft Defect</DialogTitle>
           <DialogDescription className="sr-only">
@@ -191,6 +210,7 @@ export const AddDefectModal = ({
                   validationErrors.registration && "bg-red-50 border-red-200 focus-visible:ring-red-300"
                 )}
                 maxLength={6}
+                autoFocus={true}
               />
             </div>
             <div>
