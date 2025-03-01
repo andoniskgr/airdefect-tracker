@@ -18,89 +18,90 @@ export const exportToPdf = (filteredRecords: DefectRecord[]) => {
   
   // Create a temporary div element for rendering the PDF content
   const exportContainer = document.createElement('div');
-  exportContainer.style.position = 'fixed';
-  exportContainer.style.top = '0';
-  exportContainer.style.left = '0';
-  exportContainer.style.width = '1120px'; // A4 landscape approx width at 96 DPI
-  exportContainer.style.height = '792px'; // A4 landscape approx height at 96 DPI
-  exportContainer.style.backgroundColor = 'white';
-  exportContainer.style.zIndex = '-9999';
-  exportContainer.style.opacity = '0';
+  exportContainer.style.width = '100%';
+  exportContainer.style.padding = '20px';
+  exportContainer.style.position = 'absolute';
+  exportContainer.style.left = '-9999px';
+  exportContainer.style.background = 'white';
   
   document.body.appendChild(exportContainer);
   
-  // Build table rows with explicit styling for each record
-  const tableContent = filteredRecords.map(record => `
-    <tr style="${record.ok ? 'background-color: #F2FCE2;' : record.sl ? 'background-color: #FEF7CD;' : 'background-color: #ffffff;'}">
-      <td style="padding: 8px; border: 1px solid #000000; color: #000000;">${record.time || ''}</td>
-      <td style="padding: 8px; border: 1px solid #000000; color: #000000;">${record.registration || ''}</td>
-      <td style="padding: 8px; border: 1px solid #000000; color: #000000;">${record.station || ''}</td>
-      <td style="padding: 8px; border: 1px solid #000000; color: #000000;">${record.defect || ''}</td>
-      <td style="padding: 8px; border: 1px solid #000000; color: #000000;">${record.remarks || ''}</td>
-      <td style="padding: 8px; border: 1px solid #000000; text-align: center; color: #000000;">${record.rst ? 'YES' : 'NO'}</td>
-      <td style="padding: 8px; border: 1px solid #000000; text-align: center; color: #000000;">${record.ok ? 'YES' : 'NO'}</td>
-    </tr>
-  `).join('');
+  // Format date for the title
+  const currentDate = format(new Date(), 'dd/MM/yyyy');
   
-  // Create the HTML content with explicit styling
-  exportContainer.innerHTML = `
-    <div style="font-family: Arial, sans-serif; padding: 20px; color: #000000 !important; background-color: white !important;">
-      <h2 style="text-align: center; margin-bottom: 20px; color: #000000 !important; font-size: 18px; font-weight: bold;">Aircraft Defect Records - ${format(new Date(), 'dd/MM/yyyy')}</h2>
-      <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; color: #000000 !important; background-color: white !important; border: 1px solid #000000;">
+  // Build HTML content for PDF
+  let htmlContent = `
+    <div style="font-family: Arial, sans-serif; color: black; background-color: white; width: 100%;">
+      <h2 style="text-align: center; margin-bottom: 20px; color: black; font-size: 18px; font-weight: bold;">Aircraft Defect Records - ${currentDate}</h2>
+      <table style="width: 100%; border-collapse: collapse; border: 1px solid black;">
         <thead>
           <tr style="background-color: #e0e0e0;">
-            <th style="padding: 8px; text-align: left; font-weight: bold; border: 1px solid #000000; color: #000000 !important;">Time</th>
-            <th style="padding: 8px; text-align: left; font-weight: bold; border: 1px solid #000000; color: #000000 !important;">Registration</th>
-            <th style="padding: 8px; text-align: left; font-weight: bold; border: 1px solid #000000; color: #000000 !important;">Station</th>
-            <th style="padding: 8px; text-align: left; font-weight: bold; border: 1px solid #000000; color: #000000 !important;">Defect</th>
-            <th style="padding: 8px; text-align: left; font-weight: bold; border: 1px solid #000000; color: #000000 !important;">Remarks</th>
-            <th style="padding: 8px; text-align: left; font-weight: bold; border: 1px solid #000000; color: #000000 !important;">RST</th>
-            <th style="padding: 8px; text-align: left; font-weight: bold; border: 1px solid #000000; color: #000000 !important;">OK</th>
+            <th style="padding: 8px; border: 1px solid black; color: black; text-align: left; font-weight: bold;">Time</th>
+            <th style="padding: 8px; border: 1px solid black; color: black; text-align: left; font-weight: bold;">Registration</th>
+            <th style="padding: 8px; border: 1px solid black; color: black; text-align: left; font-weight: bold;">Station</th>
+            <th style="padding: 8px; border: 1px solid black; color: black; text-align: left; font-weight: bold;">Defect</th>
+            <th style="padding: 8px; border: 1px solid black; color: black; text-align: left; font-weight: bold;">Remarks</th>
+            <th style="padding: 8px; border: 1px solid black; color: black; text-align: center; font-weight: bold;">RST</th>
+            <th style="padding: 8px; border: 1px solid black; color: black; text-align: center; font-weight: bold;">OK</th>
           </tr>
         </thead>
         <tbody>
-          ${tableContent}
+  `;
+  
+  // Add table rows for each record
+  filteredRecords.forEach(record => {
+    const bgColor = record.ok ? "#F2FCE2" : record.sl ? "#FEF7CD" : "#ffffff";
+    
+    htmlContent += `
+      <tr style="background-color: ${bgColor};">
+        <td style="padding: 8px; border: 1px solid black; color: black;">${record.time || ''}</td>
+        <td style="padding: 8px; border: 1px solid black; color: black;">${record.registration || ''}</td>
+        <td style="padding: 8px; border: 1px solid black; color: black;">${record.station || ''}</td>
+        <td style="padding: 8px; border: 1px solid black; color: black;">${record.defect || ''}</td>
+        <td style="padding: 8px; border: 1px solid black; color: black;">${record.remarks || ''}</td>
+        <td style="padding: 8px; border: 1px solid black; color: black; text-align: center;">${record.rst ? 'YES' : 'NO'}</td>
+        <td style="padding: 8px; border: 1px solid black; color: black; text-align: center;">${record.ok ? 'YES' : 'NO'}</td>
+      </tr>
+    `;
+  });
+  
+  // Close the table and containing div
+  htmlContent += `
         </tbody>
       </table>
     </div>
   `;
   
-  // Ensure the element is visible in the DOM
-  console.log("HTML content for PDF:", exportContainer.innerHTML.substring(0, 200) + "...");
+  // Set the HTML content
+  exportContainer.innerHTML = htmlContent;
   
-  // Configure PDF options with more robust settings
-  const pdfOptions = {
-    margin: [10, 10, 10, 10],
-    filename: 'aircraft_defect_records.pdf',
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { 
-      scale: 2,
-      useCORS: true,
-      logging: true,
-      letterRendering: true,
-      allowTaint: true,
-      backgroundColor: '#ffffff',
-      removeContainer: false
-    },
-    jsPDF: { 
-      unit: 'mm', 
-      format: 'a4', 
-      orientation: 'landscape',
-      compress: true,
-      precision: 3
-    }
-  };
+  console.log("HTML content length:", htmlContent.length);
+  console.log("Sample of HTML content:", htmlContent.substring(0, 200) + "...");
   
-  // Use a longer timeout to ensure DOM rendering is complete
+  // Allow time for the DOM to update before generating PDF
   setTimeout(() => {
-    console.log("Generating PDF now...");
+    console.log("Starting to generate PDF...");
     
-    // Create and save the PDF
-    html2pdf()
-      .from(exportContainer)
-      .set(pdfOptions)
-      .save()
-      .then(() => {
+    // Configure PDF options
+    const pdfOptions = {
+      margin: 10,
+      filename: 'aircraft_defect_records.pdf',
+      image: { type: 'jpeg', quality: 1 },
+      html2canvas: { 
+        scale: 2,
+        useCORS: true,
+        logging: true
+      },
+      jsPDF: { 
+        unit: 'mm', 
+        format: 'a4', 
+        orientation: 'landscape'
+      }
+    };
+    
+    try {
+      // Generate PDF
+      html2pdf().from(exportContainer).set(pdfOptions).save().then(() => {
         console.log("PDF generation successful");
         document.body.removeChild(exportContainer);
         
@@ -108,8 +109,7 @@ export const exportToPdf = (filteredRecords: DefectRecord[]) => {
           title: "SUCCESS",
           description: "PDF EXPORT COMPLETE",
         });
-      })
-      .catch(error => {
+      }).catch(error => {
         console.error("PDF generation error:", error);
         document.body.removeChild(exportContainer);
         
@@ -119,5 +119,15 @@ export const exportToPdf = (filteredRecords: DefectRecord[]) => {
           variant: "destructive"
         });
       });
-  }, 1500); // Increased delay to ensure complete rendering
+    } catch (error) {
+      console.error("Error during PDF generation setup:", error);
+      document.body.removeChild(exportContainer);
+      
+      toast({
+        title: "ERROR",
+        description: "FAILED TO SETUP PDF GENERATION",
+        variant: "destructive"
+      });
+    }
+  }, 1000);
 };
