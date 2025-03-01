@@ -1,14 +1,16 @@
-import React, { useState } from 'react';
+
+import React, { useState, useRef, useEffect } from 'react';
 import { format } from 'date-fns';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
 interface TimePickerProps {
   value: string;
   onChange: (value: string) => void;
   className?: string;
+  isError?: boolean;
+  onEnterPress?: () => void;
 }
 
 // Clock icon component
@@ -29,23 +31,26 @@ const Clock = () => (
   </svg>
 );
 
-const TimePicker: React.FC<TimePickerProps> = ({ value, onChange, className }) => {
-  const [open, setOpen] = useState(false);
+const TimePicker: React.FC<TimePickerProps> = ({ 
+  value, 
+  onChange, 
+  className, 
+  isError = false,
+  onEnterPress
+}) => {
   const [inputDigits, setInputDigits] = useState<string[]>([]);
+  const inputRef = useRef<HTMLInputElement>(null);
   
-  // Generate time options in 30-minute intervals
-  const timeOptions = [];
-  for (let hour = 0; hour < 24; hour++) {
-    for (let minute of [0, 30]) {
-      const time = new Date();
-      time.setHours(hour, minute, 0);
-      timeOptions.push(format(time, 'HH:mm'));
+  // Track initial render to focus
+  useEffect(() => {
+    if (value && value.includes(':')) {
+      const [hours, minutes] = value.split(':');
+      setInputDigits([...hours.split(''), ...minutes.split('')]);
     }
-  }
+  }, []);
 
   const handleTimeSelection = (time: string) => {
     onChange(time);
-    setOpen(false);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -108,6 +113,13 @@ const TimePicker: React.FC<TimePickerProps> = ({ value, onChange, className }) =
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && onEnterPress) {
+      e.preventDefault();
+      onEnterPress();
+    }
+  };
+
   const setCurrentTime = () => {
     const now = new Date();
     const timeStr = format(now, 'HH:mm');
@@ -122,11 +134,16 @@ const TimePicker: React.FC<TimePickerProps> = ({ value, onChange, className }) =
   return (
     <div className={cn("flex items-center gap-2", className)}>
       <Input
+        ref={inputRef}
         type="text"
         value={value}
         onChange={handleInputChange}
+        onKeyDown={handleKeyDown}
         placeholder="HH:MM"
-        className="text-lg uppercase w-[80px]"
+        className={cn(
+          "text-lg uppercase w-[80px]",
+          isError && "bg-red-50 border-red-200 focus-visible:ring-red-300"
+        )}
       />
       <Button
         type="button"

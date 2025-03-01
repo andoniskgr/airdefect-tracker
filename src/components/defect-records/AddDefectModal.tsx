@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +28,105 @@ export const AddDefectModal = ({
   handleClear,
   handleSubmit
 }: AddDefectModalProps) => {
+  const [validationErrors, setValidationErrors] = useState<Record<string, boolean>>({});
+  
+  // References for all input fields for navigation
+  const registrationRef = useRef<HTMLInputElement>(null);
+  const stationRef = useRef<HTMLInputElement>(null);
+  const defectRef = useRef<HTMLInputElement>(null);
+  const remarksRef = useRef<HTMLInputElement>(null);
+
+  // Validation function for form fields
+  const validateField = (field: string, value: string): boolean => {
+    if (['registration', 'station', 'defect'].includes(field) && !value) {
+      return false;
+    }
+    if (['registration', 'station'].includes(field) && value.length > 6) {
+      return false;
+    }
+    return true;
+  };
+
+  // Set focus on registration field when modal opens
+  useEffect(() => {
+    if (isOpen && registrationRef.current) {
+      setTimeout(() => {
+        registrationRef.current?.focus();
+      }, 100);
+    }
+  }, [isOpen]);
+
+  // Handle field validation on change
+  const handleFieldChange = (field: keyof Omit<DefectRecord, 'id'>, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    
+    // For text fields, validate and update errors
+    if (typeof value === 'string') {
+      const isValid = validateField(field as string, value);
+      setValidationErrors(prev => ({
+        ...prev,
+        [field]: !isValid
+      }));
+    }
+  };
+
+  // Handle enter key press to navigate between fields
+  const handleEnterOnField = (fieldName: string) => {
+    switch(fieldName) {
+      case 'registration':
+        stationRef.current?.focus();
+        break;
+      case 'station':
+        defectRef.current?.focus();
+        break;
+      case 'defect':
+        remarksRef.current?.focus();
+        break;
+      case 'remarks':
+        validateAndSubmit();
+        break;
+      default:
+        break;
+    }
+  };
+
+  // Validation and submit function
+  const validateAndSubmit = () => {
+    const requiredFields = ['registration', 'station', 'defect'];
+    const errors: Record<string, boolean> = {};
+    let hasErrors = false;
+
+    requiredFields.forEach((field) => {
+      const value = formData[field as keyof Omit<DefectRecord, 'id'>] as string;
+      const isValid = validateField(field, value);
+      errors[field] = !isValid;
+      if (!isValid) hasErrors = true;
+    });
+
+    setValidationErrors(errors);
+
+    if (!hasErrors) {
+      handleSubmit();
+    } else {
+      // Focus the first field with an error
+      for (const field of requiredFields) {
+        if (errors[field]) {
+          if (field === 'registration') registrationRef.current?.focus();
+          else if (field === 'station') stationRef.current?.focus();
+          else if (field === 'defect') defectRef.current?.focus();
+          break;
+        }
+      }
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, fieldName: string) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleEnterOnField(fieldName);
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -60,7 +159,7 @@ export const AddDefectModal = ({
                       selected={formData.date ? new Date(formData.date) : undefined}
                       onSelect={(date) => {
                         if (date) {
-                          setFormData({ ...formData, date: format(date, 'yyyy-MM-dd') });
+                          handleFieldChange('date', format(date, 'yyyy-MM-dd'));
                         }
                       }}
                       initialFocus
@@ -73,7 +172,7 @@ export const AddDefectModal = ({
               <label className="text-lg font-medium mb-1 block uppercase">Time</label>
               <TimePicker
                 value={formData.time}
-                onChange={(value) => setFormData(prev => ({ ...prev, time: value }))}
+                onChange={(value) => handleFieldChange('time', value)}
               />
             </div>
           </div>
@@ -81,26 +180,30 @@ export const AddDefectModal = ({
             <div>
               <label className="text-lg font-medium mb-1 block uppercase">Registration</label>
               <Input
+                ref={registrationRef}
                 value={formData.registration}
-                onChange={(e) => setFormData(prev => ({ 
-                  ...prev, 
-                  registration: e.target.value.toUpperCase().slice(0, 6)
-                }))}
+                onChange={(e) => handleFieldChange('registration', e.target.value.toUpperCase().slice(0, 6))}
+                onKeyDown={(e) => handleKeyDown(e, 'registration')}
                 placeholder="REGISTRATION"
-                className="text-lg uppercase w-[120px]"
+                className={cn(
+                  "text-lg uppercase w-[120px]",
+                  validationErrors.registration && "bg-red-50 border-red-200 focus-visible:ring-red-300"
+                )}
                 maxLength={6}
               />
             </div>
             <div>
               <label className="text-lg font-medium mb-1 block uppercase">Station</label>
               <Input
+                ref={stationRef}
                 value={formData.station}
-                onChange={(e) => setFormData(prev => ({ 
-                  ...prev, 
-                  station: e.target.value.toUpperCase().slice(0, 6)
-                }))}
+                onChange={(e) => handleFieldChange('station', e.target.value.toUpperCase().slice(0, 6))}
+                onKeyDown={(e) => handleKeyDown(e, 'station')}
                 placeholder="STATION"
-                className="text-lg uppercase w-[120px]"
+                className={cn(
+                  "text-lg uppercase w-[120px]",
+                  validationErrors.station && "bg-red-50 border-red-200 focus-visible:ring-red-300"
+                )}
                 maxLength={6}
               />
             </div>
@@ -110,38 +213,48 @@ export const AddDefectModal = ({
               <label className="text-lg font-medium mb-1 block uppercase">ETA</label>
               <TimePicker
                 value={formData.eta}
-                onChange={(value) => setFormData(prev => ({ ...prev, eta: value }))}
+                onChange={(value) => handleFieldChange('eta', value)}
+                onEnterPress={() => stationRef.current?.focus()}
               />
             </div>
             <div>
               <label className="text-lg font-medium mb-1 block uppercase">STD</label>
               <TimePicker
                 value={formData.std}
-                onChange={(value) => setFormData(prev => ({ ...prev, std: value }))}
+                onChange={(value) => handleFieldChange('std', value)}
+                onEnterPress={() => defectRef.current?.focus()}
               />
             </div>
             <div>
               <label className="text-lg font-medium mb-1 block uppercase">UPD</label>
               <TimePicker
                 value={formData.upd}
-                onChange={(value) => setFormData(prev => ({ ...prev, upd: value }))}
+                onChange={(value) => handleFieldChange('upd', value)}
+                onEnterPress={() => defectRef.current?.focus()}
               />
             </div>
           </div>
           <div>
             <label className="text-lg font-medium mb-1 block uppercase">Defect Description</label>
             <Input
+              ref={defectRef}
               value={formData.defect}
-              onChange={(e) => setFormData(prev => ({ ...prev, defect: e.target.value.toUpperCase() }))}
+              onChange={(e) => handleFieldChange('defect', e.target.value.toUpperCase())}
+              onKeyDown={(e) => handleKeyDown(e, 'defect')}
               placeholder="DESCRIPTION"
-              className="text-lg uppercase"
+              className={cn(
+                "text-lg uppercase",
+                validationErrors.defect && "bg-red-50 border-red-200 focus-visible:ring-red-300"
+              )}
             />
           </div>
           <div>
             <label className="text-lg font-medium mb-1 block uppercase">Remarks</label>
             <Input
+              ref={remarksRef}
               value={formData.remarks}
-              onChange={(e) => setFormData(prev => ({ ...prev, remarks: e.target.value.toUpperCase() }))}
+              onChange={(e) => handleFieldChange('remarks', e.target.value.toUpperCase())}
+              onKeyDown={(e) => handleKeyDown(e, 'remarks')}
               placeholder="REMARKS"
               className="text-lg uppercase"
             />
@@ -152,7 +265,7 @@ export const AddDefectModal = ({
                 id="sl"
                 checked={formData.sl}
                 onCheckedChange={(checked) => 
-                  setFormData(prev => ({ ...prev, sl: checked as boolean }))
+                  handleFieldChange('sl', checked as boolean)
                 }
                 className="h-5 w-5"
               />
@@ -165,7 +278,7 @@ export const AddDefectModal = ({
                 id="rst"
                 checked={formData.rst}
                 onCheckedChange={(checked) => 
-                  setFormData(prev => ({ ...prev, rst: checked as boolean }))
+                  handleFieldChange('rst', checked as boolean)
                 }
                 className="h-5 w-5"
               />
@@ -178,7 +291,7 @@ export const AddDefectModal = ({
                 id="ok"
                 checked={formData.ok}
                 onCheckedChange={(checked) => 
-                  setFormData(prev => ({ ...prev, ok: checked as boolean }))
+                  handleFieldChange('ok', checked as boolean)
                 }
                 className="h-5 w-5"
               />
@@ -200,7 +313,7 @@ export const AddDefectModal = ({
             Cancel
           </Button>
           <Button 
-            onClick={handleSubmit} 
+            onClick={validateAndSubmit} 
             className="bg-green-600 text-white hover:bg-green-700 text-lg uppercase"
           >
             Save

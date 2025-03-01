@@ -164,6 +164,14 @@ const Index = () => {
   };
 
   const handleExportToPdf = () => {
+    if (filteredRecords.length === 0) {
+      toast({
+        title: "WARNING",
+        description: "NO RECORDS TO EXPORT",
+        variant: "destructive",
+      });
+      return;
+    }
     exportToPdf(filteredRecords);
   };
 
