@@ -50,9 +50,10 @@ export const AddDefectModal = ({
   // Set focus on registration field when modal opens
   useEffect(() => {
     if (isOpen && registrationRef.current) {
+      // Use a slightly longer delay to ensure DOM is fully ready
       setTimeout(() => {
         registrationRef.current?.focus();
-      }, 100);
+      }, 300);
     }
   }, [isOpen]);
 
