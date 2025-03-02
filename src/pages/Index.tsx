@@ -9,8 +9,7 @@ import { RecordsTable } from "@/components/defect-records/RecordsTable";
 import { AddDefectModal } from "@/components/defect-records/AddDefectModal";
 import { EditDefectModal } from "@/components/defect-records/EditDefectModal";
 import { exportToPdf, exportToExcel } from '@/utils/pdfExport';
-
-const STORAGE_KEY = 'aircraft-defect-records';
+import { getAllRecords, saveRecord, deleteRecord, deleteRecordsByDate, saveRecords } from '@/utils/indexedDB';
 
 const Index = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -38,23 +37,24 @@ const Index = () => {
 
   const [formData, setFormData] = useState(initialFormState);
 
-  // Load records from localStorage on component mount
+  // Load records from IndexedDB on component mount
   useEffect(() => {
-    const storedRecords = localStorage.getItem(STORAGE_KEY);
-    if (storedRecords) {
+    const loadRecords = async () => {
       try {
-        const parsedRecords = JSON.parse(storedRecords);
-        setRecords(parsedRecords);
+        const loadedRecords = await getAllRecords();
+        setRecords(loadedRecords);
       } catch (error) {
-        console.error('Failed to parse stored records:', error);
+        console.error('Failed to load records:', error);
+        toast({
+          title: "ERROR",
+          description: "FAILED TO LOAD RECORDS",
+          variant: "destructive",
+        });
       }
-    }
-  }, []);
+    };
 
-  // Save records to localStorage whenever they change
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-  }, [records]);
+    loadRecords();
+  }, []);
 
   const handleSort = () => {
     const newOrder = sortOrder === 'asc' ? 'desc' : 'asc';
@@ -65,9 +65,14 @@ const Index = () => {
       return newOrder === 'asc' ? dateA.getTime() - dateB.getTime() : dateB.getTime() - dateA.getTime();
     });
     setRecords(sortedRecords);
+    
+    // Save the sorted order to IndexedDB
+    saveRecords(sortedRecords).catch(error => {
+      console.error('Failed to save sorted records:', error);
+    });
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!formData.registration || !formData.station || !formData.defect) {
       toast({
         title: "VALIDATION ERROR",
@@ -91,22 +96,38 @@ const Index = () => {
       ...formData,
     };
 
-    setRecords(prev => [...prev, newRecord].sort((a, b) => {
-      const dateA = new Date(`${a.date} ${a.time}`);
-      const dateB = new Date(`${b.date} ${b.time}`);
-      return sortOrder === 'asc' ? dateA.getTime() - dateB.getTime() : dateB.getTime() - dateA.getTime();
-    }));
+    try {
+      // Save to IndexedDB
+      await saveRecord(newRecord);
+      
+      // Update local state
+      setRecords(prev => {
+        const updatedRecords = [...prev, newRecord].sort((a, b) => {
+          const dateA = new Date(`${a.date} ${a.time}`);
+          const dateB = new Date(`${b.date} ${b.time}`);
+          return sortOrder === 'asc' ? dateA.getTime() - dateB.getTime() : dateB.getTime() - dateA.getTime();
+        });
+        return updatedRecords;
+      });
 
-    toast({
-      title: "SUCCESS",
-      description: "DEFECT RECORD HAS BEEN SAVED",
-    });
+      toast({
+        title: "SUCCESS",
+        description: "DEFECT RECORD HAS BEEN SAVED",
+      });
 
-    setFormData(initialFormState);
-    setIsModalOpen(false);
+      setFormData(initialFormState);
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error('Failed to save record:', error);
+      toast({
+        title: "ERROR",
+        description: "FAILED TO SAVE RECORD",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleEditSubmit = () => {
+  const handleEditSubmit = async () => {
     if (!editingRecord) return;
 
     if (!editingRecord.registration || !editingRecord.station || !editingRecord.defect) {
@@ -127,35 +148,84 @@ const Index = () => {
       return;
     }
 
-    setRecords(prev => 
-      prev.map(record => 
-        record.id === editingRecord.id ? editingRecord : record
-      ).sort((a, b) => {
-        const dateA = new Date(`${a.date} ${a.time}`);
-        const dateB = new Date(`${b.date} ${b.time}`);
-        return sortOrder === 'asc' ? dateA.getTime() - dateB.getTime() : dateB.getTime() - dateA.getTime();
-      })
-    );
+    try {
+      // Save to IndexedDB
+      await saveRecord(editingRecord);
+      
+      // Update local state
+      setRecords(prev => 
+        prev.map(record => 
+          record.id === editingRecord.id ? editingRecord : record
+        ).sort((a, b) => {
+          const dateA = new Date(`${a.date} ${a.time}`);
+          const dateB = new Date(`${b.date} ${b.time}`);
+          return sortOrder === 'asc' ? dateA.getTime() - dateB.getTime() : dateB.getTime() - dateA.getTime();
+        })
+      );
 
-    toast({
-      title: "SUCCESS",
-      description: "DEFECT RECORD HAS BEEN UPDATED",
-    });
+      toast({
+        title: "SUCCESS",
+        description: "DEFECT RECORD HAS BEEN UPDATED",
+      });
 
-    setEditingRecord(null);
-    setIsEditModalOpen(false);
+      setEditingRecord(null);
+      setIsEditModalOpen(false);
+    } catch (error) {
+      console.error('Failed to update record:', error);
+      toast({
+        title: "ERROR",
+        description: "FAILED TO UPDATE RECORD",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleClear = () => {
     setFormData(initialFormState);
   };
 
-  const handleDeleteRecord = (id: string) => {
-    setRecords(prev => prev.filter(record => record.id !== id));
-    toast({
-      title: "SUCCESS",
-      description: "DEFECT RECORD HAS BEEN DELETED",
-    });
+  const handleDeleteRecord = async (id: string) => {
+    try {
+      // Delete from IndexedDB
+      await deleteRecord(id);
+      
+      // Update local state
+      setRecords(prev => prev.filter(record => record.id !== id));
+      
+      toast({
+        title: "SUCCESS",
+        description: "DEFECT RECORD HAS BEEN DELETED",
+      });
+    } catch (error) {
+      console.error('Failed to delete record:', error);
+      toast({
+        title: "ERROR",
+        description: "FAILED TO DELETE RECORD",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteAllByDate = async (date: string) => {
+    try {
+      // Delete records for the specified date
+      await deleteRecordsByDate(date);
+      
+      // Update local state
+      setRecords(prev => prev.filter(record => record.date !== date));
+      
+      toast({
+        title: "SUCCESS",
+        description: `ALL RECORDS FOR ${format(new Date(date), 'dd/MM/yyyy')} HAVE BEEN DELETED`,
+      });
+    } catch (error) {
+      console.error('Failed to delete records by date:', error);
+      toast({
+        title: "ERROR",
+        description: "FAILED TO DELETE RECORDS",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleEditRecord = (record: DefectRecord) => {
@@ -239,6 +309,7 @@ const Index = () => {
         handleSort={handleSort}
         handleEditRecord={handleEditRecord}
         handleDeleteRecord={handleDeleteRecord}
+        handleDeleteAllByDate={handleDeleteAllByDate}
       />
     </div>
   );

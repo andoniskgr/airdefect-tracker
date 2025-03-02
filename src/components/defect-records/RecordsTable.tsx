@@ -2,7 +2,7 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { ArrowUpDown, Pencil, Trash } from "lucide-react";
+import { ArrowUpDown, Pencil, Trash, Trash2 } from "lucide-react";
 import { format, isToday, parseISO, isSameDay } from 'date-fns';
 import { DefectRecord } from "./DefectRecord.types";
 import { useState, useEffect } from "react";
@@ -12,13 +12,15 @@ interface RecordsTableProps {
   handleSort: () => void;
   handleEditRecord: (record: DefectRecord) => void;
   handleDeleteRecord: (id: string) => void;
+  handleDeleteAllByDate: (date: string) => void;
 }
 
 export const RecordsTable = ({ 
   records, 
   handleSort, 
   handleEditRecord, 
-  handleDeleteRecord 
+  handleDeleteRecord,
+  handleDeleteAllByDate
 }: RecordsTableProps) => {
   // Group records by date
   const groupRecordsByDate = () => {
@@ -66,9 +68,25 @@ export const RecordsTable = ({
         <Accordion type="multiple" defaultValue={[groupedRecords[0]?.date]}>
           {groupedRecords.map(group => (
             <AccordionItem key={group.date} value={group.date}>
-              <AccordionTrigger className="px-4 py-2 text-lg font-medium bg-secondary/50">
-                {group.formattedDate} ({group.records.length} Records)
-              </AccordionTrigger>
+              <div className="flex items-center justify-between px-4 py-2 bg-secondary/50">
+                <AccordionTrigger className="text-lg font-medium py-0">
+                  {group.formattedDate} ({group.records.length} Records)
+                </AccordionTrigger>
+                <Button 
+                  variant="destructive" 
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (window.confirm(`Delete all records for ${group.formattedDate}?`)) {
+                      handleDeleteAllByDate(group.date);
+                    }
+                  }}
+                  className="h-8 flex items-center gap-1"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  <span>Delete All</span>
+                </Button>
+              </div>
               <AccordionContent>
                 <Table>
                   <TableHeader>
