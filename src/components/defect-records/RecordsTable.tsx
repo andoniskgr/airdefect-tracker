@@ -1,9 +1,16 @@
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown, Pencil, Trash } from "lucide-react";
-import { format } from 'date-fns';
+import { ArrowUpDown, Pencil, Trash, ChevronDown } from "lucide-react";
+import { format, isToday, isSameDay, parseISO } from 'date-fns';
 import { DefectRecord } from "./DefectRecord.types";
+import { 
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { useEffect, useState } from "react";
 
 interface RecordsTableProps {
   records: DefectRecord[];
@@ -18,13 +25,67 @@ export const RecordsTable = ({
   handleEditRecord, 
   handleDeleteRecord 
 }: RecordsTableProps) => {
-  return (
-    <div className="bg-white rounded-lg shadow-sm border max-w-[1920px] mx-auto">
+  const [groupedRecords, setGroupedRecords] = useState<Record<string, DefectRecord[]>>({});
+  const [flashingIds, setFlashingIds] = useState<Set<string>>(new Set());
+
+  // Group records by date
+  useEffect(() => {
+    const grouped: Record<string, DefectRecord[]> = {};
+    
+    records.forEach(record => {
+      const dateKey = record.date;
+      if (!grouped[dateKey]) {
+        grouped[dateKey] = [];
+      }
+      grouped[dateKey].push(record);
+    });
+    
+    setGroupedRecords(grouped);
+  }, [records]);
+
+  // Check for records that need to flash
+  useEffect(() => {
+    const currentTime = new Date();
+    const currentTimeString = format(currentTime, 'HH:mm');
+    const idsToFlash = new Set<string>();
+
+    records.forEach(record => {
+      // Flash if UPD exists, not OK, and current time is same or later than UPD
+      if (record.upd && !record.ok && currentTimeString >= record.upd) {
+        idsToFlash.add(record.id);
+      }
+    });
+
+    setFlashingIds(idsToFlash);
+
+    // Set up interval to continue checking
+    const intervalId = setInterval(() => {
+      setFlashingIds(prev => new Set(prev));
+    }, 500);
+
+    return () => clearInterval(intervalId);
+  }, [records]);
+
+  // Sort dates for display
+  const sortedDates = Object.keys(groupedRecords).sort((a, b) => {
+    return new Date(b).getTime() - new Date(a).getTime();
+  });
+
+  const formatDateDisplay = (dateString: string) => {
+    const date = new Date(dateString);
+    if (isToday(date)) {
+      return "TODAY";
+    }
+    return format(date, 'dd/MM/yyyy');
+  };
+
+  const renderTableContent = (dateRecords: DefectRecord[]) => {
+    return (
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead className="cursor-pointer text-lg uppercase" onClick={handleSort}>
-              Date/Time
+              Time
               <ArrowUpDown className="ml-2 h-4 w-4 inline" />
             </TableHead>
             <TableHead className="text-lg uppercase">Registration</TableHead>
@@ -41,23 +102,23 @@ export const RecordsTable = ({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {records.length === 0 ? (
+          {dateRecords.length === 0 ? (
             <TableRow>
               <TableCell colSpan={12} className="text-center py-8 text-lg text-gray-500">
                 No records found
               </TableCell>
             </TableRow>
           ) : (
-            records.map((record) => (
+            dateRecords.map((record) => (
               <TableRow 
                 key={record.id} 
-                className="table-animation"
+                className={`table-animation ${flashingIds.has(record.id) ? 'flashing-row' : ''}`}
                 style={{
                   backgroundColor: record.ok ? "#F2FCE2" : record.sl ? "#FEF7CD" : "transparent"
                 }}
               >
                 <TableCell className="text-lg uppercase">
-                  {format(new Date(record.date), 'dd/MM/yyyy')} {record.time}
+                  {record.time}
                 </TableCell>
                 <TableCell className="text-lg uppercase">{record.registration}</TableCell>
                 <TableCell className="text-lg uppercase">{record.station}</TableCell>
@@ -96,6 +157,30 @@ export const RecordsTable = ({
           )}
         </TableBody>
       </Table>
+    );
+  };
+
+  return (
+    <div className="bg-white rounded-lg shadow-sm border max-w-[1920px] mx-auto">
+      {records.length === 0 ? (
+        <div className="text-center py-8 text-xl text-gray-500">
+          No records found
+        </div>
+      ) : (
+        <Accordion type="multiple" defaultValue={sortedDates} className="w-full">
+          {sortedDates.map(date => (
+            <AccordionItem key={date} value={date} className="border-b">
+              <AccordionTrigger className="bg-gray-100 px-4 py-2 text-xl font-medium uppercase">
+                {formatDateDisplay(date)}
+                <ChevronDown className="h-5 w-5 shrink-0 text-gray-500" />
+              </AccordionTrigger>
+              <AccordionContent className="px-1 py-2">
+                {renderTableContent(groupedRecords[date])}
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+      )}
     </div>
   );
 };
