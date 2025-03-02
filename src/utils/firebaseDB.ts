@@ -36,6 +36,12 @@ export const getAllRecords = async (): Promise<DefectRecord[]> => {
     return snapshot.docs.map(doc => doc.data() as DefectRecord);
   } catch (error) {
     console.error('Firestore error:', error);
+    
+    // Check if error is a Firebase permission error
+    if (error instanceof Error && error.message.includes('permission')) {
+      console.error('This appears to be a Firebase security rules issue. Please update your Firestore security rules to allow read/write access.');
+    }
+    
     return [];
   }
 };
@@ -47,6 +53,13 @@ export const saveRecord = async (record: DefectRecord): Promise<void> => {
     await setDoc(recordRef, record);
   } catch (error) {
     console.error('Firestore error:', error);
+    
+    // Check if error is a Firebase permission error
+    if (error instanceof Error && error.message.includes('permission')) {
+      console.error('This appears to be a Firebase security rules issue. Please update your Firestore security rules to allow read/write access.');
+      throw new Error('Firebase permission denied. Please update your Firestore security rules.');
+    }
+    
     throw error;
   }
 };
@@ -74,6 +87,13 @@ export const saveRecords = async (records: DefectRecord[]): Promise<void> => {
     await batch.commit();
   } catch (error) {
     console.error('Firestore error:', error);
+    
+    // Check if error is a Firebase permission error
+    if (error instanceof Error && error.message.includes('permission')) {
+      console.error('This appears to be a Firebase security rules issue. Please update your Firestore security rules to allow read/write access.');
+      throw new Error('Firebase permission denied. Please update your Firestore security rules.');
+    }
+    
     throw error;
   }
 };
@@ -85,6 +105,13 @@ export const deleteRecord = async (id: string): Promise<void> => {
     await deleteDoc(recordRef);
   } catch (error) {
     console.error('Firestore error:', error);
+    
+    // Check if error is a Firebase permission error
+    if (error instanceof Error && error.message.includes('permission')) {
+      console.error('This appears to be a Firebase security rules issue. Please update your Firestore security rules to allow read/write access.');
+      throw new Error('Firebase permission denied. Please update your Firestore security rules.');
+    }
+    
     throw error;
   }
 };
@@ -109,6 +136,13 @@ export const deleteRecordsByDate = async (date: string): Promise<void> => {
     await batch.commit();
   } catch (error) {
     console.error('Firestore error:', error);
+    
+    // Check if error is a Firebase permission error
+    if (error instanceof Error && error.message.includes('permission')) {
+      console.error('This appears to be a Firebase security rules issue. Please update your Firestore security rules to allow read/write access.');
+      throw new Error('Firebase permission denied. Please update your Firestore security rules.');
+    }
+    
     throw error;
   }
 };
