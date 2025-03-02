@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -9,7 +8,7 @@ import { RecordsTable } from "@/components/defect-records/RecordsTable";
 import { AddDefectModal } from "@/components/defect-records/AddDefectModal";
 import { EditDefectModal } from "@/components/defect-records/EditDefectModal";
 import { exportToPdf, exportToExcel } from '@/utils/pdfExport';
-import { getAllRecords, saveRecord, deleteRecord, deleteRecordsByDate, saveRecords } from '@/utils/indexedDB';
+import { getAllRecords, saveRecord, deleteRecord, deleteRecordsByDate, saveRecords } from '@/utils/firebaseDB';
 
 const Index = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -37,7 +36,6 @@ const Index = () => {
 
   const [formData, setFormData] = useState(initialFormState);
 
-  // Load records from IndexedDB on component mount
   useEffect(() => {
     const loadRecords = async () => {
       try {
@@ -66,7 +64,6 @@ const Index = () => {
     });
     setRecords(sortedRecords);
     
-    // Save the sorted order to IndexedDB
     saveRecords(sortedRecords).catch(error => {
       console.error('Failed to save sorted records:', error);
     });
@@ -97,10 +94,8 @@ const Index = () => {
     };
 
     try {
-      // Save to IndexedDB
       await saveRecord(newRecord);
       
-      // Update local state
       setRecords(prev => {
         const updatedRecords = [...prev, newRecord].sort((a, b) => {
           const dateA = new Date(`${a.date} ${a.time}`);
@@ -149,10 +144,8 @@ const Index = () => {
     }
 
     try {
-      // Save to IndexedDB
       await saveRecord(editingRecord);
       
-      // Update local state
       setRecords(prev => 
         prev.map(record => 
           record.id === editingRecord.id ? editingRecord : record
@@ -186,10 +179,8 @@ const Index = () => {
 
   const handleDeleteRecord = async (id: string) => {
     try {
-      // Delete from IndexedDB
       await deleteRecord(id);
       
-      // Update local state
       setRecords(prev => prev.filter(record => record.id !== id));
       
       toast({
@@ -208,10 +199,8 @@ const Index = () => {
 
   const handleDeleteAllByDate = async (date: string) => {
     try {
-      // Delete records for the specified date
       await deleteRecordsByDate(date);
       
-      // Update local state
       setRecords(prev => prev.filter(record => record.date !== date));
       
       toast({
