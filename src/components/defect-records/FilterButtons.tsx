@@ -1,18 +1,18 @@
 
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { FilterType, ExportType } from './DefectRecord.types';
-import { Download, FileDown } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { FileDown, FileSpreadsheet } from "lucide-react";
+import { FilterType, ExportType } from "./DefectRecord.types";
 
 interface FilterButtonsProps {
   filter: FilterType;
   setFilter: (filter: FilterType) => void;
-  handleExport: (type: ExportType) => void;
+  exportToPdf: () => void;
+  exportToExcel: () => void;
 }
 
-export const FilterButtons = ({ filter, setFilter, handleExport }: FilterButtonsProps) => {
+export const FilterButtons = ({ filter, setFilter, exportToPdf, exportToExcel }: FilterButtonsProps) => {
   return (
-    <div className="flex flex-wrap items-center gap-2 mb-4">
+    <div className="flex gap-2 items-center">
       <Button 
         onClick={() => setFilter('all')}
         variant={filter === 'all' ? 'default' : 'outline'}
@@ -24,7 +24,11 @@ export const FilterButtons = ({ filter, setFilter, handleExport }: FilterButtons
         onClick={() => {
           // Toggle between sl and sl-ok filters
           if (filter === 'sl') {
-            setFilter('sl-ok');
+            if (filter === 'sl-ok') {
+              setFilter('sl');
+            } else {
+              setFilter('sl');
+            }
           } else if (filter === 'sl-ok') {
             setFilter('ok');
           } else if (filter === 'ok') {
@@ -42,7 +46,11 @@ export const FilterButtons = ({ filter, setFilter, handleExport }: FilterButtons
         onClick={() => {
           // Toggle between ok and sl-ok filters
           if (filter === 'ok') {
-            setFilter('sl-ok');
+            if (filter === 'sl-ok') {
+              setFilter('ok');
+            } else {
+              setFilter('ok');
+            }
           } else if (filter === 'sl-ok') {
             setFilter('sl');
           } else if (filter === 'sl') {
@@ -56,23 +64,20 @@ export const FilterButtons = ({ filter, setFilter, handleExport }: FilterButtons
       >
         OK Only
       </Button>
-      <div className="flex-grow" />
-      <Button 
-        onClick={() => handleExport('pdf')}
+      <Button
+        onClick={exportToPdf}
         variant="outline"
-        className="text-sm ml-auto"
+        className="text-sm uppercase ml-2"
       >
-        <FileDown className="h-4 w-4 mr-2" />
-        PDF
+        <FileDown className="mr-2 h-4 w-4" /> PDF
       </Button>
-      <Button 
-        onClick={() => handleExport('excel')}
+      <Button
+        onClick={exportToExcel}
         variant="outline"
-        className="text-sm"
+        className="text-sm uppercase"
       >
-        <Download className="h-4 w-4 mr-2" />
-        Excel
+        <FileSpreadsheet className="mr-2 h-4 w-4" /> Excel
       </Button>
     </div>
   );
-};
+}
