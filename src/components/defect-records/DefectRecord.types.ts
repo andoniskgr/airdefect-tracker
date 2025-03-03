@@ -13,6 +13,7 @@ export interface DefectRecord {
   rst: boolean;
   sl: boolean;
   ok: boolean;
+  pln: boolean;
 }
 
 export type FilterType = 'all' | 'sl' | 'ok';

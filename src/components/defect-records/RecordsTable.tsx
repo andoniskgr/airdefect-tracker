@@ -9,10 +9,11 @@ import { useState, useEffect } from "react";
 
 interface RecordsTableProps {
   records: DefectRecord[];
-  handleSort: () => void;
+  handleSort: (column: string) => void;
   handleEditRecord: (record: DefectRecord) => void;
   handleDeleteRecord: (id: string) => void;
   handleDeleteAllByDate: (date: string) => void;
+  sortConfig: { key: string, direction: 'asc' | 'desc' };
 }
 
 export const RecordsTable = ({ 
@@ -20,7 +21,8 @@ export const RecordsTable = ({
   handleSort, 
   handleEditRecord, 
   handleDeleteRecord,
-  handleDeleteAllByDate
+  handleDeleteAllByDate,
+  sortConfig
 }: RecordsTableProps) => {
   // Group records by date
   const groupRecordsByDate = () => {
@@ -46,8 +48,8 @@ export const RecordsTable = ({
 
   const groupedRecords = groupRecordsByDate();
   
-  // Check if a record needs to flash based on UPD value
-  const shouldFlash = (record: DefectRecord) => {
+  // Check if a UPD value needs to flash based on time
+  const shouldFlashUpd = (record: DefectRecord) => {
     if (!record.upd || record.ok) {
       return false;
     }
@@ -56,6 +58,18 @@ export const RecordsTable = ({
     const updTime = new Date(`${record.date}T${record.upd}:00`);
     
     return now >= updTime;
+  };
+
+  // Sort indicator for table headers
+  const getSortIndicator = (columnName: string) => {
+    if (sortConfig.key === columnName) {
+      return (
+        <span className="ml-1">
+          {sortConfig.direction === 'asc' ? '↑' : '↓'}
+        </span>
+      );
+    }
+    return null;
   };
 
   return (
@@ -91,9 +105,15 @@ export const RecordsTable = ({
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-lg uppercase">Time</TableHead>
-                      <TableHead className="text-lg uppercase">Registration</TableHead>
-                      <TableHead className="text-lg uppercase">Station</TableHead>
+                      <TableHead className="text-lg uppercase cursor-pointer" onClick={() => handleSort('time')}>
+                        Time <ArrowUpDown className="inline h-4 w-4 ml-1" /> {getSortIndicator('time')}
+                      </TableHead>
+                      <TableHead className="text-lg uppercase cursor-pointer" onClick={() => handleSort('registration')}>
+                        Registration <ArrowUpDown className="inline h-4 w-4 ml-1" /> {getSortIndicator('registration')}
+                      </TableHead>
+                      <TableHead className="text-lg uppercase cursor-pointer" onClick={() => handleSort('station')}>
+                        Station <ArrowUpDown className="inline h-4 w-4 ml-1" /> {getSortIndicator('station')}
+                      </TableHead>
                       <TableHead className="text-lg uppercase">Defect</TableHead>
                       <TableHead className="text-lg uppercase">Remarks</TableHead>
                       <TableHead className="text-lg uppercase">ETA</TableHead>
@@ -102,6 +122,7 @@ export const RecordsTable = ({
                       <TableHead className="text-lg uppercase">RST</TableHead>
                       <TableHead className="text-lg uppercase">SL</TableHead>
                       <TableHead className="text-lg uppercase">OK</TableHead>
+                      <TableHead className="text-lg uppercase">PLN</TableHead>
                       <TableHead className="text-lg uppercase">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -109,7 +130,7 @@ export const RecordsTable = ({
                     {group.records.map((record) => (
                       <TableRow 
                         key={record.id} 
-                        className={`table-animation ${shouldFlash(record) ? 'flash-record' : ''}`}
+                        className="table-animation"
                         style={{
                           backgroundColor: record.ok ? "#F2FCE2" : record.sl ? "#FEF7CD" : "transparent"
                         }}
@@ -121,10 +142,13 @@ export const RecordsTable = ({
                         <TableCell className="text-lg uppercase">{record.remarks}</TableCell>
                         <TableCell className="text-lg uppercase">{record.eta}</TableCell>
                         <TableCell className="text-lg uppercase">{record.std}</TableCell>
-                        <TableCell className="text-lg uppercase">{record.upd}</TableCell>
+                        <TableCell className={`text-lg uppercase ${shouldFlashUpd(record) ? 'flash-upd' : ''}`}>
+                          {record.upd}
+                        </TableCell>
                         <TableCell className="text-lg uppercase text-center">{record.rst ? "YES" : "NO"}</TableCell>
                         <TableCell className="text-lg uppercase text-center">{record.sl ? "YES" : "NO"}</TableCell>
                         <TableCell className="text-lg uppercase text-center">{record.ok ? "YES" : "NO"}</TableCell>
+                        <TableCell className="text-lg uppercase text-center">{record.pln ? "YES" : "NO"}</TableCell>
                         <TableCell>
                           <div className="flex space-x-2">
                             <Button 

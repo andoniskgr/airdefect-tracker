@@ -14,7 +14,10 @@ const Index = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [records, setRecords] = useState<DefectRecord[]>([]);
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [sortConfig, setSortConfig] = useState<{key: string, direction: 'asc' | 'desc'}>({
+    key: 'time',
+    direction: 'desc'
+  });
   const [editingRecord, setEditingRecord] = useState<DefectRecord | null>(null);
   const [filter, setFilter] = useState<FilterType>('all');
   const { toast } = useToast();
@@ -32,6 +35,7 @@ const Index = () => {
     rst: false,
     sl: false,
     ok: false,
+    pln: false,
   };
 
   const [formData, setFormData] = useState(initialFormState);
@@ -40,7 +44,13 @@ const Index = () => {
     const loadRecords = async () => {
       try {
         const loadedRecords = await getAllRecords();
-        setRecords(loadedRecords);
+        // Sort records by time with newest at the bottom (ascending order)
+        const sortedRecords = [...loadedRecords].sort((a, b) => {
+          const dateA = new Date(`${a.date} ${a.time}`);
+          const dateB = new Date(`${b.date} ${b.time}`);
+          return dateA.getTime() - dateB.getTime();
+        });
+        setRecords(sortedRecords);
       } catch (error) {
         console.error('Failed to load records:', error);
         toast({
@@ -54,14 +64,40 @@ const Index = () => {
     loadRecords();
   }, []);
 
-  const handleSort = () => {
-    const newOrder = sortOrder === 'asc' ? 'desc' : 'asc';
-    setSortOrder(newOrder);
+  // Enhanced sorting function for specific columns
+  const handleSort = (column: string) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    
+    if (sortConfig.key === column && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    
+    setSortConfig({ key: column, direction });
+    
     const sortedRecords = [...records].sort((a, b) => {
-      const dateA = new Date(`${a.date} ${a.time}`);
-      const dateB = new Date(`${b.date} ${b.time}`);
-      return newOrder === 'asc' ? dateA.getTime() - dateB.getTime() : dateB.getTime() - dateA.getTime();
+      if (column === 'time') {
+        const dateA = new Date(`${a.date} ${a.time}`);
+        const dateB = new Date(`${b.date} ${b.time}`);
+        return direction === 'asc' ? dateA.getTime() - dateB.getTime() : dateB.getTime() - dateA.getTime();
+      }
+      
+      // For string columns like registration and station
+      if (!a[column as keyof DefectRecord] || !b[column as keyof DefectRecord]) {
+        return 0;
+      }
+      
+      const valueA = String(a[column as keyof DefectRecord]).toUpperCase();
+      const valueB = String(b[column as keyof DefectRecord]).toUpperCase();
+      
+      if (valueA < valueB) {
+        return direction === 'asc' ? -1 : 1;
+      }
+      if (valueA > valueB) {
+        return direction === 'asc' ? 1 : -1;
+      }
+      return 0;
     });
+    
     setRecords(sortedRecords);
     
     saveRecords(sortedRecords).catch(error => {
@@ -96,11 +132,12 @@ const Index = () => {
     try {
       await saveRecord(newRecord);
       
+      // Add the new record and sort by time to keep newest at the bottom
       setRecords(prev => {
         const updatedRecords = [...prev, newRecord].sort((a, b) => {
           const dateA = new Date(`${a.date} ${a.time}`);
           const dateB = new Date(`${b.date} ${b.time}`);
-          return sortOrder === 'asc' ? dateA.getTime() - dateB.getTime() : dateB.getTime() - dateA.getTime();
+          return dateA.getTime() - dateB.getTime(); // Ascending order (oldest to newest)
         });
         return updatedRecords;
       });
@@ -152,7 +189,7 @@ const Index = () => {
         ).sort((a, b) => {
           const dateA = new Date(`${a.date} ${a.time}`);
           const dateB = new Date(`${b.date} ${b.time}`);
-          return sortOrder === 'asc' ? dateA.getTime() - dateB.getTime() : dateB.getTime() - dateA.getTime();
+          return sortConfig.direction === 'asc' ? dateA.getTime() - dateB.getTime() : dateB.getTime() - dateA.getTime();
         })
       );
 
@@ -299,6 +336,7 @@ const Index = () => {
         handleEditRecord={handleEditRecord}
         handleDeleteRecord={handleDeleteRecord}
         handleDeleteAllByDate={handleDeleteAllByDate}
+        sortConfig={sortConfig}
       />
     </div>
   );

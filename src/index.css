@@ -76,16 +76,16 @@
   }
 }
 
-/* Flashing animation for records that need attention */
-.flash-record {
-  animation: flash 2s infinite;
+/* Removed the flash-record class and created a new one for UPD field */
+.flash-upd {
+  animation: flashUpd 2s infinite;
 }
 
-@keyframes flash {
+@keyframes flashUpd {
   0%, 49% {
     background-color: inherit;
   }
   50%, 100% {
-    background-color: rgba(255, 220, 100, 0.4);
+    background-color: rgba(234, 56, 76, 0.7); /* Red color for UPD field */
   }
 }
