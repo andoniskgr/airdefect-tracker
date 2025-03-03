@@ -24,6 +24,17 @@ export const RecordsTable = ({
   handleDeleteAllByDate,
   sortConfig
 }: RecordsTableProps) => {
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Update current time every minute to check for UPD values that need to flash
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000); // Check every minute
+    
+    return () => clearInterval(interval);
+  }, []);
+  
   // Group records by date
   const groupRecordsByDate = () => {
     const groups: { [key: string]: DefectRecord[] } = {};
@@ -54,10 +65,10 @@ export const RecordsTable = ({
       return false;
     }
     
-    const now = new Date();
+    const recordDate = new Date(record.date);
     const updTime = new Date(`${record.date}T${record.upd}:00`);
     
-    return now >= updTime;
+    return currentTime >= updTime;
   };
 
   // Sort indicator for table headers
