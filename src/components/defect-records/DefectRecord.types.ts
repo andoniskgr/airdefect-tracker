@@ -16,5 +16,5 @@ export interface DefectRecord {
   pln: boolean;
 }
 
-export type FilterType = 'all' | 'sl' | 'ok';
+export type FilterType = 'all' | 'sl' | 'ok' | 'sl-ok';
 export type ExportType = 'pdf' | 'excel';

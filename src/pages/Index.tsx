@@ -64,7 +64,6 @@ const Index = () => {
     loadRecords();
   }, []);
 
-  // Enhanced sorting function for specific columns
   const handleSort = (column: string) => {
     let direction: 'asc' | 'desc' = 'asc';
     
@@ -285,8 +284,9 @@ const Index = () => {
 
   const filteredRecords = records.filter(record => {
     if (filter === 'all') return true;
-    if (filter === 'sl') return record.sl;
-    if (filter === 'ok') return record.ok;
+    if (filter === 'sl') return record.sl && !record.ok;
+    if (filter === 'ok') return record.ok && !record.sl;
+    if (filter === 'sl-ok') return record.sl && record.ok;
     return true;
   });
 
