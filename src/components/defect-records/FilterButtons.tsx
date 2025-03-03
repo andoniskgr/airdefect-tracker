@@ -21,46 +21,16 @@ export const FilterButtons = ({ filter, setFilter, exportToPdf, exportToExcel }:
         All
       </Button>
       <Button 
-        onClick={() => {
-          // Toggle between sl and sl-ok filters
-          if (filter === 'sl') {
-            if (filter === 'sl-ok') {
-              setFilter('sl');
-            } else {
-              setFilter('sl');
-            }
-          } else if (filter === 'sl-ok') {
-            setFilter('ok');
-          } else if (filter === 'ok') {
-            setFilter('sl-ok');
-          } else {
-            setFilter('sl');
-          }
-        }}
+        onClick={() => setFilter('sl')}
         variant={filter === 'sl' ? 'default' : 'outline'}
-        className={`text-sm uppercase ${filter === 'sl-ok' ? 'bg-yellow-100 text-yellow-900 border-yellow-300' : ''}`}
+        className="text-sm uppercase"
       >
         SL Only
       </Button>
       <Button 
-        onClick={() => {
-          // Toggle between ok and sl-ok filters
-          if (filter === 'ok') {
-            if (filter === 'sl-ok') {
-              setFilter('ok');
-            } else {
-              setFilter('ok');
-            }
-          } else if (filter === 'sl-ok') {
-            setFilter('sl');
-          } else if (filter === 'sl') {
-            setFilter('sl-ok');
-          } else {
-            setFilter('ok');
-          }
-        }}
+        onClick={() => setFilter('ok')}
         variant={filter === 'ok' ? 'default' : 'outline'}
-        className={`text-sm uppercase ${filter === 'sl-ok' ? 'bg-green-100 text-green-900 border-green-300' : ''}`}
+        className="text-sm uppercase"
       >
         OK Only
       </Button>
@@ -80,4 +50,4 @@ export const FilterButtons = ({ filter, setFilter, exportToPdf, exportToExcel }:
       </Button>
     </div>
   );
-}
+};

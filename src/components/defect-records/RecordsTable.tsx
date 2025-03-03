@@ -24,18 +24,6 @@ export const RecordsTable = ({
   handleDeleteAllByDate,
   sortConfig
 }: RecordsTableProps) => {
-  // State to trigger re-renders for UPD time checks
-  const [currentTime, setCurrentTime] = useState(new Date());
-  
-  // Update the current time every minute to check UPD times
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 60000); // Check every minute
-    
-    return () => clearInterval(interval);
-  }, []);
-  
   // Group records by date
   const groupRecordsByDate = () => {
     const groups: { [key: string]: DefectRecord[] } = {};
@@ -66,18 +54,10 @@ export const RecordsTable = ({
       return false;
     }
     
-    const now = currentTime;
-    try {
-      // Using a different approach to parsing time that's more reliable
-      const [hours, minutes] = record.upd.split(':').map(Number);
-      const updTime = new Date();
-      updTime.setHours(hours, minutes, 0, 0);
-      
-      return now >= updTime;
-    } catch (error) {
-      console.error('Error parsing UPD time:', error);
-      return false;
-    }
+    const now = new Date();
+    const updTime = new Date(`${record.date}T${record.upd}:00`);
+    
+    return now >= updTime;
   };
 
   // Sort indicator for table headers
