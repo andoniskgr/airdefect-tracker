@@ -1,15 +1,12 @@
-import { toast } from "@/hooks/use-toast";
+
+import { toast } from "sonner";
 import html2pdf from 'html2pdf.js';
 import { DefectRecord } from '@/components/defect-records/DefectRecord.types';
 import { format } from 'date-fns';
 
-export const exportToPdf = (filteredRecords: DefectRecord[]) => {
+export const exportRecordsToPDF = (filteredRecords: DefectRecord[]) => {
   if (filteredRecords.length === 0) {
-    toast({
-      title: "WARNING",
-      description: "NO RECORDS TO EXPORT",
-      variant: "destructive",
-    });
+    toast("WARNING: NO RECORDS TO EXPORT");
     return;
   }
 
@@ -74,13 +71,8 @@ export const exportToPdf = (filteredRecords: DefectRecord[]) => {
   // Set the HTML content
   exportContainer.innerHTML = htmlContent;
   
-  console.log("HTML content length:", htmlContent.length);
-  console.log("Sample of HTML content:", htmlContent.substring(0, 200) + "...");
-  
   // Allow time for the DOM to update before generating PDF
   setTimeout(() => {
-    console.log("Starting to generate PDF...");
-    
     // Configure PDF options
     const pdfOptions = {
       margin: 10,
@@ -88,8 +80,7 @@ export const exportToPdf = (filteredRecords: DefectRecord[]) => {
       image: { type: 'jpeg', quality: 1 },
       html2canvas: { 
         scale: 2,
-        useCORS: true,
-        logging: true
+        useCORS: true
       },
       jsPDF: { 
         unit: 'mm', 
@@ -98,101 +89,14 @@ export const exportToPdf = (filteredRecords: DefectRecord[]) => {
       }
     };
     
-    try {
-      // Generate PDF
-      html2pdf().from(exportContainer).set(pdfOptions).save().then(() => {
-        console.log("PDF generation successful");
-        document.body.removeChild(exportContainer);
-        
-        toast({
-          title: "SUCCESS",
-          description: "PDF EXPORT COMPLETE",
-        });
-      }).catch(error => {
-        console.error("PDF generation error:", error);
-        document.body.removeChild(exportContainer);
-        
-        toast({
-          title: "ERROR",
-          description: "FAILED TO GENERATE PDF: " + error.message,
-          variant: "destructive"
-        });
-      });
-    } catch (error) {
-      console.error("Error during PDF generation setup:", error);
+    // Generate PDF
+    html2pdf().from(exportContainer).set(pdfOptions).save().then(() => {
       document.body.removeChild(exportContainer);
-      
-      toast({
-        title: "ERROR",
-        description: "FAILED TO SETUP PDF GENERATION",
-        variant: "destructive"
-      });
-    }
-  }, 1000);
-};
-
-export const exportToExcel = (filteredRecords: DefectRecord[]) => {
-  if (filteredRecords.length === 0) {
-    toast({
-      title: "WARNING",
-      description: "NO RECORDS TO EXPORT",
-      variant: "destructive",
+      toast("PDF export complete");
+    }).catch(error => {
+      console.error("PDF generation error:", error);
+      document.body.removeChild(exportContainer);
+      toast("Failed to generate PDF: " + error.message);
     });
-    return;
-  }
-
-  console.log("Starting Excel export with", filteredRecords.length, "records");
-  
-  // CSV header
-  let csvContent = "Date/Time,Registration,Station,Defect,Remarks,ETA,STD,UPD,RST,SL,OK\n";
-  
-  // Add rows for each record
-  filteredRecords.forEach(record => {
-    const formattedDate = format(new Date(record.date), 'dd/MM/yyyy');
-    const rst = record.rst ? "YES" : "NO";
-    const sl = record.sl ? "YES" : "NO";
-    const ok = record.ok ? "YES" : "NO";
-    
-    // Escape commas and quotes in text fields
-    const escapeCSV = (text: string) => {
-      if (!text) return '';
-      const needsQuotes = text.includes(',') || text.includes('"') || text.includes('\n');
-      if (!needsQuotes) return text;
-      return `"${text.replace(/"/g, '""')}"`;
-    };
-    
-    const row = [
-      `${formattedDate} ${record.time}`,
-      escapeCSV(record.registration),
-      escapeCSV(record.station),
-      escapeCSV(record.defect),
-      escapeCSV(record.remarks),
-      escapeCSV(record.eta),
-      escapeCSV(record.std),
-      escapeCSV(record.upd),
-      rst,
-      sl,
-      ok
-    ];
-    
-    csvContent += row.join(',') + '\n';
-  });
-  
-  // Create a Blob and download link
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.setAttribute('href', url);
-  link.setAttribute('download', 'aircraft_defect_records.csv');
-  document.body.appendChild(link);
-  
-  // Trigger download and clean up
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-  
-  toast({
-    title: "SUCCESS",
-    description: "EXCEL EXPORT COMPLETE",
-  });
+  }, 1000);
 };

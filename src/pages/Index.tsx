@@ -1,14 +1,16 @@
+
 import { useState, useEffect } from "react";
-import { collection, onSnapshot } from "firebase/firestore";
+import { collection, onSnapshot, deleteDoc, doc } from "firebase/firestore";
 import { db } from "../utils/firebaseDB";
 import { DefectRecord } from "../components/defect-records/DefectRecord.types";
-import RecordsTable from "../components/defect-records/RecordsTable";
-import AddDefectModal from "../components/defect-records/AddDefectModal";
-import EditDefectModal from "../components/defect-records/EditDefectModal";
-import FilterButtons from "../components/defect-records/FilterButtons";
+import { RecordsTable } from "../components/defect-records/RecordsTable";
+import { AddDefectModal } from "../components/defect-records/AddDefectModal";
+import { EditDefectModal } from "../components/defect-records/EditDefectModal";
+import { FilterButtons } from "../components/defect-records/FilterButtons";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { exportRecordsToPDF } from "@/utils/pdfExport";
+import { toast } from "sonner";
 
 const Index = () => {
   const [defectRecords, setDefectRecords] = useState<DefectRecord[]>([]);
@@ -43,14 +45,14 @@ const Index = () => {
   };
 
   const handleDeleteRecord = async (id: string) => {
-    // try {
-    //   const recordDoc = doc(db, "defectRecords", id);
-    //   await deleteDoc(recordDoc);
-    //   toast.success("Record deleted successfully!");
-    // } catch (error) {
-    //   console.error("Error deleting record:", error);
-    //   toast.error("Failed to delete record.");
-    // }
+    try {
+      const recordDoc = doc(db, "defectRecords", id);
+      await deleteDoc(recordDoc);
+      toast.success("Record deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting record:", error);
+      toast.error("Failed to delete record.");
+    }
   };
 
   const handleCloseModal = () => {
@@ -64,7 +66,11 @@ const Index = () => {
   };
 
   const filteredRecords = filter
-    ? defectRecords.filter((record) => record.status === filter)
+    ? defectRecords.filter((record) => {
+        if (filter === 'sl') return record.sl;
+        if (filter === 'ok') return record.ok;
+        return true;
+      })
     : defectRecords;
 
   return (

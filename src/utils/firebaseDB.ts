@@ -1,4 +1,3 @@
-
 import { DefectRecord } from "@/components/defect-records/DefectRecord.types";
 import { initializeApp } from "firebase/app";
 import { 
@@ -12,6 +11,7 @@ import {
   where,
   writeBatch
 } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 
 // Firebase configuration
 const firebaseConfig = {
@@ -26,7 +26,8 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const COLLECTION_NAME = 'defect-records';
+const auth = getAuth(app);
+const COLLECTION_NAME = 'defectRecords';
 
 // Get all records
 export const getAllRecords = async (): Promise<DefectRecord[]> => {
@@ -146,3 +147,6 @@ export const deleteRecordsByDate = async (date: string): Promise<void> => {
     throw error;
   }
 };
+
+// Export db and auth
+export { db, auth };
