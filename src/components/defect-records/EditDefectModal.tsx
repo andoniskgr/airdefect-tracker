@@ -27,6 +27,9 @@ export const EditDefectModal = ({
 }: EditDefectModalProps) => {
   if (!editingRecord) return null;
 
+  // Log record ID for debugging
+  console.log("EditDefectModal rendering with record ID:", editingRecord.id);
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -214,7 +217,10 @@ export const EditDefectModal = ({
             Cancel
           </Button>
           <Button 
-            onClick={handleEditSubmit} 
+            onClick={() => {
+              console.log("Update button clicked, sending record with ID:", editingRecord.id);
+              handleEditSubmit();
+            }} 
             className="bg-green-600 text-white hover:bg-green-700 text-lg uppercase"
           >
             Update

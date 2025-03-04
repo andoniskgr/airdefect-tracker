@@ -9,7 +9,8 @@ import {
   deleteDoc, 
   query, 
   where,
-  writeBatch
+  writeBatch,
+  getDoc
 } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
@@ -34,7 +35,13 @@ export const getAllRecords = async (): Promise<DefectRecord[]> => {
   try {
     const recordsCollection = collection(db, COLLECTION_NAME);
     const snapshot = await getDocs(recordsCollection);
-    return snapshot.docs.map(doc => doc.data() as DefectRecord);
+    return snapshot.docs.map(doc => {
+      const data = doc.data() as Omit<DefectRecord, 'id'>;
+      return { 
+        id: doc.id, // Use Firestore document ID
+        ...data 
+      };
+    });
   } catch (error) {
     console.error('Firestore error:', error);
     
@@ -44,6 +51,18 @@ export const getAllRecords = async (): Promise<DefectRecord[]> => {
     }
     
     return [];
+  }
+};
+
+// Check if record exists
+export const recordExists = async (id: string): Promise<boolean> => {
+  try {
+    const docRef = doc(db, COLLECTION_NAME, id);
+    const docSnap = await getDoc(docRef);
+    return docSnap.exists();
+  } catch (error) {
+    console.error('Error checking record existence:', error);
+    return false;
   }
 };
 

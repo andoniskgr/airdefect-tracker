@@ -1,6 +1,5 @@
-
 import { useState, useEffect } from "react";
-import { collection, onSnapshot, deleteDoc, doc, addDoc, updateDoc } from "firebase/firestore";
+import { collection, onSnapshot, deleteDoc, doc, addDoc, updateDoc, getDoc } from "firebase/firestore";
 import { db } from "../utils/firebaseDB";
 import { DefectRecord } from "../components/defect-records/DefectRecord.types";
 import { RecordsTable } from "../components/defect-records/RecordsTable";
@@ -26,7 +25,6 @@ const Index = () => {
     direction: 'asc'
   });
   
-  // Form data for adding a new record
   const [formData, setFormData] = useState<Omit<DefectRecord, 'id'>>({
     date: format(new Date(), 'yyyy-MM-dd'),
     time: format(new Date(), 'HH:mm'),
@@ -44,7 +42,6 @@ const Index = () => {
     status: 'active'
   });
   
-  // Editing record state
   const [editingRecord, setEditingRecord] = useState<DefectRecord | null>(null);
 
   useEffect(() => {
@@ -57,6 +54,11 @@ const Index = () => {
         id: doc.id,
         ...doc.data(),
       })) as DefectRecord[];
+      
+      if (records.length > 0) {
+        console.log("Sample record:", records[0]);
+      }
+      
       setDefectRecords(records);
       setLoading(false);
     }, (error) => {
@@ -73,12 +75,14 @@ const Index = () => {
   };
 
   const handleEditRecord = (record: DefectRecord) => {
+    console.log("Editing record with ID:", record.id);
     setEditingRecord(record);
     setIsEditModalOpen(true);
   };
 
   const handleDeleteRecord = async (id: string) => {
     try {
+      console.log("Deleting record with ID:", id);
       const recordDoc = doc(db, "defectRecords", id);
       await deleteDoc(recordDoc);
       toast.success("Record deleted successfully!");
@@ -92,7 +96,6 @@ const Index = () => {
     try {
       const recordsToDelete = defectRecords.filter(record => record.date === date);
       
-      // Delete each record for the selected date
       for (const record of recordsToDelete) {
         const recordDoc = doc(db, "defectRecords", record.id);
         await deleteDoc(recordDoc);
@@ -138,25 +141,19 @@ const Index = () => {
   
   const handleSubmit = async () => {
     try {
-      // Generate a unique ID for the new record
-      const newId = uuidv4();
-      
-      // Create the complete record object
-      const newRecord: DefectRecord = {
-        id: newId,
+      const newRecord = {
         ...formData
       };
       
       console.log("Saving new record:", newRecord);
       
-      // Add the document to Firestore
       const recordsCollection = collection(db, "defectRecords");
-      await addDoc(recordsCollection, newRecord);
+      const docRef = await addDoc(recordsCollection, newRecord);
       
+      console.log("Record added with ID:", docRef.id);
       toast.success("Record added successfully!");
       setIsAddModalOpen(false);
       
-      // Reset the form data
       handleClear();
     } catch (error) {
       console.error("Error adding record:", error);
@@ -168,11 +165,18 @@ const Index = () => {
     if (!editingRecord) return;
     
     try {
-      console.log("Updating record:", editingRecord);
+      console.log("Updating record with ID:", editingRecord.id);
       
-      // Update the document in Firestore
       const recordDoc = doc(db, "defectRecords", editingRecord.id);
-      await updateDoc(recordDoc, { ...editingRecord });
+      const docSnap = await getDoc(recordDoc);
+      
+      if (!docSnap.exists()) {
+        throw new Error(`Document with ID ${editingRecord.id} does not exist`);
+      }
+      
+      const { id, ...recordData } = editingRecord;
+      
+      await updateDoc(recordDoc, recordData);
       
       toast.success("Record updated successfully!");
       setIsEditModalOpen(false);
