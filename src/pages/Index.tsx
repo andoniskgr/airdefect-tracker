@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { collection, onSnapshot, deleteDoc, doc } from "firebase/firestore";
+import { collection, onSnapshot, deleteDoc, doc, addDoc, updateDoc } from "firebase/firestore";
 import { db } from "../utils/firebaseDB";
 import { DefectRecord } from "../components/defect-records/DefectRecord.types";
 import { RecordsTable } from "../components/defect-records/RecordsTable";
@@ -12,6 +12,7 @@ import { Plus } from "lucide-react";
 import { exportRecordsToPDF } from "@/utils/pdfExport";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { v4 as uuidv4 } from 'uuid';
 
 const Index = () => {
   const [defectRecords, setDefectRecords] = useState<DefectRecord[]>([]);
@@ -48,13 +49,19 @@ const Index = () => {
 
   useEffect(() => {
     const recordsCollection = collection(db, "defectRecords");
+    console.log("Setting up Firestore listener");
 
     const unsubscribe = onSnapshot(recordsCollection, (snapshot) => {
+      console.log("Snapshot received, docs count:", snapshot.docs.length);
       const records = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       })) as DefectRecord[];
       setDefectRecords(records);
+      setLoading(false);
+    }, (error) => {
+      console.error("Firestore error:", error);
+      toast.error("Failed to load records: " + error.message);
       setLoading(false);
     });
 
@@ -130,15 +137,50 @@ const Index = () => {
   };
   
   const handleSubmit = async () => {
-    // This would be implemented to save the form data to Firebase
-    console.log("Form submitted:", formData);
-    setIsAddModalOpen(false);
+    try {
+      // Generate a unique ID for the new record
+      const newId = uuidv4();
+      
+      // Create the complete record object
+      const newRecord: DefectRecord = {
+        id: newId,
+        ...formData
+      };
+      
+      console.log("Saving new record:", newRecord);
+      
+      // Add the document to Firestore
+      const recordsCollection = collection(db, "defectRecords");
+      await addDoc(recordsCollection, newRecord);
+      
+      toast.success("Record added successfully!");
+      setIsAddModalOpen(false);
+      
+      // Reset the form data
+      handleClear();
+    } catch (error) {
+      console.error("Error adding record:", error);
+      toast.error("Failed to add record: " + (error instanceof Error ? error.message : "Unknown error"));
+    }
   };
   
   const handleEditSubmit = async () => {
-    // This would be implemented to update the record in Firebase
-    console.log("Edit submitted:", editingRecord);
-    setIsEditModalOpen(false);
+    if (!editingRecord) return;
+    
+    try {
+      console.log("Updating record:", editingRecord);
+      
+      // Update the document in Firestore
+      const recordDoc = doc(db, "defectRecords", editingRecord.id);
+      await updateDoc(recordDoc, { ...editingRecord });
+      
+      toast.success("Record updated successfully!");
+      setIsEditModalOpen(false);
+      setEditingRecord(null);
+    } catch (error) {
+      console.error("Error updating record:", error);
+      toast.error("Failed to update record: " + (error instanceof Error ? error.message : "Unknown error"));
+    }
   };
 
   const filteredRecords = filter !== 'all'
