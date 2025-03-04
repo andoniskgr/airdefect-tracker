@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { collection, onSnapshot, deleteDoc, doc, addDoc, updateDoc, getDoc } from "firebase/firestore";
-import { db } from "../utils/firebaseDB";
+import { collection, onSnapshot, deleteDoc, doc, addDoc, getDoc } from "firebase/firestore";
+import { db, saveRecord } from "../utils/firebaseDB";
 import { DefectRecord } from "../components/defect-records/DefectRecord.types";
 import { RecordsTable } from "../components/defect-records/RecordsTable";
 import { AddDefectModal } from "../components/defect-records/AddDefectModal";
@@ -11,7 +11,6 @@ import { Plus } from "lucide-react";
 import { exportRecordsToPDF } from "@/utils/pdfExport";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { v4 as uuidv4 } from 'uuid';
 
 const Index = () => {
   const [defectRecords, setDefectRecords] = useState<DefectRecord[]>([]);
@@ -142,15 +141,13 @@ const Index = () => {
   const handleSubmit = async () => {
     try {
       const newRecord = {
-        ...formData
+        ...formData,
+        id: '' // Empty ID for new records, let Firestore generate it
       };
       
       console.log("Saving new record:", newRecord);
+      await saveRecord(newRecord);
       
-      const recordsCollection = collection(db, "defectRecords");
-      const docRef = await addDoc(recordsCollection, newRecord);
-      
-      console.log("Record added with ID:", docRef.id);
       toast.success("Record added successfully!");
       setIsAddModalOpen(false);
       
@@ -167,16 +164,7 @@ const Index = () => {
     try {
       console.log("Updating record with ID:", editingRecord.id);
       
-      const recordDoc = doc(db, "defectRecords", editingRecord.id);
-      const docSnap = await getDoc(recordDoc);
-      
-      if (!docSnap.exists()) {
-        throw new Error(`Document with ID ${editingRecord.id} does not exist`);
-      }
-      
-      const { id, ...recordData } = editingRecord;
-      
-      await updateDoc(recordDoc, recordData);
+      await saveRecord(editingRecord);
       
       toast.success("Record updated successfully!");
       setIsEditModalOpen(false);

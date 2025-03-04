@@ -10,7 +10,9 @@ import {
   query, 
   where,
   writeBatch,
-  getDoc
+  getDoc,
+  addDoc,
+  updateDoc
 } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
@@ -69,10 +71,34 @@ export const recordExists = async (id: string): Promise<boolean> => {
 // Save a single record
 export const saveRecord = async (record: DefectRecord): Promise<void> => {
   try {
-    const recordRef = doc(db, COLLECTION_NAME, record.id);
-    await setDoc(recordRef, record);
+    // Check if this is a new record or an existing one
+    if (record.id && record.id.trim() !== '') {
+      // This is an existing record, check if it exists first
+      const exists = await recordExists(record.id);
+      if (!exists) {
+        console.error(`Record with ID ${record.id} does not exist in Firestore.`);
+        throw new Error(`Document with ID ${record.id} does not exist`);
+      }
+      
+      // Create a clone without the id field for updateDoc
+      const { id, ...recordWithoutId } = record;
+      console.log(`Updating existing record with ID: ${id}`, recordWithoutId);
+      
+      const recordRef = doc(db, COLLECTION_NAME, id);
+      await updateDoc(recordRef, recordWithoutId);
+    } else {
+      // This is a new record, let Firestore generate an ID
+      console.log('Adding new record without predefined ID');
+      const newDocRef = await addDoc(collection(db, COLLECTION_NAME), 
+        // Remove id if it's empty to avoid empty string IDs
+        record.id && record.id.trim() !== '' ? record : Object.fromEntries(
+          Object.entries(record).filter(([key]) => key !== 'id')
+        )
+      );
+      console.log('New record added with Firestore-generated ID:', newDocRef.id);
+    }
   } catch (error) {
-    console.error('Firestore error:', error);
+    console.error('Firestore error when saving record:', error);
     
     // Check if error is a Firebase permission error
     if (error instanceof Error && error.message.includes('permission')) {
