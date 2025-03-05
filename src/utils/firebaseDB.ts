@@ -33,10 +33,19 @@ const auth = getAuth(app);
 const COLLECTION_NAME = 'defectRecords';
 
 // Get all records
-export const getAllRecords = async (): Promise<DefectRecord[]> => {
+export const getAllRecords = async (userEmail?: string | null): Promise<DefectRecord[]> => {
   try {
     const recordsCollection = collection(db, COLLECTION_NAME);
-    const snapshot = await getDocs(recordsCollection);
+    
+    // If userEmail is provided, filter by creator
+    let recordsQuery;
+    if (userEmail) {
+      recordsQuery = query(recordsCollection, where("createdBy", "==", userEmail));
+    } else {
+      recordsQuery = recordsCollection;
+    }
+    
+    const snapshot = await getDocs(recordsQuery);
     return snapshot.docs.map(doc => {
       const data = doc.data() as Omit<DefectRecord, 'id'>;
       return { 

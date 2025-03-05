@@ -1,5 +1,6 @@
+
 import { useState, useEffect } from "react";
-import { collection, onSnapshot, deleteDoc, doc, addDoc, getDoc } from "firebase/firestore";
+import { collection, onSnapshot, deleteDoc, doc, addDoc, getDoc, query, where } from "firebase/firestore";
 import { db, saveRecord } from "../utils/firebaseDB";
 import { DefectRecord } from "../components/defect-records/DefectRecord.types";
 import { RecordsTable } from "../components/defect-records/RecordsTable";
