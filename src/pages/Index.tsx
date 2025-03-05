@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { collection, onSnapshot, deleteDoc, doc, addDoc, getDoc } from "firebase/firestore";
 import { db, saveRecord } from "../utils/firebaseDB";
@@ -122,7 +121,6 @@ const Index = () => {
   };
   
   const handleClear = () => {
-    // Reset to default values with current date/time
     setFormData({
       ...defaultFormData,
       date: format(new Date(), 'yyyy-MM-dd'),
@@ -143,7 +141,6 @@ const Index = () => {
       toast.success("Record added successfully!");
       setIsAddModalOpen(false);
       
-      // Clear form after successful submission
       handleClear();
     } catch (error) {
       console.error("Error adding record:", error);
@@ -165,6 +162,72 @@ const Index = () => {
     } catch (error) {
       console.error("Error updating record:", error);
       toast.error("Failed to update record: " + (error instanceof Error ? error.message : "Unknown error"));
+    }
+  };
+
+  const exportToExcel = () => {
+    try {
+      const recordsToExport = filter !== 'all'
+        ? defectRecords.filter((record) => {
+            if (filter === 'sl') return record.sl;
+            if (filter === 'ok') return record.ok;
+            return true;
+          })
+        : defectRecords;
+      
+      if (recordsToExport.length === 0) {
+        toast.error("No records to export");
+        return;
+      }
+      
+      const headers = [
+        "Date", "Time", "Registration", "Station", "Defect", "Remarks", 
+        "ETA", "STD", "UPD", "RST", "SL", "OK", "PLN"
+      ];
+      
+      const data = recordsToExport.map(record => [
+        format(new Date(record.date), 'dd/MM/yyyy'),
+        record.time,
+        record.registration,
+        record.station,
+        record.defect,
+        record.remarks,
+        record.eta,
+        record.std,
+        record.upd,
+        record.rst ? "YES" : "NO",
+        record.sl ? "YES" : "NO",
+        record.ok ? "YES" : "NO",
+        record.pln ? "YES" : "NO"
+      ]);
+      
+      let csvContent = headers.join(',') + '\n';
+      data.forEach(row => {
+        const formattedRow = row.map(cell => {
+          if (typeof cell === 'string' && (cell.includes(',') || cell.includes('"'))) {
+            return `"${cell.replace(/"/g, '""')}"`;
+          }
+          return cell;
+        });
+        csvContent += formattedRow.join(',') + '\n';
+      });
+      
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `defect-records-${format(new Date(), 'yyyy-MM-dd')}.csv`);
+      link.style.visibility = 'hidden';
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast.success("Excel export completed successfully");
+    } catch (error) {
+      console.error("Error exporting to Excel:", error);
+      toast.error("Failed to export to Excel");
     }
   };
 
@@ -191,7 +254,7 @@ const Index = () => {
       <FilterButtons 
         filter={filter}
         setFilter={setFilter}
-        exportToExcel={() => console.log("Export to Excel")}
+        exportToExcel={exportToExcel}
       />
 
       {loading ? (

@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -29,6 +28,7 @@ export const AddDefectModal = ({
   handleSubmit
 }: AddDefectModalProps) => {
   const [validationErrors, setValidationErrors] = useState<Record<string, boolean>>({});
+  const [calendarOpen, setCalendarOpen] = useState(false);
   
   // References for all input fields for navigation
   const registrationRef = useRef<HTMLInputElement>(null);
@@ -166,7 +166,7 @@ export const AddDefectModal = ({
             <div>
               <label className="text-lg font-medium mb-1 block uppercase">Date</label>
               <div className="relative">
-                <Popover>
+                <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
                   <PopoverTrigger asChild>
                     <Button
                       variant={"outline"}
@@ -185,6 +185,7 @@ export const AddDefectModal = ({
                       onSelect={(date) => {
                         if (date) {
                           handleFieldChange('date', format(date, 'yyyy-MM-dd'));
+                          setCalendarOpen(false); // Close the calendar after selection
                         }
                       }}
                       initialFocus
