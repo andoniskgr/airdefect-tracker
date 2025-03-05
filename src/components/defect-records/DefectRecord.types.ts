@@ -14,7 +14,11 @@ export interface DefectRecord {
   sl: boolean;
   ok: boolean;
   pln: boolean;
-  status?: string; // Add status property
+  status?: string;
+  createdBy?: string;
+  createdAt?: string;
+  updatedBy?: string;
+  updatedAt?: string;
 }
 
 export type FilterType = 'all' | 'sl' | 'ok';

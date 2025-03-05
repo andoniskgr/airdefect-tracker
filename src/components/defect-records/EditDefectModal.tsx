@@ -1,11 +1,10 @@
-
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { cn } from "@/lib/utils";
 import { DefectRecord } from './DefectRecord.types';
 import { TimePicker } from '@/components/ui/time-picker';
@@ -29,6 +28,13 @@ export const EditDefectModal = ({
 
   // Log record ID for debugging
   console.log("EditDefectModal rendering with record ID:", editingRecord.id);
+
+  // Format audit timestamps if they exist
+  const createdAtFormatted = editingRecord.createdAt ? 
+    format(parseISO(editingRecord.createdAt), 'dd/MM/yyyy HH:mm:ss') : 'N/A';
+    
+  const updatedAtFormatted = editingRecord.updatedAt ? 
+    format(parseISO(editingRecord.updatedAt), 'dd/MM/yyyy HH:mm:ss') : 'N/A';
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -207,6 +213,19 @@ export const EditDefectModal = ({
               </label>
             </div>
           </div>
+        </div>
+        <div className="border-t pt-4 mt-2">
+          <h3 className="text-sm font-medium text-gray-500 mb-2">Record History</h3>
+          {editingRecord.createdBy && (
+            <p className="text-xs text-gray-500">
+              Created by: {editingRecord.createdBy} at {createdAtFormatted}
+            </p>
+          )}
+          {editingRecord.updatedBy && editingRecord.updatedAt !== editingRecord.createdAt && (
+            <p className="text-xs text-gray-500">
+              Last updated by: {editingRecord.updatedBy} at {updatedAtFormatted}
+            </p>
+          )}
         </div>
         <div className="flex justify-end space-x-4">
           <Button 

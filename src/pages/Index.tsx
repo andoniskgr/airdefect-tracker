@@ -10,8 +10,10 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { useAuth } from "../context/AuthContext";
 
 const Index = () => {
+  const { currentUser } = useAuth();
   const [defectRecords, setDefectRecords] = useState<DefectRecord[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -130,12 +132,19 @@ const Index = () => {
   
   const handleSubmit = async () => {
     try {
+      const timestamp = new Date().toISOString();
+      const userEmail = currentUser?.email || 'unknown';
+      
       const newRecord = {
         ...formData,
-        id: '' // Empty ID for new records, let Firestore generate it
+        id: '', // Empty ID for new records, let Firestore generate it
+        createdBy: userEmail,
+        createdAt: timestamp,
+        updatedBy: userEmail,
+        updatedAt: timestamp
       };
       
-      console.log("Saving new record:", newRecord);
+      console.log("Saving new record with audit data:", newRecord);
       await saveRecord(newRecord);
       
       toast.success("Record added successfully!");
@@ -154,7 +163,16 @@ const Index = () => {
     try {
       console.log("Updating record with ID:", editingRecord.id);
       
-      await saveRecord(editingRecord);
+      const timestamp = new Date().toISOString();
+      const userEmail = currentUser?.email || 'unknown';
+      
+      const updatedRecord = {
+        ...editingRecord,
+        updatedBy: userEmail,
+        updatedAt: timestamp
+      };
+      
+      await saveRecord(updatedRecord);
       
       toast.success("Record updated successfully!");
       setIsEditModalOpen(false);
