@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { collection, onSnapshot, deleteDoc, doc, addDoc, getDoc } from "firebase/firestore";
 import { db, saveRecord } from "../utils/firebaseDB";
@@ -23,7 +24,7 @@ const Index = () => {
     direction: 'asc'
   });
   
-  const [formData, setFormData] = useState<Omit<DefectRecord, 'id'>>({
+  const defaultFormData = {
     date: format(new Date(), 'yyyy-MM-dd'),
     time: format(new Date(), 'HH:mm'),
     registration: '',
@@ -38,7 +39,9 @@ const Index = () => {
     ok: false,
     pln: false,
     status: 'active'
-  });
+  };
+  
+  const [formData, setFormData] = useState<Omit<DefectRecord, 'id'>>(defaultFormData);
   
   const [editingRecord, setEditingRecord] = useState<DefectRecord | null>(null);
 
@@ -119,21 +122,11 @@ const Index = () => {
   };
   
   const handleClear = () => {
+    // Reset to default values with current date/time
     setFormData({
+      ...defaultFormData,
       date: format(new Date(), 'yyyy-MM-dd'),
       time: format(new Date(), 'HH:mm'),
-      registration: '',
-      station: '',
-      defect: '',
-      remarks: '',
-      eta: '',
-      std: '',
-      upd: '',
-      rst: false,
-      sl: false,
-      ok: false,
-      pln: false,
-      status: 'active'
     });
   };
   
@@ -150,6 +143,7 @@ const Index = () => {
       toast.success("Record added successfully!");
       setIsAddModalOpen(false);
       
+      // Clear form after successful submission
       handleClear();
     } catch (error) {
       console.error("Error adding record:", error);
