@@ -8,7 +8,6 @@ import { EditDefectModal } from "../components/defect-records/EditDefectModal";
 import { FilterButtons } from "../components/defect-records/FilterButtons";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { exportRecordsToPDF } from "@/utils/pdfExport";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -187,10 +186,7 @@ const Index = () => {
     <div className="container mx-auto mt-8">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-bold">Defect Records</h1>
-        <div className="space-x-2">
-          <Button onClick={() => exportRecordsToPDF(defectRecords)}>
-            Export to PDF
-          </Button>
+        <div>
           <Button onClick={handleAddRecord}>
             <Plus className="mr-2 h-4 w-4" />
             Add Record
@@ -201,7 +197,6 @@ const Index = () => {
       <FilterButtons 
         filter={filter}
         setFilter={setFilter}
-        exportToPdf={() => exportRecordsToPDF(defectRecords)}
         exportToExcel={() => console.log("Export to Excel")}
       />
 

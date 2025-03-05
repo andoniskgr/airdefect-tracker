@@ -47,9 +47,12 @@ export const AddDefectModal = ({
     return true;
   };
 
-  // Set focus on registration field when modal opens
+  // Set focus on registration field and clear form when modal opens
   useEffect(() => {
     if (isOpen) {
+      // Clear form data when modal opens
+      handleClear();
+      
       // Use a more aggressive approach to ensure focus works
       const focusInterval = setInterval(() => {
         if (registrationRef.current) {
@@ -63,7 +66,7 @@ export const AddDefectModal = ({
       
       return () => clearInterval(focusInterval);
     }
-  }, [isOpen]);
+  }, [isOpen, handleClear]);
 
   // Handle field validation on change
   const handleFieldChange = (field: keyof Omit<DefectRecord, 'id'>, value: any) => {
