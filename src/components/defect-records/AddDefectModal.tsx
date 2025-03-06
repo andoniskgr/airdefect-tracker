@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -324,6 +325,19 @@ export const AddDefectModal = ({
               />
               <label htmlFor="ok" className="text-lg font-medium uppercase">
                 OK
+              </label>
+            </div>
+            <div className="flex flex-col items-center space-y-1">
+              <Checkbox
+                id="pln"
+                checked={formData.pln}
+                onCheckedChange={(checked) => 
+                  handleFieldChange('pln', checked as boolean)
+                }
+                className="h-5 w-5"
+              />
+              <label htmlFor="pln" className="text-lg font-medium uppercase">
+                PLN
               </label>
             </div>
           </div>

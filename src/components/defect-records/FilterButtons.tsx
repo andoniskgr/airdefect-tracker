@@ -33,6 +33,13 @@ export const FilterButtons = ({ filter, setFilter, exportToExcel }: FilterButton
       >
         OK Only
       </Button>
+      <Button 
+        onClick={() => setFilter('pln')}
+        variant={filter === 'pln' ? 'default' : 'outline'}
+        className="text-sm uppercase"
+      >
+        PLN Only
+      </Button>
       <Button
         onClick={exportToExcel}
         variant="outline"

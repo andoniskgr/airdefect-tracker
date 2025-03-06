@@ -18,7 +18,7 @@ const Index = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [recordToEdit, setRecordToEdit] = useState<DefectRecord | null>(null);
-  const [filter, setFilter] = useState<'all' | 'sl' | 'ok'>('all');
+  const [filter, setFilter] = useState<'all' | 'sl' | 'ok' | 'pln'>('all');
   const [loading, setLoading] = useState(true);
   const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' }>({
     key: 'time',
@@ -64,10 +64,12 @@ const Index = () => {
     fetchRecords();
 
     const recordsCollection = collection(db, "defectRecords");
-    let recordsQuery = recordsCollection;
+    let recordsQuery;
     
     if (currentUser?.email) {
       recordsQuery = query(recordsCollection, where("createdBy", "==", currentUser.email));
+    } else {
+      recordsQuery = query(recordsCollection);
     }
     
     const unsubscribe = onSnapshot(recordsQuery, (snapshot) => {
@@ -198,6 +200,7 @@ const Index = () => {
         ? defectRecords.filter((record) => {
             if (filter === 'sl') return record.sl;
             if (filter === 'ok') return record.ok;
+            if (filter === 'pln') return record.pln;
             return true;
           })
         : defectRecords;
@@ -262,6 +265,7 @@ const Index = () => {
     ? defectRecords.filter((record) => {
         if (filter === 'sl') return record.sl;
         if (filter === 'ok') return record.ok;
+        if (filter === 'pln') return record.pln;
         return true;
       })
     : defectRecords;

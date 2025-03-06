@@ -21,5 +21,5 @@ export interface DefectRecord {
   updatedAt?: string;
 }
 
-export type FilterType = 'all' | 'sl' | 'ok';
+export type FilterType = 'all' | 'sl' | 'ok' | 'pln';
 export type ExportType = 'pdf' | 'excel';
