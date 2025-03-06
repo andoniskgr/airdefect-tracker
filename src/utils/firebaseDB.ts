@@ -1,3 +1,4 @@
+
 import { DefectRecord } from "@/components/defect-records/DefectRecord.types";
 import { initializeApp } from "firebase/app";
 import { 
@@ -154,8 +155,23 @@ export const saveRecords = async (records: DefectRecord[]): Promise<void> => {
 };
 
 // Delete a record by ID
-export const deleteRecord = async (id: string): Promise<void> => {
+export const deleteRecord = async (id: string, userEmail?: string | null): Promise<void> => {
   try {
+    // First check if the record belongs to the user
+    if (userEmail) {
+      const recordRef = doc(db, COLLECTION_NAME, id);
+      const recordSnap = await getDoc(recordRef);
+      
+      if (recordSnap.exists()) {
+        const data = recordSnap.data() as DefectRecord;
+        
+        // Only allow deletion if the user created the record
+        if (data.createdBy !== userEmail) {
+          throw new Error('You can only delete records you created');
+        }
+      }
+    }
+    
     const recordRef = doc(db, COLLECTION_NAME, id);
     await deleteDoc(recordRef);
   } catch (error) {
@@ -172,19 +188,27 @@ export const deleteRecord = async (id: string): Promise<void> => {
 };
 
 // Delete multiple records by date
-export const deleteRecordsByDate = async (date: string): Promise<void> => {
+export const deleteRecordsByDate = async (date: string, userEmail?: string | null): Promise<void> => {
   try {
-    // Get all records
+    // Get all records for this user
     const recordsCollection = collection(db, COLLECTION_NAME);
-    const snapshot = await getDocs(recordsCollection);
+    let recordsQuery;
+    
+    if (userEmail) {
+      recordsQuery = query(recordsCollection, 
+        where("createdBy", "==", userEmail),
+        where("date", "==", date)
+      );
+    } else {
+      recordsQuery = query(recordsCollection, where("date", "==", date));
+    }
+    
+    const snapshot = await getDocs(recordsQuery);
     const batch = writeBatch(db);
     
-    // Find and delete records for the specified date
+    // Delete matching records
     snapshot.docs.forEach(document => {
-      const data = document.data() as DefectRecord;
-      if (data.date === date) {
-        batch.delete(doc(db, COLLECTION_NAME, document.id));
-      }
+      batch.delete(doc(db, COLLECTION_NAME, document.id));
     });
     
     // Commit the batch

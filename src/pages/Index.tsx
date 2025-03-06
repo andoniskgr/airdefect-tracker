@@ -1,7 +1,6 @@
-
 import { useState, useEffect } from "react";
 import { collection, onSnapshot, deleteDoc, doc, addDoc, getDoc, query, where } from "firebase/firestore";
-import { db, saveRecord } from "../utils/firebaseDB";
+import { db, saveRecord, getAllRecords, deleteRecord, deleteRecordsByDate } from "../utils/firebaseDB";
 import { DefectRecord } from "../components/defect-records/DefectRecord.types";
 import { RecordsTable } from "../components/defect-records/RecordsTable";
 import { AddDefectModal } from "../components/defect-records/AddDefectModal";
@@ -48,19 +47,35 @@ const Index = () => {
   const [editingRecord, setEditingRecord] = useState<DefectRecord | null>(null);
 
   useEffect(() => {
-    const recordsCollection = collection(db, "defectRecords");
-    console.log("Setting up Firestore listener");
+    setLoading(true);
+    const fetchRecords = async () => {
+      try {
+        const records = await getAllRecords(currentUser?.email);
+        setDefectRecords(records);
+        console.log(`Fetched ${records.length} records for user ${currentUser?.email}`);
+      } catch (error) {
+        console.error("Error fetching records:", error);
+        toast.error("Failed to load records: " + (error instanceof Error ? error.message : "Unknown error"));
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    const unsubscribe = onSnapshot(recordsCollection, (snapshot) => {
-      console.log("Snapshot received, docs count:", snapshot.docs.length);
+    fetchRecords();
+
+    const recordsCollection = collection(db, "defectRecords");
+    let recordsQuery = recordsCollection;
+    
+    if (currentUser?.email) {
+      recordsQuery = query(recordsCollection, where("createdBy", "==", currentUser.email));
+    }
+    
+    const unsubscribe = onSnapshot(recordsQuery, (snapshot) => {
+      console.log(`Snapshot received, docs count: ${snapshot.docs.length} for user ${currentUser?.email}`);
       const records = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       })) as DefectRecord[];
-      
-      if (records.length > 0) {
-        console.log("Sample record:", records[0]);
-      }
       
       setDefectRecords(records);
       setLoading(false);
@@ -71,7 +86,7 @@ const Index = () => {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [currentUser?.email]);
 
   const handleAddRecord = () => {
     setIsAddModalOpen(true);
@@ -86,28 +101,21 @@ const Index = () => {
   const handleDeleteRecord = async (id: string) => {
     try {
       console.log("Deleting record with ID:", id);
-      const recordDoc = doc(db, "defectRecords", id);
-      await deleteDoc(recordDoc);
+      await deleteRecord(id, currentUser?.email);
       toast.success("Record deleted successfully!");
     } catch (error) {
       console.error("Error deleting record:", error);
-      toast.error("Failed to delete record.");
+      toast.error("Failed to delete record: " + (error instanceof Error ? error.message : "Unknown error"));
     }
   };
   
   const handleDeleteAllByDate = async (date: string) => {
     try {
-      const recordsToDelete = defectRecords.filter(record => record.date === date);
-      
-      for (const record of recordsToDelete) {
-        const recordDoc = doc(db, "defectRecords", record.id);
-        await deleteDoc(recordDoc);
-      }
-      
+      await deleteRecordsByDate(date, currentUser?.email);
       toast.success(`All records for ${format(new Date(date), 'dd/MM/yyyy')} deleted successfully!`);
     } catch (error) {
       console.error("Error deleting records:", error);
-      toast.error("Failed to delete records.");
+      toast.error("Failed to delete records: " + (error instanceof Error ? error.message : "Unknown error"));
     }
   };
 
