@@ -3,7 +3,6 @@ import { useState } from "react";
 import { DefectRecord } from "../components/defect-records/DefectRecord.types";
 import { RecordsTable } from "../components/defect-records/RecordsTable";
 import { AddDefectModal } from "../components/defect-records/AddDefectModal";
-import { EditDefectModal } from "../components/defect-records/EditDefectModal";
 import { FilterButtons } from "../components/defect-records/FilterButtons";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -23,6 +22,7 @@ const Index = () => {
     handleDeleteRecord,
     handleDeleteAllByDate,
     exportToExcel,
+    saveRecord,
     getFilteredRecords
   } = useDefectRecords(currentUser?.email);
 
@@ -31,17 +31,15 @@ const Index = () => {
     setFormData,
     isAddModalOpen,
     setIsAddModalOpen,
-    isEditModalOpen,
-    setIsEditModalOpen,
-    editingRecord,
-    setEditingRecord,
     handleClear,
-    handleSubmit,
-    handleEditRecord,
-    handleEditSubmit
+    handleSubmit
   } = useDefectForm(currentUser?.email);
 
   const filteredRecords = getFilteredRecords();
+
+  const handleSaveRecord = (record: DefectRecord) => {
+    saveRecord(record);
+  };
 
   return (
     <div className="container mx-auto mt-8">
@@ -67,7 +65,8 @@ const Index = () => {
         <RecordsTable
           records={filteredRecords}
           handleSort={handleSort}
-          handleEditRecord={handleEditRecord}
+          handleEditRecord={() => {}}
+          handleSaveRecord={handleSaveRecord}
           handleDeleteRecord={handleDeleteRecord}
           handleDeleteAllByDate={handleDeleteAllByDate}
           sortConfig={sortConfig}
@@ -82,16 +81,6 @@ const Index = () => {
         handleClear={handleClear}
         handleSubmit={handleSubmit}
       />
-
-      {editingRecord && (
-        <EditDefectModal
-          isOpen={isEditModalOpen}
-          onOpenChange={setIsEditModalOpen}
-          editingRecord={editingRecord}
-          setEditingRecord={setEditingRecord}
-          handleEditSubmit={handleEditSubmit}
-        />
-      )}
     </div>
   );
 };

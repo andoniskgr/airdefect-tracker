@@ -25,8 +25,6 @@ export const useDefectForm = (currentUserEmail: string | null | undefined) => {
 
   const [formData, setFormData] = useState<Omit<DefectRecord, 'id'>>(defaultFormData);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingRecord, setEditingRecord] = useState<DefectRecord | null>(null);
   
   const handleClear = () => {
     setFormData({
@@ -62,51 +60,13 @@ export const useDefectForm = (currentUserEmail: string | null | undefined) => {
       toast.error("Failed to add record: " + (error instanceof Error ? error.message : "Unknown error"));
     }
   };
-  
-  const handleEditRecord = (record: DefectRecord) => {
-    console.log("Editing record with ID:", record.id);
-    setEditingRecord(record);
-    setIsEditModalOpen(true);
-  };
-  
-  const handleEditSubmit = async () => {
-    if (!editingRecord) return;
-    
-    try {
-      console.log("Updating record with ID:", editingRecord.id);
-      
-      const timestamp = new Date().toISOString();
-      const userEmail = currentUserEmail || 'unknown';
-      
-      const updatedRecord = {
-        ...editingRecord,
-        updatedBy: userEmail,
-        updatedAt: timestamp
-      };
-      
-      await saveRecord(updatedRecord);
-      
-      toast.success("Record updated successfully!");
-      setIsEditModalOpen(false);
-      setEditingRecord(null);
-    } catch (error) {
-      console.error("Error updating record:", error);
-      toast.error("Failed to update record: " + (error instanceof Error ? error.message : "Unknown error"));
-    }
-  };
 
   return {
     formData,
     setFormData,
     isAddModalOpen,
     setIsAddModalOpen,
-    isEditModalOpen,
-    setIsEditModalOpen,
-    editingRecord,
-    setEditingRecord,
     handleClear,
-    handleSubmit,
-    handleEditRecord,
-    handleEditSubmit
+    handleSubmit
   };
 };
