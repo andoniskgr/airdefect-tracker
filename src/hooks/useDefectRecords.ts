@@ -1,8 +1,9 @@
+
 import { useState, useEffect } from "react";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { db, saveRecord as firebaseSaveRecord, getAllRecords, deleteRecord, deleteRecordsByDate } from "../utils/firebaseDB";
+import { db, saveRecord, getAllRecords, deleteRecord, deleteRecordsByDate } from "../utils/firebaseDB";
 import { DefectRecord, FilterType } from "../components/defect-records/DefectRecord.types";
 
 export const useDefectRecords = (userEmail: string | null | undefined) => {
@@ -146,25 +147,6 @@ export const useDefectRecords = (userEmail: string | null | undefined) => {
     }
   };
 
-  const saveRecord = async (record: DefectRecord) => {
-    try {
-      const timestamp = new Date().toISOString();
-      const email = userEmail || 'unknown';
-      
-      const updatedRecord = {
-        ...record,
-        updatedBy: email,
-        updatedAt: timestamp
-      };
-      
-      await firebaseSaveRecord(updatedRecord);
-      toast.success("Record updated successfully!");
-    } catch (error) {
-      console.error("Error updating record:", error);
-      toast.error("Failed to update record: " + (error instanceof Error ? error.message : "Unknown error"));
-    }
-  };
-
   const getFilteredRecords = () => {
     return filter !== 'all'
       ? defectRecords.filter((record) => {
@@ -186,7 +168,6 @@ export const useDefectRecords = (userEmail: string | null | undefined) => {
     handleDeleteRecord,
     handleDeleteAllByDate,
     exportToExcel,
-    saveRecord,
     getFilteredRecords
   };
 };

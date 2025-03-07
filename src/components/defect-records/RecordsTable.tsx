@@ -2,18 +2,15 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { ArrowUpDown, Pencil, Trash, Trash2, Save, X } from "lucide-react";
+import { ArrowUpDown, Pencil, Trash, Trash2 } from "lucide-react";
 import { format, isToday, parseISO, isSameDay } from 'date-fns';
 import { DefectRecord } from "./DefectRecord.types";
 import { useState, useEffect } from "react";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 
 interface RecordsTableProps {
   records: DefectRecord[];
   handleSort: (column: string) => void;
   handleEditRecord: (record: DefectRecord) => void;
-  handleSaveRecord: (record: DefectRecord) => void;
   handleDeleteRecord: (id: string) => void;
   handleDeleteAllByDate: (date: string) => void;
   sortConfig: { key: string, direction: 'asc' | 'desc' };
@@ -22,15 +19,12 @@ interface RecordsTableProps {
 export const RecordsTable = ({ 
   records, 
   handleSort, 
-  handleEditRecord,
-  handleSaveRecord,
+  handleEditRecord, 
   handleDeleteRecord,
   handleDeleteAllByDate,
   sortConfig
 }: RecordsTableProps) => {
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editedRecord, setEditedRecord] = useState<DefectRecord | null>(null);
 
   // Update current time every minute to check for UPD values that need to flash
   useEffect(() => {
@@ -87,64 +81,6 @@ export const RecordsTable = ({
       );
     }
     return null;
-  };
-
-  const startEditing = (record: DefectRecord) => {
-    setEditingId(record.id);
-    setEditedRecord({...record});
-  };
-
-  const cancelEditing = () => {
-    setEditingId(null);
-    setEditedRecord(null);
-  };
-
-  const saveEditing = () => {
-    if (editedRecord) {
-      handleSaveRecord(editedRecord);
-      setEditingId(null);
-      setEditedRecord(null);
-    }
-  };
-
-  const handleInputChange = (field: keyof DefectRecord, value: string | boolean) => {
-    if (editedRecord) {
-      setEditedRecord({
-        ...editedRecord,
-        [field]: value
-      });
-    }
-  };
-
-  const renderEditableCell = (record: DefectRecord, field: keyof DefectRecord, type: 'text' | 'checkbox' = 'text') => {
-    const isEditing = editingId === record.id;
-    
-    if (isEditing && editedRecord) {
-      if (type === 'checkbox') {
-        return (
-          <div className="flex justify-center">
-            <Checkbox 
-              checked={editedRecord[field] as boolean} 
-              onCheckedChange={(checked) => handleInputChange(field, !!checked)}
-            />
-          </div>
-        );
-      } else {
-        return (
-          <Input
-            value={editedRecord[field] as string}
-            onChange={(e) => handleInputChange(field, e.target.value)}
-            className="h-8 text-lg uppercase"
-          />
-        );
-      }
-    } else {
-      if (type === 'checkbox') {
-        return <div className="text-center">{record[field] ? "YES" : "NO"}</div>;
-      } else {
-        return record[field];
-      }
-    }
   };
 
   return (
@@ -210,87 +146,40 @@ export const RecordsTable = ({
                           backgroundColor: record.ok ? "#F2FCE2" : record.sl ? "#FEF7CD" : "transparent"
                         }}
                       >
-                        <TableCell className="text-lg uppercase">
-                          {renderEditableCell(record, 'time')}
-                        </TableCell>
-                        <TableCell className="text-lg uppercase">
-                          {renderEditableCell(record, 'registration')}
-                        </TableCell>
-                        <TableCell className="text-lg uppercase">
-                          {renderEditableCell(record, 'station')}
-                        </TableCell>
-                        <TableCell className="text-lg uppercase">
-                          {renderEditableCell(record, 'defect')}
-                        </TableCell>
-                        <TableCell className="text-lg uppercase">
-                          {renderEditableCell(record, 'remarks')}
-                        </TableCell>
-                        <TableCell className="text-lg uppercase">
-                          {renderEditableCell(record, 'eta')}
-                        </TableCell>
-                        <TableCell className="text-lg uppercase">
-                          {renderEditableCell(record, 'std')}
-                        </TableCell>
+                        <TableCell className="text-lg uppercase">{record.time}</TableCell>
+                        <TableCell className="text-lg uppercase">{record.registration}</TableCell>
+                        <TableCell className="text-lg uppercase">{record.station}</TableCell>
+                        <TableCell className="text-lg uppercase">{record.defect}</TableCell>
+                        <TableCell className="text-lg uppercase">{record.remarks}</TableCell>
+                        <TableCell className="text-lg uppercase">{record.eta}</TableCell>
+                        <TableCell className="text-lg uppercase">{record.std}</TableCell>
                         <TableCell className={`text-lg uppercase ${shouldFlashUpd(record) ? 'flash-upd' : ''}`}>
-                          {renderEditableCell(record, 'upd')}
+                          {record.upd}
                         </TableCell>
-                        <TableCell className="text-lg uppercase text-center">
-                          {renderEditableCell(record, 'rst', 'checkbox')}
-                        </TableCell>
-                        <TableCell className="text-lg uppercase text-center">
-                          {renderEditableCell(record, 'sl', 'checkbox')}
-                        </TableCell>
-                        <TableCell className="text-lg uppercase text-center">
-                          {renderEditableCell(record, 'ok', 'checkbox')}
-                        </TableCell>
-                        <TableCell className="text-lg uppercase text-center">
-                          {renderEditableCell(record, 'pln', 'checkbox')}
-                        </TableCell>
+                        <TableCell className="text-lg uppercase text-center">{record.rst ? "YES" : "NO"}</TableCell>
+                        <TableCell className="text-lg uppercase text-center">{record.sl ? "YES" : "NO"}</TableCell>
+                        <TableCell className="text-lg uppercase text-center">{record.ok ? "YES" : "NO"}</TableCell>
+                        <TableCell className="text-lg uppercase text-center">{record.pln ? "YES" : "NO"}</TableCell>
                         <TableCell>
                           <div className="flex space-x-2">
-                            {editingId === record.id ? (
-                              <>
-                                <Button 
-                                  variant="outline" 
-                                  size="sm" 
-                                  onClick={saveEditing}
-                                  className="p-2 h-8 w-8"
-                                >
-                                  <Save className="h-4 w-4" />
-                                  <span className="sr-only">Save</span>
-                                </Button>
-                                <Button 
-                                  variant="outline" 
-                                  size="sm" 
-                                  onClick={cancelEditing}
-                                  className="p-2 h-8 w-8"
-                                >
-                                  <X className="h-4 w-4" />
-                                  <span className="sr-only">Cancel</span>
-                                </Button>
-                              </>
-                            ) : (
-                              <>
-                                <Button 
-                                  variant="outline" 
-                                  size="sm" 
-                                  onClick={() => startEditing(record)}
-                                  className="p-2 h-8 w-8"
-                                >
-                                  <Pencil className="h-4 w-4" />
-                                  <span className="sr-only">Edit</span>
-                                </Button>
-                                <Button 
-                                  variant="destructive" 
-                                  size="sm" 
-                                  onClick={() => handleDeleteRecord(record.id)}
-                                  className="p-2 h-8 w-8"
-                                >
-                                  <Trash className="h-4 w-4" />
-                                  <span className="sr-only">Delete</span>
-                                </Button>
-                              </>
-                            )}
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => handleEditRecord(record)}
+                              className="p-2 h-8 w-8"
+                            >
+                              <Pencil className="h-4 w-4" />
+                              <span className="sr-only">Edit</span>
+                            </Button>
+                            <Button 
+                              variant="destructive" 
+                              size="sm" 
+                              onClick={() => handleDeleteRecord(record.id)}
+                              className="p-2 h-8 w-8"
+                            >
+                              <Trash className="h-4 w-4" />
+                              <span className="sr-only">Delete</span>
+                            </Button>
                           </div>
                         </TableCell>
                       </TableRow>
