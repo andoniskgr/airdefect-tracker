@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { FileText } from "lucide-react";
 
 const Navbar = () => {
   const { currentUser, logout } = useAuth();
@@ -27,9 +28,22 @@ const Navbar = () => {
   return (
     <nav className="bg-card border-b border-border py-4">
       <div className="container mx-auto flex items-center justify-between px-4">
-        <Link to="/" className="text-xl font-bold">
-          Defect Records App
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link to="/" className="text-xl font-bold">
+            Defect Records App
+          </Link>
+          {currentUser && (
+            <a 
+              href="/service-order" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
+            >
+              <FileText className="h-4 w-4" />
+              <span>Service Order</span>
+            </a>
+          )}
+        </div>
         
         <div className="flex items-center gap-4">
           {currentUser ? (
