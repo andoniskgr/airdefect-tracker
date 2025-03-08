@@ -153,7 +153,7 @@ export const useDefectRecords = (userEmail: string | null | undefined) => {
     
     // Apply filters based on the selected filter type
     if (filter === 'sl') {
-      records = records.filter(record => record.sl === true);
+      records = records.filter(record => record.sl === true && record.ok === false);
     } else if (filter === 'ok') {
       records = records.filter(record => record.ok === true);
     } else if (filter === 'pln') {
