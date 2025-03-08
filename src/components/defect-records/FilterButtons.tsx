@@ -24,7 +24,7 @@ export const FilterButtons = ({ filter, setFilter, exportToExcel }: FilterButton
         variant={filter === 'sl' ? 'default' : 'outline'}
         className="text-sm uppercase"
       >
-        SL Only
+        PENDING
       </Button>
       <Button 
         onClick={() => setFilter('ok')}

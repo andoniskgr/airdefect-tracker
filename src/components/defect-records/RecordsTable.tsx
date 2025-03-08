@@ -1,4 +1,3 @@
-
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -26,16 +25,14 @@ export const RecordsTable = ({
 }: RecordsTableProps) => {
   const [currentTime, setCurrentTime] = useState(new Date());
 
-  // Update current time every minute to check for UPD values that need to flash
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentTime(new Date());
-    }, 60000); // Check every minute
+    }, 60000);
     
     return () => clearInterval(interval);
   }, []);
-  
-  // Group records by date
+
   const groupRecordsByDate = () => {
     const groups: { [key: string]: DefectRecord[] } = {};
     
@@ -47,7 +44,6 @@ export const RecordsTable = ({
       groups[dateKey].push(record);
     });
     
-    // Sort date keys in descending order (newest first)
     return Object.keys(groups)
       .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
       .map(dateKey => ({
@@ -58,8 +54,7 @@ export const RecordsTable = ({
   };
 
   const groupedRecords = groupRecordsByDate();
-  
-  // Check if a UPD value needs to flash based on time
+
   const shouldFlashUpd = (record: DefectRecord) => {
     if (!record.upd || record.ok) {
       return false;
@@ -71,7 +66,6 @@ export const RecordsTable = ({
     return currentTime >= updTime;
   };
 
-  // Sort indicator for table headers
   const getSortIndicator = (columnName: string) => {
     if (sortConfig.key === columnName) {
       return (
@@ -117,90 +111,90 @@ export const RecordsTable = ({
                   <TableHeader>
                     <TableRow>
                       <TableHead 
-                        className="text-lg uppercase cursor-pointer" 
+                        className="text-lg uppercase cursor-pointer px-2" 
                         onClick={() => handleSort('time')}
                       >
                         Time <ArrowUpDown className="inline h-4 w-4 ml-1" /> 
                         {getSortIndicator('time')}
                       </TableHead>
                       <TableHead 
-                        className="text-lg uppercase cursor-pointer" 
+                        className="text-lg uppercase cursor-pointer px-2" 
                         onClick={() => handleSort('registration')}
                       >
                         REG. <ArrowUpDown className="inline h-4 w-4 ml-1" /> 
                         {getSortIndicator('registration')}
                       </TableHead>
                       <TableHead 
-                        className="text-lg uppercase cursor-pointer" 
+                        className="text-lg uppercase cursor-pointer px-2" 
                         onClick={() => handleSort('station')}
                       >
                         STA. <ArrowUpDown className="inline h-4 w-4 ml-1" /> 
                         {getSortIndicator('station')}
                       </TableHead>
                       <TableHead 
-                        className="text-lg uppercase cursor-pointer"
+                        className="text-lg uppercase cursor-pointer px-2"
                         onClick={() => handleSort('defect')}
                       >
                         Defect <ArrowUpDown className="inline h-4 w-4 ml-1" />
                         {getSortIndicator('defect')}
                       </TableHead>
                       <TableHead 
-                        className="text-lg uppercase cursor-pointer"
+                        className="text-lg uppercase cursor-pointer px-2"
                         onClick={() => handleSort('remarks')}
                       >
                         Remarks <ArrowUpDown className="inline h-4 w-4 ml-1" />
                         {getSortIndicator('remarks')}
                       </TableHead>
                       <TableHead 
-                        className="text-lg uppercase cursor-pointer"
+                        className="text-lg uppercase cursor-pointer px-2"
                         onClick={() => handleSort('eta')}
                       >
                         ETA <ArrowUpDown className="inline h-4 w-4 ml-1" />
                         {getSortIndicator('eta')}
                       </TableHead>
                       <TableHead 
-                        className="text-lg uppercase cursor-pointer"
+                        className="text-lg uppercase cursor-pointer px-2"
                         onClick={() => handleSort('std')}
                       >
                         STD <ArrowUpDown className="inline h-4 w-4 ml-1" />
                         {getSortIndicator('std')}
                       </TableHead>
                       <TableHead 
-                        className="text-lg uppercase cursor-pointer"
+                        className="text-lg uppercase cursor-pointer px-2"
                         onClick={() => handleSort('upd')}
                       >
                         UPD <ArrowUpDown className="inline h-4 w-4 ml-1" />
                         {getSortIndicator('upd')}
                       </TableHead>
                       <TableHead 
-                        className="text-lg uppercase cursor-pointer"
+                        className="text-lg uppercase cursor-pointer px-2"
                         onClick={() => handleSort('rst')}
                       >
                         RST <ArrowUpDown className="inline h-4 w-4 ml-1" />
                         {getSortIndicator('rst')}
                       </TableHead>
                       <TableHead 
-                        className="text-lg uppercase cursor-pointer"
+                        className="text-lg uppercase cursor-pointer px-2"
                         onClick={() => handleSort('sl')}
                       >
                         SL <ArrowUpDown className="inline h-4 w-4 ml-1" />
                         {getSortIndicator('sl')}
                       </TableHead>
                       <TableHead 
-                        className="text-lg uppercase cursor-pointer"
+                        className="text-lg uppercase cursor-pointer px-2"
                         onClick={() => handleSort('ok')}
                       >
                         OK <ArrowUpDown className="inline h-4 w-4 ml-1" />
                         {getSortIndicator('ok')}
                       </TableHead>
                       <TableHead 
-                        className="text-lg uppercase cursor-pointer"
+                        className="text-lg uppercase cursor-pointer px-2"
                         onClick={() => handleSort('pln')}
                       >
                         PLN <ArrowUpDown className="inline h-4 w-4 ml-1" />
                         {getSortIndicator('pln')}
                       </TableHead>
-                      <TableHead className="text-lg uppercase">Actions</TableHead>
+                      <TableHead className="text-lg uppercase px-2">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -212,21 +206,21 @@ export const RecordsTable = ({
                           backgroundColor: record.ok ? "#F2FCE2" : record.sl ? "#FEF7CD" : "transparent"
                         }}
                       >
-                        <TableCell className="text-lg uppercase">{record.time}</TableCell>
-                        <TableCell className="text-lg uppercase">{record.registration}</TableCell>
-                        <TableCell className="text-lg uppercase">{record.station}</TableCell>
-                        <TableCell className="text-lg uppercase">{record.defect}</TableCell>
-                        <TableCell className="text-lg uppercase">{record.remarks}</TableCell>
-                        <TableCell className="text-lg uppercase">{record.eta}</TableCell>
-                        <TableCell className="text-lg uppercase">{record.std}</TableCell>
-                        <TableCell className={`text-lg uppercase ${shouldFlashUpd(record) ? 'flash-upd' : ''}`}>
+                        <TableCell className="text-lg uppercase px-2">{record.time}</TableCell>
+                        <TableCell className="text-lg uppercase px-2">{record.registration}</TableCell>
+                        <TableCell className="text-lg uppercase px-2">{record.station}</TableCell>
+                        <TableCell className="text-lg uppercase px-2">{record.defect}</TableCell>
+                        <TableCell className="text-lg uppercase px-2">{record.remarks}</TableCell>
+                        <TableCell className="text-lg uppercase px-2">{record.eta}</TableCell>
+                        <TableCell className="text-lg uppercase px-2">{record.std}</TableCell>
+                        <TableCell className={`text-lg uppercase px-2 ${shouldFlashUpd(record) ? 'flash-upd' : ''}`}>
                           {record.upd}
                         </TableCell>
-                        <TableCell className="text-lg uppercase text-center">{record.rst ? "YES" : "NO"}</TableCell>
-                        <TableCell className="text-lg uppercase text-center">{record.sl ? "YES" : "NO"}</TableCell>
-                        <TableCell className="text-lg uppercase text-center">{record.ok ? "YES" : "NO"}</TableCell>
-                        <TableCell className="text-lg uppercase text-center">{record.pln ? "YES" : "NO"}</TableCell>
-                        <TableCell>
+                        <TableCell className="text-lg uppercase text-center px-2">{record.rst ? "YES" : "NO"}</TableCell>
+                        <TableCell className="text-lg uppercase text-center px-2">{record.sl ? "YES" : "NO"}</TableCell>
+                        <TableCell className="text-lg uppercase text-center px-2">{record.ok ? "YES" : "NO"}</TableCell>
+                        <TableCell className="text-lg uppercase text-center px-2">{record.pln ? "YES" : "NO"}</TableCell>
+                        <TableCell className="px-2">
                           <div className="flex space-x-2">
                             <Button 
                               variant="outline" 
