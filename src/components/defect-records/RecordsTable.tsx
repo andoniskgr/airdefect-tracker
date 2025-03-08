@@ -116,24 +116,90 @@ export const RecordsTable = ({
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-lg uppercase cursor-pointer" onClick={() => handleSort('time')}>
-                        Time <ArrowUpDown className="inline h-4 w-4 ml-1" /> {getSortIndicator('time')}
+                      <TableHead 
+                        className="text-lg uppercase cursor-pointer" 
+                        onClick={() => handleSort('time')}
+                      >
+                        Time <ArrowUpDown className="inline h-4 w-4 ml-1" /> 
+                        {getSortIndicator('time')}
                       </TableHead>
-                      <TableHead className="text-lg uppercase cursor-pointer" onClick={() => handleSort('registration')}>
-                        Registration <ArrowUpDown className="inline h-4 w-4 ml-1" /> {getSortIndicator('registration')}
+                      <TableHead 
+                        className="text-lg uppercase cursor-pointer" 
+                        onClick={() => handleSort('registration')}
+                      >
+                        Registration <ArrowUpDown className="inline h-4 w-4 ml-1" /> 
+                        {getSortIndicator('registration')}
                       </TableHead>
-                      <TableHead className="text-lg uppercase cursor-pointer" onClick={() => handleSort('station')}>
-                        Station <ArrowUpDown className="inline h-4 w-4 ml-1" /> {getSortIndicator('station')}
+                      <TableHead 
+                        className="text-lg uppercase cursor-pointer" 
+                        onClick={() => handleSort('station')}
+                      >
+                        Station <ArrowUpDown className="inline h-4 w-4 ml-1" /> 
+                        {getSortIndicator('station')}
                       </TableHead>
-                      <TableHead className="text-lg uppercase">Defect</TableHead>
-                      <TableHead className="text-lg uppercase">Remarks</TableHead>
-                      <TableHead className="text-lg uppercase">ETA</TableHead>
-                      <TableHead className="text-lg uppercase">STD</TableHead>
-                      <TableHead className="text-lg uppercase">UPD</TableHead>
-                      <TableHead className="text-lg uppercase">RST</TableHead>
-                      <TableHead className="text-lg uppercase">SL</TableHead>
-                      <TableHead className="text-lg uppercase">OK</TableHead>
-                      <TableHead className="text-lg uppercase">PLN</TableHead>
+                      <TableHead 
+                        className="text-lg uppercase cursor-pointer"
+                        onClick={() => handleSort('defect')}
+                      >
+                        Defect <ArrowUpDown className="inline h-4 w-4 ml-1" />
+                        {getSortIndicator('defect')}
+                      </TableHead>
+                      <TableHead 
+                        className="text-lg uppercase cursor-pointer"
+                        onClick={() => handleSort('remarks')}
+                      >
+                        Remarks <ArrowUpDown className="inline h-4 w-4 ml-1" />
+                        {getSortIndicator('remarks')}
+                      </TableHead>
+                      <TableHead 
+                        className="text-lg uppercase cursor-pointer"
+                        onClick={() => handleSort('eta')}
+                      >
+                        ETA <ArrowUpDown className="inline h-4 w-4 ml-1" />
+                        {getSortIndicator('eta')}
+                      </TableHead>
+                      <TableHead 
+                        className="text-lg uppercase cursor-pointer"
+                        onClick={() => handleSort('std')}
+                      >
+                        STD <ArrowUpDown className="inline h-4 w-4 ml-1" />
+                        {getSortIndicator('std')}
+                      </TableHead>
+                      <TableHead 
+                        className="text-lg uppercase cursor-pointer"
+                        onClick={() => handleSort('upd')}
+                      >
+                        UPD <ArrowUpDown className="inline h-4 w-4 ml-1" />
+                        {getSortIndicator('upd')}
+                      </TableHead>
+                      <TableHead 
+                        className="text-lg uppercase cursor-pointer"
+                        onClick={() => handleSort('rst')}
+                      >
+                        RST <ArrowUpDown className="inline h-4 w-4 ml-1" />
+                        {getSortIndicator('rst')}
+                      </TableHead>
+                      <TableHead 
+                        className="text-lg uppercase cursor-pointer"
+                        onClick={() => handleSort('sl')}
+                      >
+                        SL <ArrowUpDown className="inline h-4 w-4 ml-1" />
+                        {getSortIndicator('sl')}
+                      </TableHead>
+                      <TableHead 
+                        className="text-lg uppercase cursor-pointer"
+                        onClick={() => handleSort('ok')}
+                      >
+                        OK <ArrowUpDown className="inline h-4 w-4 ml-1" />
+                        {getSortIndicator('ok')}
+                      </TableHead>
+                      <TableHead 
+                        className="text-lg uppercase cursor-pointer"
+                        onClick={() => handleSort('pln')}
+                      >
+                        PLN <ArrowUpDown className="inline h-4 w-4 ml-1" />
+                        {getSortIndicator('pln')}
+                      </TableHead>
                       <TableHead className="text-lg uppercase">Actions</TableHead>
                     </TableRow>
                   </TableHeader>

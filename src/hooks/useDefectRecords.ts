@@ -64,6 +64,7 @@ export const useDefectRecords = (userEmail: string | null | undefined) => {
       key: column,
       direction: prevConfig.key === column && prevConfig.direction === 'asc' ? 'desc' : 'asc'
     }));
+    console.log(`Sorting by ${column} in ${sortConfig.direction === 'asc' ? 'desc' : 'asc'} order`);
   };
 
   const handleDeleteRecord = async (id: string) => {
@@ -148,14 +149,44 @@ export const useDefectRecords = (userEmail: string | null | undefined) => {
   };
 
   const getFilteredRecords = () => {
-    return filter !== 'all'
+    let records = filter !== 'all'
       ? defectRecords.filter((record) => {
           if (filter === 'sl') return record.sl;
           if (filter === 'ok') return record.ok;
           if (filter === 'pln') return record.pln;
           return true;
         })
-      : defectRecords;
+      : [...defectRecords];
+    
+    // Sort the records based on the current sort configuration
+    if (sortConfig.key) {
+      records.sort((a, b) => {
+        // Handle specific fields or default to string comparison
+        let aValue = a[sortConfig.key as keyof DefectRecord];
+        let bValue = b[sortConfig.key as keyof DefectRecord];
+        
+        // Handle boolean values
+        if (typeof aValue === 'boolean' && typeof bValue === 'boolean') {
+          return sortConfig.direction === 'asc' 
+            ? Number(aValue) - Number(bValue)
+            : Number(bValue) - Number(aValue);
+        }
+        
+        // Handle string or other values
+        if (aValue === null || aValue === undefined) aValue = '';
+        if (bValue === null || bValue === undefined) bValue = '';
+        
+        // Convert to strings for comparison
+        const aString = String(aValue);
+        const bString = String(bValue);
+        
+        return sortConfig.direction === 'asc'
+          ? aString.localeCompare(bString)
+          : bString.localeCompare(aString);
+      });
+    }
+    
+    return records;
   };
 
   return {
