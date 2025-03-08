@@ -149,14 +149,16 @@ export const useDefectRecords = (userEmail: string | null | undefined) => {
   };
 
   const getFilteredRecords = () => {
-    let records = filter !== 'all'
-      ? defectRecords.filter((record) => {
-          if (filter === 'sl') return record.sl;
-          if (filter === 'ok') return record.ok;
-          if (filter === 'pln') return record.pln;
-          return true;
-        })
-      : [...defectRecords];
+    let records = [...defectRecords];
+    
+    // Apply filters based on the selected filter type
+    if (filter === 'sl') {
+      records = records.filter(record => record.sl === true);
+    } else if (filter === 'ok') {
+      records = records.filter(record => record.ok === true);
+    } else if (filter === 'pln') {
+      records = records.filter(record => record.pln === true);
+    }
     
     // Sort the records based on the current sort configuration
     if (sortConfig.key) {

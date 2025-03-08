@@ -127,14 +127,14 @@ export const RecordsTable = ({
                         className="text-lg uppercase cursor-pointer" 
                         onClick={() => handleSort('registration')}
                       >
-                        Registration <ArrowUpDown className="inline h-4 w-4 ml-1" /> 
+                        REG. <ArrowUpDown className="inline h-4 w-4 ml-1" /> 
                         {getSortIndicator('registration')}
                       </TableHead>
                       <TableHead 
                         className="text-lg uppercase cursor-pointer" 
                         onClick={() => handleSort('station')}
                       >
-                        Station <ArrowUpDown className="inline h-4 w-4 ml-1" /> 
+                        STA. <ArrowUpDown className="inline h-4 w-4 ml-1" /> 
                         {getSortIndicator('station')}
                       </TableHead>
                       <TableHead 
