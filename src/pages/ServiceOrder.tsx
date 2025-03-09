@@ -10,6 +10,7 @@ const ServiceOrder = () => {
   
   const {
     formData,
+    validationErrors,
     calendarOpen,
     setCalendarOpen,
     handleInputChange,
@@ -20,11 +21,12 @@ const ServiceOrder = () => {
   } = useServiceOrderForm();
 
   return (
-    <div className="min-h-screen bg-slate-700 text-white p-4">
+    <div className="min-h-screen bg-slate-700 text-white p-1">
       <Toaster position="top-right" />
       <div className="container mx-auto max-w-4xl">
         <ServiceOrderForm 
           formData={formData}
+          validationErrors={validationErrors}
           calendarOpen={calendarOpen}
           setCalendarOpen={setCalendarOpen}
           handleInputChange={handleInputChange}

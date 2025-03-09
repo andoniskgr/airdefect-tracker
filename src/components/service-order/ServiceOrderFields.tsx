@@ -12,6 +12,7 @@ import { ServiceOrderData } from "./types";
 
 interface ServiceOrderFieldsProps {
   formData: ServiceOrderData;
+  validationErrors: Record<string, boolean>;
   calendarOpen: boolean;
   setCalendarOpen: (open: boolean) => void;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
@@ -20,6 +21,7 @@ interface ServiceOrderFieldsProps {
 
 const ServiceOrderFields: React.FC<ServiceOrderFieldsProps> = ({
   formData,
+  validationErrors,
   calendarOpen,
   setCalendarOpen,
   handleInputChange,
@@ -35,7 +37,10 @@ const ServiceOrderFields: React.FC<ServiceOrderFieldsProps> = ({
             value={formData.aircraft}
             onChange={handleInputChange}
             placeholder="SELECT A/C" 
-            className="bg-white text-black"
+            className={cn(
+              "bg-white text-black",
+              validationErrors.aircraft && "bg-red-100"
+            )}
             required
           />
         </div>
@@ -47,7 +52,10 @@ const ServiceOrderFields: React.FC<ServiceOrderFieldsProps> = ({
             value={formData.flight}
             onChange={handleInputChange}
             placeholder="FLIGHT" 
-            className="bg-white text-black"
+            className={cn(
+              "bg-white text-black",
+              validationErrors.flight && "bg-red-100"
+            )}
             required
           />
         </div>
@@ -59,7 +67,10 @@ const ServiceOrderFields: React.FC<ServiceOrderFieldsProps> = ({
             value={formData.from}
             onChange={handleInputChange}
             placeholder="FROM" 
-            className="bg-white text-black"
+            className={cn(
+              "bg-white text-black",
+              validationErrors.from && "bg-red-100"
+            )}
             required
           />
         </div>
@@ -71,7 +82,10 @@ const ServiceOrderFields: React.FC<ServiceOrderFieldsProps> = ({
             value={formData.to}
             onChange={handleInputChange}
             placeholder="TO" 
-            className="bg-white text-black"
+            className={cn(
+              "bg-white text-black",
+              validationErrors.to && "bg-red-100"
+            )}
             required
           />
         </div>
@@ -83,7 +97,8 @@ const ServiceOrderFields: React.FC<ServiceOrderFieldsProps> = ({
                 variant={"outline"}
                 className={cn(
                   "w-full justify-start text-left font-normal bg-white text-black hover:bg-white/90",
-                  !formData.date && "text-muted-foreground"
+                  !formData.date && "text-muted-foreground",
+                  validationErrors.date && "bg-red-100"
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
@@ -116,7 +131,10 @@ const ServiceOrderFields: React.FC<ServiceOrderFieldsProps> = ({
             value={formData.etaUtc}
             onChange={handleInputChange}
             placeholder="ETA UTC" 
-            className="bg-white text-black"
+            className={cn(
+              "bg-white text-black",
+              validationErrors.etaUtc && "bg-red-100"
+            )}
             disabled={formData.atDestAirport}
             required={!formData.atDestAirport}
           />
@@ -144,7 +162,10 @@ const ServiceOrderFields: React.FC<ServiceOrderFieldsProps> = ({
             value={formData.defectDescription}
             onChange={handleInputChange}
             placeholder="DEFECT DESCRIPTION" 
-            className="bg-white text-black w-full"
+            className={cn(
+              "bg-white text-black w-full",
+              validationErrors.defectDescription && "bg-red-100"
+            )}
             required
           />
         </div>
@@ -156,7 +177,10 @@ const ServiceOrderFields: React.FC<ServiceOrderFieldsProps> = ({
             value={formData.mel}
             onChange={handleInputChange}
             placeholder="MEL" 
-            className="bg-white text-black"
+            className={cn(
+              "bg-white text-black",
+              validationErrors.mel && "bg-red-100"
+            )}
             required
           />
           <Input 
@@ -165,7 +189,10 @@ const ServiceOrderFields: React.FC<ServiceOrderFieldsProps> = ({
             value={formData.melDescription}
             onChange={handleInputChange}
             placeholder="MEL DESCRIPTION" 
-            className="bg-white text-black"
+            className={cn(
+              "bg-white text-black",
+              validationErrors.melDescription && "bg-red-100"
+            )}
             required
           />
         </div>
@@ -177,7 +204,7 @@ const ServiceOrderFields: React.FC<ServiceOrderFieldsProps> = ({
           name="preparedText"
           value={formData.preparedText}
           onChange={handleInputChange}
-          className="w-full h-64 p-2 bg-white text-black rounded-md"
+          className="w-full h-72 p-2 bg-white text-black rounded-md font-mono text-sm"
           placeholder="Enter prepared text here..."
           readOnly
         />

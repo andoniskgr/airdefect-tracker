@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { ServiceOrderData, DefectType } from "../components/service-order/types";
@@ -21,6 +21,12 @@ export const useServiceOrderForm = () => {
     preparedText: ""
   });
 
+  // Validation errors state
+  const [validationErrors, setValidationErrors] = useState<Record<string, boolean>>({});
+  
+  // References to input fields for focusing
+  const fieldsRef = useRef<Record<string, HTMLElement | null>>({});
+
   // Calendar state
   const [calendarOpen, setCalendarOpen] = useState(false);
 
@@ -37,10 +43,21 @@ export const useServiceOrderForm = () => {
     const upperCaseValue = value.toUpperCase();
     
     setFormData(prev => ({ ...prev, [name]: upperCaseValue }));
+    
+    // Clear validation error for this field if it exists
+    if (validationErrors[name]) {
+      setValidationErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
   };
 
   const handleDefectTypeChange = (value: DefectType) => {
     setFormData(prev => ({ ...prev, defectType: value }));
+    // Clear validation errors when switching type
+    setValidationErrors({});
   };
 
   const handleCheckboxChange = (name: string, checked: boolean) => {
@@ -49,6 +66,35 @@ export const useServiceOrderForm = () => {
     // Clear etaUtc if atDestAirport is checked
     if (name === 'atDestAirport' && checked) {
       setFormData(prev => ({ ...prev, etaUtc: '' }));
+      
+      // Clear etaUtc validation error if it exists
+      if (validationErrors.etaUtc) {
+        setValidationErrors(prev => {
+          const newErrors = { ...prev };
+          delete newErrors.etaUtc;
+          return newErrors;
+        });
+      }
+    }
+  };
+
+  const focusFirstInvalidField = () => {
+    // Get the first error field name
+    const errorFields = Object.keys(validationErrors);
+    if (errorFields.length > 0) {
+      const firstErrorField = errorFields[0];
+      
+      // Special handling for date field which uses a button
+      if (firstErrorField === 'date') {
+        setCalendarOpen(true);
+        return;
+      }
+      
+      // Focus the first invalid field
+      const element = document.querySelector(`[name="${firstErrorField}"]`) as HTMLElement;
+      if (element) {
+        element.focus();
+      }
     }
   };
 
@@ -68,17 +114,20 @@ export const useServiceOrderForm = () => {
     }
     
     let isValid = true;
-    let missingFields: string[] = [];
+    let newValidationErrors: Record<string, boolean> = {};
     
     requiredFields.forEach(field => {
       if (!formData[field as keyof ServiceOrderData]) {
         isValid = false;
-        missingFields.push(field);
+        newValidationErrors[field] = true;
       }
     });
     
+    setValidationErrors(newValidationErrors);
+    
     if (!isValid) {
-      toast.error(`Please fill in all required fields: ${missingFields.join(', ')}`);
+      setTimeout(focusFirstInvalidField, 100);
+      toast.error(`Please fill in all required fields.`);
     }
     
     return isValid;
@@ -160,10 +209,14 @@ Access to manuals is made by AirnavX using the link : https://extranet.aegeanair
       melDescription: "",
       preparedText: ""
     });
+    
+    // Clear validation errors
+    setValidationErrors({});
   };
 
   return {
     formData,
+    validationErrors,
     calendarOpen,
     setCalendarOpen,
     handleInputChange,

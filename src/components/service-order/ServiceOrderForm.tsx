@@ -1,6 +1,5 @@
 
 import React from "react";
-import { format } from "date-fns";
 import { ServiceOrderData, DefectType } from "./types";
 import ServiceTypeHeader from "./ServiceTypeHeader";
 import ServiceOrderFields from "./ServiceOrderFields";
@@ -8,6 +7,7 @@ import ServiceOrderActions from "./ServiceOrderActions";
 
 interface ServiceOrderFormProps {
   formData: ServiceOrderData;
+  validationErrors: Record<string, boolean>;
   calendarOpen: boolean;
   setCalendarOpen: (open: boolean) => void;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
@@ -19,6 +19,7 @@ interface ServiceOrderFormProps {
 
 const ServiceOrderForm: React.FC<ServiceOrderFormProps> = ({
   formData,
+  validationErrors,
   calendarOpen,
   setCalendarOpen,
   handleInputChange,
@@ -36,6 +37,7 @@ const ServiceOrderForm: React.FC<ServiceOrderFormProps> = ({
       
       <ServiceOrderFields 
         formData={formData}
+        validationErrors={validationErrors}
         calendarOpen={calendarOpen}
         setCalendarOpen={setCalendarOpen}
         handleInputChange={handleInputChange}
