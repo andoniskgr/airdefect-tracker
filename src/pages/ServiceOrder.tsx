@@ -12,6 +12,7 @@ const ServiceOrder = () => {
     calendarOpen,
     setCalendarOpen,
     handleInputChange,
+    handleDefectTypeChange,
     handleCheckboxChange,
     handlePrepareAndCopy,
     handleClear
@@ -25,6 +26,7 @@ const ServiceOrder = () => {
           calendarOpen={calendarOpen}
           setCalendarOpen={setCalendarOpen}
           handleInputChange={handleInputChange}
+          handleDefectTypeChange={handleDefectTypeChange}
           handleCheckboxChange={handleCheckboxChange}
           handlePrepareAndCopy={handlePrepareAndCopy}
           handleClear={handleClear}

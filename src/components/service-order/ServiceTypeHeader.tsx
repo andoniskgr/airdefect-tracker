@@ -1,37 +1,39 @@
 
 import React from "react";
-import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { DefectType } from "./types";
 
 interface ServiceTypeHeaderProps {
-  defectType: string;
-  maintenanceAction: boolean;
-  onMaintenanceActionChange: (checked: boolean) => void;
+  defectType: DefectType;
+  onDefectTypeChange: (value: DefectType) => void;
 }
 
 const ServiceTypeHeader: React.FC<ServiceTypeHeaderProps> = ({
   defectType,
-  maintenanceAction,
-  onMaintenanceActionChange
+  onDefectTypeChange
 }) => {
   return (
-    <div className="flex items-center space-x-4 mb-4">
-      <div className="flex items-center space-x-2">
-        <div className="h-4 w-4 rounded-full bg-blue-500"></div>
-        <span className="font-bold">PIREP DEFECT</span>
-      </div>
-      
-      <div className="flex items-center space-x-2 ml-auto">
-        <Checkbox 
-          id="maintenanceAction" 
-          checked={maintenanceAction} 
-          onCheckedChange={(checked) => 
-            onMaintenanceActionChange(checked === true)
-          }
-        />
-        <label htmlFor="maintenanceAction" className="text-white font-medium">
-          MAINT. ACTION
-        </label>
-      </div>
+    <div className="mb-6">
+      <RadioGroup 
+        value={defectType} 
+        onValueChange={(value) => onDefectTypeChange(value as DefectType)}
+        className="flex space-x-8 items-center"
+      >
+        <div className="flex items-center space-x-2">
+          <RadioGroupItem value="PIREP" id="defect-pirep" />
+          <Label htmlFor="defect-pirep" className="font-bold text-white">
+            PIREP DEFECT
+          </Label>
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          <RadioGroupItem value="MAINT" id="defect-maint" />
+          <Label htmlFor="defect-maint" className="font-bold text-white">
+            MAINT. ACTION
+          </Label>
+        </div>
+      </RadioGroup>
     </div>
   );
 };

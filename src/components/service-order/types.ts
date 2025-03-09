@@ -1,7 +1,8 @@
 
+export type DefectType = "PIREP" | "MAINT";
+
 export interface ServiceOrderData {
-  defectType: string;
-  maintenanceAction: boolean;
+  defectType: DefectType;
   aircraft: string;
   flight: string;
   from: string;

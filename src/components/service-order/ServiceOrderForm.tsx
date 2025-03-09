@@ -1,7 +1,7 @@
 
 import React from "react";
 import { format } from "date-fns";
-import { ServiceOrderData } from "./types";
+import { ServiceOrderData, DefectType } from "./types";
 import ServiceTypeHeader from "./ServiceTypeHeader";
 import ServiceOrderFields from "./ServiceOrderFields";
 import ServiceOrderActions from "./ServiceOrderActions";
@@ -11,6 +11,7 @@ interface ServiceOrderFormProps {
   calendarOpen: boolean;
   setCalendarOpen: (open: boolean) => void;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  handleDefectTypeChange: (value: DefectType) => void;
   handleCheckboxChange: (name: string, checked: boolean) => void;
   handlePrepareAndCopy: () => void;
   handleClear: () => void;
@@ -21,6 +22,7 @@ const ServiceOrderForm: React.FC<ServiceOrderFormProps> = ({
   calendarOpen,
   setCalendarOpen,
   handleInputChange,
+  handleDefectTypeChange,
   handleCheckboxChange,
   handlePrepareAndCopy,
   handleClear
@@ -29,10 +31,7 @@ const ServiceOrderForm: React.FC<ServiceOrderFormProps> = ({
     <div className="bg-slate-700 rounded-lg p-4 shadow-lg">
       <ServiceTypeHeader 
         defectType={formData.defectType}
-        maintenanceAction={formData.maintenanceAction}
-        onMaintenanceActionChange={(checked) => 
-          handleCheckboxChange('maintenanceAction', checked)
-        }
+        onDefectTypeChange={handleDefectTypeChange}
       />
       
       <ServiceOrderFields 
