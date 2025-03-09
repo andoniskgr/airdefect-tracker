@@ -11,5 +11,7 @@ export interface ServiceOrderData {
   etaUtc: string;
   atDestAirport: boolean;
   defectDescription: string;
+  mel: string;
+  melDescription: string;
   preparedText: string;
 }

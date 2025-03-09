@@ -3,6 +3,7 @@ import React from "react";
 import { useAuth } from "../context/AuthContext";
 import { useServiceOrderForm } from "../hooks/useServiceOrderForm";
 import ServiceOrderForm from "../components/service-order/ServiceOrderForm";
+import { Toaster } from "sonner";
 
 const ServiceOrder = () => {
   const { currentUser } = useAuth();
@@ -20,6 +21,7 @@ const ServiceOrder = () => {
 
   return (
     <div className="min-h-screen bg-slate-700 text-white p-4">
+      <Toaster position="top-right" />
       <div className="container mx-auto max-w-4xl">
         <ServiceOrderForm 
           formData={formData}

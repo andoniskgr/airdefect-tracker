@@ -34,8 +34,9 @@ const ServiceOrderFields: React.FC<ServiceOrderFieldsProps> = ({
             name="aircraft"
             value={formData.aircraft}
             onChange={handleInputChange}
-            placeholder="Select A/C" 
+            placeholder="SELECT A/C" 
             className="bg-white text-black"
+            required
           />
         </div>
         
@@ -47,6 +48,7 @@ const ServiceOrderFields: React.FC<ServiceOrderFieldsProps> = ({
             onChange={handleInputChange}
             placeholder="FLIGHT" 
             className="bg-white text-black"
+            required
           />
         </div>
         
@@ -58,6 +60,7 @@ const ServiceOrderFields: React.FC<ServiceOrderFieldsProps> = ({
             onChange={handleInputChange}
             placeholder="FROM" 
             className="bg-white text-black"
+            required
           />
         </div>
         
@@ -69,6 +72,7 @@ const ServiceOrderFields: React.FC<ServiceOrderFieldsProps> = ({
             onChange={handleInputChange}
             placeholder="TO" 
             className="bg-white text-black"
+            required
           />
         </div>
         
@@ -83,7 +87,7 @@ const ServiceOrderFields: React.FC<ServiceOrderFieldsProps> = ({
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {formData.date ? format(formData.date, "dd/MM/yyyy") : "Select date"}
+                {formData.date ? format(formData.date, "dd/MM/yyyy") : "SELECT DATE"}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0 bg-white" align="start">
@@ -113,6 +117,8 @@ const ServiceOrderFields: React.FC<ServiceOrderFieldsProps> = ({
             onChange={handleInputChange}
             placeholder="ETA UTC" 
             className="bg-white text-black"
+            disabled={formData.atDestAirport}
+            required={!formData.atDestAirport}
           />
         </div>
       </div>
@@ -130,16 +136,40 @@ const ServiceOrderFields: React.FC<ServiceOrderFieldsProps> = ({
         </label>
       </div>
       
-      <div className="mb-4">
-        <Input 
-          type="text" 
-          name="defectDescription"
-          value={formData.defectDescription}
-          onChange={handleInputChange}
-          placeholder="DEFECT DESCRIPTION" 
-          className="bg-white text-black w-full"
-        />
-      </div>
+      {formData.defectType === "PIREP" ? (
+        <div className="mb-4">
+          <Input 
+            type="text" 
+            name="defectDescription"
+            value={formData.defectDescription}
+            onChange={handleInputChange}
+            placeholder="DEFECT DESCRIPTION" 
+            className="bg-white text-black w-full"
+            required
+          />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <Input 
+            type="text" 
+            name="mel"
+            value={formData.mel}
+            onChange={handleInputChange}
+            placeholder="MEL" 
+            className="bg-white text-black"
+            required
+          />
+          <Input 
+            type="text" 
+            name="melDescription"
+            value={formData.melDescription}
+            onChange={handleInputChange}
+            placeholder="MEL DESCRIPTION" 
+            className="bg-white text-black"
+            required
+          />
+        </div>
+      )}
       
       <div className="mb-4">
         <label className="block mb-2">Prepared text</label>
@@ -149,6 +179,7 @@ const ServiceOrderFields: React.FC<ServiceOrderFieldsProps> = ({
           onChange={handleInputChange}
           className="w-full h-64 p-2 bg-white text-black rounded-md"
           placeholder="Enter prepared text here..."
+          readOnly
         />
       </div>
     </>
