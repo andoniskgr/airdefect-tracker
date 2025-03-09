@@ -33,15 +33,13 @@ const Navbar = () => {
             Defect Records App
           </Link>
           {currentUser && (
-            <a 
-              href="/service-order" 
-              target="_blank" 
-              rel="noopener noreferrer"
+            <Link 
+              to="/service-order" 
               className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
             >
               <FileText className="h-4 w-4" />
               <span>Service Order</span>
-            </a>
+            </Link>
           )}
         </div>
         
