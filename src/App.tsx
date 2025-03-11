@@ -12,6 +12,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import NotFound from "./pages/NotFound";
 import ServiceOrder from "./pages/ServiceOrder";
+import AircraftAdmin from "./pages/AircraftAdmin";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,11 @@ const App = () => (
             <Route path="/service-order" element={
               <ProtectedRoute>
                 <ServiceOrder />
+              </ProtectedRoute>
+            } />
+            <Route path="/aircraft-admin" element={
+              <ProtectedRoute>
+                <AircraftAdmin />
               </ProtectedRoute>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

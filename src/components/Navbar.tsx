@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { FileText } from "lucide-react";
+import { FileText, Settings } from "lucide-react";
 
 const Navbar = () => {
   const { currentUser, logout } = useAuth();
@@ -33,15 +33,26 @@ const Navbar = () => {
             Defect Records App
           </Link>
           {currentUser && (
-            <a 
-              href="/service-order" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
-            >
-              <FileText className="h-4 w-4" />
-              <span>Service Order</span>
-            </a>
+            <>
+              <a 
+                href="/service-order" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
+              >
+                <FileText className="h-4 w-4" />
+                <span>Service Order</span>
+              </a>
+              <a 
+                href="/aircraft-admin" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
+              >
+                <Settings className="h-4 w-4" />
+                <span>A/C ADMIN</span>
+              </a>
+            </>
           )}
         </div>
         
