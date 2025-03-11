@@ -55,13 +55,13 @@ export const RecordsTable = ({
   const groupedRecords = groupRecordsByDate();
 
   return (
-    <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-sm border w-full mx-auto">
+    <div className="bg-white rounded-lg shadow-lg border w-full mx-auto overflow-hidden">
       {records.length === 0 ? (
-        <div className="text-center py-8 text-lg text-gray-500">
+        <div className="text-center py-8 text-lg text-gray-500 bg-white">
           No records found
         </div>
       ) : (
-        <Accordion type="multiple" defaultValue={[groupedRecords[0]?.date]}>
+        <Accordion type="multiple" defaultValue={[groupedRecords[0]?.date]} className="bg-white">
           {groupedRecords.map(group => (
             <DateGroupAccordion
               key={group.date}

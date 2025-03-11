@@ -33,9 +33,9 @@ export const DateGroupAccordion = ({
   currentTime
 }: DateGroupAccordionProps) => {
   return (
-    <AccordionItem key={group.date} value={group.date}>
-      <div className="flex items-center justify-between px-4 py-2 bg-secondary/50">
-        <AccordionTrigger className="text-lg font-medium py-0">
+    <AccordionItem key={group.date} value={group.date} className="border-b border-slate-300">
+      <div className="flex items-center justify-between px-4 py-2 bg-slate-100">
+        <AccordionTrigger className="text-lg font-medium py-0 text-slate-800">
           {group.formattedDate} ({group.records.length} Records)
         </AccordionTrigger>
         <Button 
@@ -53,7 +53,7 @@ export const DateGroupAccordion = ({
           <span>Delete All</span>
         </Button>
       </div>
-      <AccordionContent>
+      <AccordionContent className="bg-white">
         <Table>
           <DefectTableHeader 
             handleSort={handleSort} 

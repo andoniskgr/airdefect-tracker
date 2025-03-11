@@ -21,7 +21,7 @@ export const DefectTableHeader = ({ handleSort, sortConfig }: TableHeaderProps) 
 
   const renderSortableHeader = (label: string, column: string, abbreviation?: string) => (
     <TableHead 
-      className="text-lg uppercase cursor-pointer px-2" 
+      className="text-lg uppercase cursor-pointer px-2 text-white font-semibold" 
       onClick={() => handleSort(column)}
     >
       {abbreviation || label} <ArrowUpDown className="inline h-4 w-4 ml-1" /> 
@@ -30,7 +30,7 @@ export const DefectTableHeader = ({ handleSort, sortConfig }: TableHeaderProps) 
   );
 
   return (
-    <TableHeader>
+    <TableHeader className="bg-slate-800 border-b border-slate-600">
       <TableRow>
         {renderSortableHeader("Time", "time")}
         {renderSortableHeader("Registration", "registration", "REG.")}
@@ -44,7 +44,7 @@ export const DefectTableHeader = ({ handleSort, sortConfig }: TableHeaderProps) 
         {renderSortableHeader("SL", "sl")}
         {renderSortableHeader("OK", "ok")}
         {renderSortableHeader("PLN", "pln")}
-        <TableHead className="text-lg uppercase px-2">Actions</TableHead>
+        <TableHead className="text-lg uppercase px-2 text-white font-semibold">Actions</TableHead>
       </TableRow>
     </TableHeader>
   );

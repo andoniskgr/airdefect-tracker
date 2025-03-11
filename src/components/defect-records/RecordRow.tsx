@@ -28,13 +28,17 @@ export const RecordRow = ({
     return currentTime >= updTime;
   };
 
+  // Define background colors that work well with dark text
+  const getBgColor = () => {
+    if (record.ok) return "bg-green-200 text-slate-800";
+    if (record.sl) return "bg-yellow-200 text-slate-800";
+    return "bg-white text-slate-800";
+  };
+
   return (
     <TableRow 
       key={record.id} 
-      className="table-animation"
-      style={{
-        backgroundColor: record.ok ? "#F2FCE2" : record.sl ? "#FEF7CD" : "transparent"
-      }}
+      className={`table-animation ${getBgColor()}`}
     >
       <TableCell className="text-lg uppercase px-2">{record.time}</TableCell>
       <TableCell className="text-lg uppercase px-2">{record.registration}</TableCell>
@@ -56,7 +60,7 @@ export const RecordRow = ({
             variant="outline" 
             size="sm" 
             onClick={() => handleEditRecord(record)}
-            className="p-2 h-8 w-8"
+            className="p-2 h-8 w-8 bg-slate-100"
           >
             <Pencil className="h-4 w-4" />
             <span className="sr-only">Edit</span>
