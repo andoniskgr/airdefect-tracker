@@ -29,7 +29,7 @@ const ServiceOrderForm: React.FC<ServiceOrderFormProps> = ({
   handleClear
 }) => {
   return (
-    <div className="bg-slate-700 rounded-lg p-4 shadow-lg">
+    <div className="bg-slate-700 rounded-lg p-4 shadow-lg w-full">
       <ServiceTypeHeader 
         defectType={formData.defectType}
         onDefectTypeChange={handleDefectTypeChange}
