@@ -21,9 +21,9 @@ const ServiceOrder = () => {
   } = useServiceOrderForm();
 
   return (
-    <div className="min-h-screen bg-slate-700 text-white p-1 w-full">
+    <div className="min-h-screen bg-slate-700 text-white p-0 w-full" style={{ margin: 0, maxWidth: '100%' }}>
       <Toaster position="top-right" />
-      <div className="w-full max-w-full px-2">
+      <div className="w-full max-w-full px-2" style={{ margin: 0 }}>
         <ServiceOrderForm 
           formData={formData}
           validationErrors={validationErrors}
