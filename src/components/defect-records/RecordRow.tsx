@@ -38,29 +38,29 @@ export const RecordRow = ({
   return (
     <TableRow 
       key={record.id} 
-      className={`table-animation ${getBgColor()}`}
+      className={`table-animation ${getBgColor()} hover:bg-slate-50`}
     >
-      <TableCell className="text-lg uppercase px-2">{record.time}</TableCell>
-      <TableCell className="text-lg uppercase px-2">{record.registration}</TableCell>
-      <TableCell className="text-lg uppercase px-2">{record.station}</TableCell>
-      <TableCell className="text-lg uppercase px-2">{record.defect}</TableCell>
-      <TableCell className="text-lg uppercase px-2">{record.remarks}</TableCell>
-      <TableCell className="text-lg uppercase px-2">{record.eta}</TableCell>
-      <TableCell className="text-lg uppercase px-2">{record.std}</TableCell>
-      <TableCell className={`text-lg uppercase px-2 ${shouldFlashUpd(record) ? 'flash-upd' : ''}`}>
+      <TableCell className="text-lg uppercase px-4 py-3 font-medium">{record.time}</TableCell>
+      <TableCell className="text-lg uppercase px-4 py-3 font-medium">{record.registration}</TableCell>
+      <TableCell className="text-lg uppercase px-4 py-3 font-medium">{record.station}</TableCell>
+      <TableCell className="text-lg uppercase px-4 py-3 font-medium">{record.defect}</TableCell>
+      <TableCell className="text-lg uppercase px-4 py-3 font-medium">{record.remarks}</TableCell>
+      <TableCell className="text-lg uppercase px-4 py-3 font-medium">{record.eta}</TableCell>
+      <TableCell className="text-lg uppercase px-4 py-3 font-medium">{record.std}</TableCell>
+      <TableCell className={`text-lg uppercase px-4 py-3 font-medium ${shouldFlashUpd(record) ? 'flash-upd' : ''}`}>
         {record.upd}
       </TableCell>
-      <TableCell className="text-lg uppercase text-center px-2">{record.rst ? "YES" : "NO"}</TableCell>
-      <TableCell className="text-lg uppercase text-center px-2">{record.sl ? "YES" : "NO"}</TableCell>
-      <TableCell className="text-lg uppercase text-center px-2">{record.ok ? "YES" : "NO"}</TableCell>
-      <TableCell className="text-lg uppercase text-center px-2">{record.pln ? "YES" : "NO"}</TableCell>
-      <TableCell className="px-2">
+      <TableCell className="text-lg uppercase text-center px-4 py-3 font-medium">{record.rst ? "YES" : "NO"}</TableCell>
+      <TableCell className="text-lg uppercase text-center px-4 py-3 font-medium">{record.sl ? "YES" : "NO"}</TableCell>
+      <TableCell className="text-lg uppercase text-center px-4 py-3 font-medium">{record.ok ? "YES" : "NO"}</TableCell>
+      <TableCell className="text-lg uppercase text-center px-4 py-3 font-medium">{record.pln ? "YES" : "NO"}</TableCell>
+      <TableCell className="px-4 py-3">
         <div className="flex space-x-2">
           <Button 
             variant="outline" 
             size="sm" 
             onClick={() => handleEditRecord(record)}
-            className="p-2 h-8 w-8 bg-slate-100"
+            className="p-2 h-8 w-8 bg-slate-100 hover:bg-slate-200 border-slate-300"
           >
             <Pencil className="h-4 w-4" />
             <span className="sr-only">Edit</span>

@@ -11,7 +11,7 @@ export const DefectTableHeader = ({ handleSort, sortConfig }: TableHeaderProps) 
   const getSortIndicator = (columnName: string) => {
     if (sortConfig.key === columnName) {
       return (
-        <span className="ml-1">
+        <span className="ml-1 text-white">
           {sortConfig.direction === 'asc' ? '↑' : '↓'}
         </span>
       );
@@ -21,11 +21,14 @@ export const DefectTableHeader = ({ handleSort, sortConfig }: TableHeaderProps) 
 
   const renderSortableHeader = (label: string, column: string, abbreviation?: string) => (
     <TableHead 
-      className="text-lg uppercase cursor-pointer px-2 text-white font-semibold" 
+      className="text-lg uppercase cursor-pointer px-4 py-3 text-white font-bold" 
       onClick={() => handleSort(column)}
     >
-      {abbreviation || label} <ArrowUpDown className="inline h-4 w-4 ml-1" /> 
-      {getSortIndicator(column)}
+      <div className="flex items-center">
+        {abbreviation || label} 
+        <ArrowUpDown className="inline h-4 w-4 ml-2" /> 
+        {getSortIndicator(column)}
+      </div>
     </TableHead>
   );
 
@@ -44,7 +47,7 @@ export const DefectTableHeader = ({ handleSort, sortConfig }: TableHeaderProps) 
         {renderSortableHeader("SL", "sl")}
         {renderSortableHeader("OK", "ok")}
         {renderSortableHeader("PLN", "pln")}
-        <TableHead className="text-lg uppercase px-2 text-white font-semibold">Actions</TableHead>
+        <TableHead className="text-lg uppercase px-4 py-3 text-white font-bold">Actions</TableHead>
       </TableRow>
     </TableHeader>
   );

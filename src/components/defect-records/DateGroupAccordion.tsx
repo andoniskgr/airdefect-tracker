@@ -34,8 +34,8 @@ export const DateGroupAccordion = ({
 }: DateGroupAccordionProps) => {
   return (
     <AccordionItem key={group.date} value={group.date} className="border-b border-slate-300">
-      <div className="flex items-center justify-between px-4 py-2 bg-slate-100">
-        <AccordionTrigger className="text-lg font-medium py-0 text-slate-800">
+      <div className="flex items-center justify-between px-4 py-3 bg-slate-200">
+        <AccordionTrigger className="text-xl font-semibold py-0 text-slate-800 hover:text-slate-900">
           {group.formattedDate} ({group.records.length} Records)
         </AccordionTrigger>
         <Button 
