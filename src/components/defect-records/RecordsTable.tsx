@@ -55,7 +55,7 @@ export const RecordsTable = ({
   const groupedRecords = groupRecordsByDate();
 
   return (
-    <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-sm border max-w-[1920px] mx-auto">
+    <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-sm border w-full mx-auto">
       {records.length === 0 ? (
         <div className="text-center py-8 text-lg text-gray-500">
           No records found
