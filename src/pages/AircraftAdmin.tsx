@@ -1,15 +1,20 @@
 
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Plus, Trash } from "lucide-react";
 import { AircraftTable } from "@/components/aircraft/AircraftTable";
 import { AddAircraftModal } from "@/components/aircraft/AddAircraftModal";
 import { EditAircraftModal } from "@/components/aircraft/EditAircraftModal";
 import { ImportExcel } from "@/components/aircraft/ImportExcel";
 import { useAircraftAdmin } from "@/hooks/useAircraftAdmin";
+import { useState } from "react";
 
 const AircraftAdmin = () => {
+  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
+  
   const {
     aircraftData,
+    isLoading,
     isAddModalOpen,
     setIsAddModalOpen,
     isEditModalOpen,
@@ -22,6 +27,8 @@ const AircraftAdmin = () => {
     handleAddSubmit,
     handleEditSubmit,
     handleExcelImport,
+    handleDeleteAircraft,
+    handleDeleteAllAircraft,
   } = useAircraftAdmin();
 
   return (
@@ -30,21 +37,40 @@ const AircraftAdmin = () => {
         <h1 className="text-2xl font-bold mb-6">Aircraft Administration</h1>
         
         <div className="mb-6 flex justify-between items-center">
-          <Button 
-            onClick={openAddModal}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Add New Aircraft
-          </Button>
+          <div className="flex space-x-2">
+            <Button 
+              onClick={openAddModal}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Add New Aircraft
+            </Button>
+            
+            {aircraftData.length > 0 && (
+              <Button 
+                onClick={() => setIsDeleteAlertOpen(true)}
+                variant="destructive"
+              >
+                <Trash className="mr-2 h-4 w-4" />
+                Delete All
+              </Button>
+            )}
+          </div>
           
           <ImportExcel handleExcelImport={handleExcelImport} />
         </div>
         
-        <AircraftTable 
-          aircraftData={aircraftData} 
-          onEditAircraft={openEditModal} 
-        />
+        {isLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="text-white text-lg">Loading aircraft data...</div>
+          </div>
+        ) : (
+          <AircraftTable 
+            aircraftData={aircraftData} 
+            onEditAircraft={openEditModal}
+            onDeleteAircraft={handleDeleteAircraft}
+          />
+        )}
       </div>
 
       <AddAircraftModal 
@@ -64,6 +90,30 @@ const AircraftAdmin = () => {
         handleCheckboxChange={handleCheckboxChange}
         handleEditSubmit={handleEditSubmit}
       />
+      
+      <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action will permanently delete all aircraft records from the database.
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => {
+                handleDeleteAllAircraft();
+                setIsDeleteAlertOpen(false);
+              }}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete All
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
