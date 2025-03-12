@@ -9,6 +9,7 @@ import { format, parseISO } from 'date-fns';
 import { cn } from "@/lib/utils";
 import { DefectRecord } from './DefectRecord.types';
 import { TimePicker } from '@/components/ui/time-picker';
+import { AircraftAutocomplete } from './AircraftAutocomplete';
 
 interface EditDefectModalProps {
   isOpen: boolean;
@@ -92,15 +93,12 @@ export const EditDefectModal = ({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-lg font-medium mb-1 block uppercase">Registration</label>
-              <Input
+              <AircraftAutocomplete
                 value={editingRecord.registration}
-                onChange={(e) => setEditingRecord({
+                onChange={(value) => setEditingRecord({
                   ...editingRecord, 
-                  registration: e.target.value.toUpperCase().slice(0, 6)
+                  registration: value
                 })}
-                placeholder="REGISTRATION"
-                className="text-lg uppercase w-[120px]"
-                maxLength={6}
               />
             </div>
             <div>
@@ -199,22 +197,6 @@ export const EditDefectModal = ({
             </div>
             <div className="flex flex-col items-center space-y-1">
               <Checkbox
-                id="edit-pln"
-                checked={editingRecord.pln}
-                onCheckedChange={(checked) => 
-                  setEditingRecord({
-                    ...editingRecord, 
-                    pln: checked as boolean
-                  })
-                }
-                className="h-5 w-5"
-              />
-              <label htmlFor="edit-pln" className="text-lg font-medium uppercase">
-                PLN
-              </label>
-            </div>
-            <div className="flex flex-col items-center space-y-1">
-              <Checkbox
                 id="edit-ok"
                 checked={editingRecord.ok}
                 onCheckedChange={(checked) => 
@@ -227,6 +209,22 @@ export const EditDefectModal = ({
               />
               <label htmlFor="edit-ok" className="text-lg font-medium uppercase">
                 OK
+              </label>
+            </div>
+            <div className="flex flex-col items-center space-y-1">
+              <Checkbox
+                id="edit-pln"
+                checked={editingRecord.pln}
+                onCheckedChange={(checked) => 
+                  setEditingRecord({
+                    ...editingRecord, 
+                    pln: checked as boolean
+                  })
+                }
+                className="h-5 w-5"
+              />
+              <label htmlFor="edit-pln" className="text-lg font-medium uppercase">
+                PLN
               </label>
             </div>
           </div>

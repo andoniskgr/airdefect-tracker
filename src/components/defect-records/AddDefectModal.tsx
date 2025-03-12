@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import { format } from 'date-fns';
 import { cn } from "@/lib/utils";
 import { DefectRecord } from './DefectRecord.types';
 import { TimePicker } from '@/components/ui/time-picker';
+import { AircraftAutocomplete } from './AircraftAutocomplete';
 
 interface AddDefectModalProps {
   isOpen: boolean;
@@ -192,17 +194,12 @@ export const AddDefectModal = ({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-lg font-medium mb-1 block uppercase">Registration</label>
-              <Input
-                ref={registrationRef}
+              <AircraftAutocomplete 
+                inputRef={registrationRef}
                 value={formData.registration}
-                onChange={(e) => handleFieldChange('registration', e.target.value.toUpperCase().slice(0, 6))}
+                onChange={(value) => handleFieldChange('registration', value)}
                 onKeyDown={(e) => handleKeyDown(e, 'registration')}
-                placeholder="REGISTRATION"
-                className={cn(
-                  "text-lg uppercase w-[120px]",
-                  validationErrors.registration && "bg-red-50 border-red-200 focus-visible:ring-red-300"
-                )}
-                maxLength={6}
+                validationError={validationErrors.registration}
                 autoFocus={true}
               />
             </div>
@@ -302,19 +299,6 @@ export const AddDefectModal = ({
             </div>
             <div className="flex flex-col items-center space-y-1">
               <Checkbox
-                id="pln"
-                checked={formData.pln}
-                onCheckedChange={(checked) => 
-                  handleFieldChange('pln', checked as boolean)
-                }
-                className="h-5 w-5"
-              />
-              <label htmlFor="pln" className="text-lg font-medium uppercase">
-                PLN
-              </label>
-            </div>
-            <div className="flex flex-col items-center space-y-1">
-              <Checkbox
                 id="ok"
                 checked={formData.ok}
                 onCheckedChange={(checked) => 
@@ -324,6 +308,19 @@ export const AddDefectModal = ({
               />
               <label htmlFor="ok" className="text-lg font-medium uppercase">
                 OK
+              </label>
+            </div>
+            <div className="flex flex-col items-center space-y-1">
+              <Checkbox
+                id="pln"
+                checked={formData.pln}
+                onCheckedChange={(checked) => 
+                  handleFieldChange('pln', checked as boolean)
+                }
+                className="h-5 w-5"
+              />
+              <label htmlFor="pln" className="text-lg font-medium uppercase">
+                PLN
               </label>
             </div>
           </div>

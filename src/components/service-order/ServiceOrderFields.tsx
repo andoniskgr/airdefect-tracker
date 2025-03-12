@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CalendarIcon } from "lucide-react";
 import { ServiceOrderData } from "./types";
+import { AircraftAutocomplete } from "../defect-records/AircraftAutocomplete";
 
 interface ServiceOrderFieldsProps {
   formData: ServiceOrderData;
@@ -27,21 +28,24 @@ const ServiceOrderFields: React.FC<ServiceOrderFieldsProps> = ({
   handleInputChange,
   handleCheckboxChange
 }) => {
+  const handleAircraftChange = (value: string) => {
+    handleInputChange({
+      target: { name: 'aircraft', value }
+    } as React.ChangeEvent<HTMLInputElement>);
+  };
+
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <div>
-          <Input 
-            type="text" 
-            name="aircraft"
+          <AircraftAutocomplete 
             value={formData.aircraft}
-            onChange={handleInputChange}
-            placeholder="SELECT A/C" 
+            onChange={handleAircraftChange}
+            placeholder="SELECT A/C"
             className={cn(
-              "bg-white text-black",
+              "bg-white text-black w-full",
               validationErrors.aircraft && "bg-red-100"
             )}
-            required
           />
         </div>
         
