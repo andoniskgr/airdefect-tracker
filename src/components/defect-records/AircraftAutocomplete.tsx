@@ -56,12 +56,15 @@ export const AircraftAutocomplete: React.FC<AircraftAutocompleteProps> = ({
   useEffect(() => {
     if (!value) {
       setFilteredRegistrations([]);
+      setIsOpen(false);
       return;
     }
     
+    // Filter registrations that contain the input value (case insensitive)
     const filtered = registrations.filter(reg => 
       reg.toLowerCase().includes(value.toLowerCase())
     );
+    
     setFilteredRegistrations(filtered);
     setIsOpen(filtered.length > 0);
   }, [value, registrations]);
@@ -80,6 +83,11 @@ export const AircraftAutocomplete: React.FC<AircraftAutocompleteProps> = ({
     };
   }, []);
   
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value.toUpperCase().slice(0, maxLength);
+    onChange(inputValue);
+  };
+  
   const handleItemClick = (registration: string) => {
     onChange(registration);
     setIsOpen(false);
@@ -90,9 +98,13 @@ export const AircraftAutocomplete: React.FC<AircraftAutocompleteProps> = ({
       <Input
         ref={inputRef}
         value={value}
-        onChange={(e) => onChange(e.target.value.toUpperCase().slice(0, maxLength))}
+        onChange={handleInputChange}
         onKeyDown={onKeyDown}
-        onFocus={() => value && filteredRegistrations.length > 0 && setIsOpen(true)}
+        onFocus={() => {
+          if (value && filteredRegistrations.length > 0) {
+            setIsOpen(true);
+          }
+        }}
         placeholder={placeholder}
         className={cn(
           "text-lg uppercase w-[120px]",
