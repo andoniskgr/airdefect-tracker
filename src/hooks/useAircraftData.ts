@@ -22,7 +22,13 @@ export const useAircraftData = () => {
           a.registration.localeCompare(b.registration)
         );
         
-        setAircraftList(sortedAircraft);
+        // Remove duplicates based on registration
+        const uniqueAircraft = sortedAircraft.filter(
+          (aircraft, index, self) =>
+            index === self.findIndex((a) => a.registration === aircraft.registration)
+        );
+        
+        setAircraftList(uniqueAircraft);
       } catch (error) {
         console.error("Error fetching aircraft data:", error);
       }

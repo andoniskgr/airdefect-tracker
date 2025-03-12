@@ -36,6 +36,8 @@ const ServiceOrderFields: React.FC<ServiceOrderFieldsProps> = ({
     } as React.ChangeEvent<HTMLInputElement>);
   };
 
+  console.log("Aircraft list:", aircraftList.map(a => a.registration));
+
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
