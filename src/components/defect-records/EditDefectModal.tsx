@@ -199,22 +199,6 @@ export const EditDefectModal = ({
             </div>
             <div className="flex flex-col items-center space-y-1">
               <Checkbox
-                id="edit-ok"
-                checked={editingRecord.ok}
-                onCheckedChange={(checked) => 
-                  setEditingRecord({
-                    ...editingRecord, 
-                    ok: checked as boolean
-                  })
-                }
-                className="h-5 w-5"
-              />
-              <label htmlFor="edit-ok" className="text-lg font-medium uppercase">
-                OK
-              </label>
-            </div>
-            <div className="flex flex-col items-center space-y-1">
-              <Checkbox
                 id="edit-pln"
                 checked={editingRecord.pln}
                 onCheckedChange={(checked) => 
@@ -227,6 +211,22 @@ export const EditDefectModal = ({
               />
               <label htmlFor="edit-pln" className="text-lg font-medium uppercase">
                 PLN
+              </label>
+            </div>
+            <div className="flex flex-col items-center space-y-1">
+              <Checkbox
+                id="edit-ok"
+                checked={editingRecord.ok}
+                onCheckedChange={(checked) => 
+                  setEditingRecord({
+                    ...editingRecord, 
+                    ok: checked as boolean
+                  })
+                }
+                className="h-5 w-5"
+              />
+              <label htmlFor="edit-ok" className="text-lg font-medium uppercase">
+                OK
               </label>
             </div>
           </div>

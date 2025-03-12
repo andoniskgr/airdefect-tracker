@@ -22,7 +22,11 @@ export const useFilterAndSort = () => {
     
     // Apply filters based on the selected filter type
     if (filter === 'sl') {
-      records = records.filter(record => record.sl === true && record.ok === false);
+      // For "PENDING" filter: show records with SL = true OR both SL and OK are false
+      records = records.filter(record => 
+        (record.sl === true && record.ok === false) || 
+        (record.sl === false && record.ok === false)
+      );
     } else if (filter === 'ok') {
       records = records.filter(record => record.ok === true);
     } else if (filter === 'pln') {

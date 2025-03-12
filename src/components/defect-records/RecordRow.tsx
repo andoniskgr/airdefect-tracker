@@ -52,8 +52,8 @@ export const RecordRow = ({
       </TableCell>
       <TableCell className="text-lg uppercase text-center px-4 py-3 font-medium">{record.rst ? "YES" : "NO"}</TableCell>
       <TableCell className="text-lg uppercase text-center px-4 py-3 font-medium">{record.sl ? "YES" : "NO"}</TableCell>
-      <TableCell className="text-lg uppercase text-center px-4 py-3 font-medium">{record.ok ? "YES" : "NO"}</TableCell>
       <TableCell className="text-lg uppercase text-center px-4 py-3 font-medium">{record.pln ? "YES" : "NO"}</TableCell>
+      <TableCell className="text-lg uppercase text-center px-4 py-3 font-medium">{record.ok ? "YES" : "NO"}</TableCell>
       <TableCell className="px-4 py-3">
         <div className="flex space-x-2">
           <Button 

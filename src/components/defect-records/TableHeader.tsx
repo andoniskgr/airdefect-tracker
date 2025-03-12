@@ -45,8 +45,8 @@ export const DefectTableHeader = ({ handleSort, sortConfig }: TableHeaderProps) 
         {renderSortableHeader("UPD", "upd")}
         {renderSortableHeader("RST", "rst")}
         {renderSortableHeader("SL", "sl")}
-        {renderSortableHeader("OK", "ok")}
         {renderSortableHeader("PLN", "pln")}
+        {renderSortableHeader("OK", "ok")}
         <TableHead className="text-lg uppercase px-4 py-3 text-white font-bold">Actions</TableHead>
       </TableRow>
     </TableHeader>

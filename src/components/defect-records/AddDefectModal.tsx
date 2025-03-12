@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -31,13 +30,11 @@ export const AddDefectModal = ({
   const [validationErrors, setValidationErrors] = useState<Record<string, boolean>>({});
   const [calendarOpen, setCalendarOpen] = useState(false);
   
-  // References for all input fields for navigation
   const registrationRef = useRef<HTMLInputElement>(null);
   const stationRef = useRef<HTMLInputElement>(null);
   const defectRef = useRef<HTMLInputElement>(null);
   const remarksRef = useRef<HTMLInputElement>(null);
 
-  // Validation function for form fields
   const validateField = (field: string, value: string): boolean => {
     if (['registration', 'station', 'defect'].includes(field) && !value) {
       return false;
@@ -48,15 +45,12 @@ export const AddDefectModal = ({
     return true;
   };
 
-  // Set focus on registration field and clear form when modal opens
   useEffect(() => {
     if (isOpen) {
-      // Clear form data when modal first opens (only once)
       setTimeout(() => {
         handleClear();
       }, 50);
       
-      // Use a more aggressive approach to ensure focus works
       const focusInterval = setInterval(() => {
         if (registrationRef.current) {
           registrationRef.current.focus();
@@ -64,18 +58,15 @@ export const AddDefectModal = ({
         }
       }, 100);
       
-      // Clear interval after a reasonable time to prevent memory leaks
       setTimeout(() => clearInterval(focusInterval), 2000);
       
       return () => clearInterval(focusInterval);
     }
-  }, [isOpen]); // Remove handleClear from dependencies to prevent continuous clearing
+  }, [isOpen]);
 
-  // Handle field validation on change
   const handleFieldChange = (field: keyof Omit<DefectRecord, 'id'>, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     
-    // For text fields, validate and update errors
     if (typeof value === 'string') {
       const isValid = validateField(field as string, value);
       setValidationErrors(prev => ({
@@ -85,7 +76,6 @@ export const AddDefectModal = ({
     }
   };
 
-  // Handle enter key press to navigate between fields
   const handleEnterOnField = (fieldName: string) => {
     switch(fieldName) {
       case 'registration':
@@ -105,7 +95,6 @@ export const AddDefectModal = ({
     }
   };
 
-  // Validation and submit function
   const validateAndSubmit = () => {
     const requiredFields = ['registration', 'station', 'defect'];
     const errors: Record<string, boolean> = {};
@@ -123,7 +112,6 @@ export const AddDefectModal = ({
     if (!hasErrors) {
       handleSubmit();
     } else {
-      // Focus the first field with an error
       for (const field of requiredFields) {
         if (errors[field]) {
           if (field === 'registration') registrationRef.current?.focus();
@@ -142,7 +130,6 @@ export const AddDefectModal = ({
     }
   };
 
-  // Additional logging to debug focus issues
   useEffect(() => {
     if (isOpen) {
       console.log("Modal opened, registration ref exists:", !!registrationRef.current);
@@ -152,8 +139,7 @@ export const AddDefectModal = ({
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md" onOpenAutoFocus={(e) => {
-        e.preventDefault(); // Prevent default autofocus behavior
-        // Force focus on registration field
+        e.preventDefault();
         setTimeout(() => registrationRef.current?.focus(), 50);
       }}>
         <DialogHeader>
@@ -186,7 +172,7 @@ export const AddDefectModal = ({
                       onSelect={(date) => {
                         if (date) {
                           handleFieldChange('date', format(date, 'yyyy-MM-dd'));
-                          setCalendarOpen(false); // Close the calendar after selection
+                          setCalendarOpen(false);
                         }
                       }}
                       initialFocus
@@ -316,19 +302,6 @@ export const AddDefectModal = ({
             </div>
             <div className="flex flex-col items-center space-y-1">
               <Checkbox
-                id="ok"
-                checked={formData.ok}
-                onCheckedChange={(checked) => 
-                  handleFieldChange('ok', checked as boolean)
-                }
-                className="h-5 w-5"
-              />
-              <label htmlFor="ok" className="text-lg font-medium uppercase">
-                OK
-              </label>
-            </div>
-            <div className="flex flex-col items-center space-y-1">
-              <Checkbox
                 id="pln"
                 checked={formData.pln}
                 onCheckedChange={(checked) => 
@@ -338,6 +311,19 @@ export const AddDefectModal = ({
               />
               <label htmlFor="pln" className="text-lg font-medium uppercase">
                 PLN
+              </label>
+            </div>
+            <div className="flex flex-col items-center space-y-1">
+              <Checkbox
+                id="ok"
+                checked={formData.ok}
+                onCheckedChange={(checked) => 
+                  handleFieldChange('ok', checked as boolean)
+                }
+                className="h-5 w-5"
+              />
+              <label htmlFor="ok" className="text-lg font-medium uppercase">
+                OK
               </label>
             </div>
           </div>
