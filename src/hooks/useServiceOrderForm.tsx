@@ -1,10 +1,12 @@
-
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { ServiceOrderData, DefectType } from "../components/service-order/types";
+import { useAircraftData } from "./useAircraftData";
 
 export const useServiceOrderForm = () => {
+  const { aircraftList } = useAircraftData();
+  
   // State for form fields
   const [formData, setFormData] = useState<ServiceOrderData>({
     defectType: "PIREP", // PIREP DEFECT selected by default
@@ -138,12 +140,14 @@ export const useServiceOrderForm = () => {
       return;
     }
     
+    // Find selected aircraft details
+    const selectedAircraft = aircraftList.find(ac => ac.registration === formData.aircraft);
+    
     let formattedText = '';
     
     if (formData.defectType === "PIREP") {
-      // Generate PIREP DEFECT format
       formattedText = `A/C DETAILS:
-${formData.aircraft} (Aircraft Type: A321-231, MSN: 1234, ENG TYPE: IAE V2500), FLT No ${formData.flight} (${formData.from}-${formData.to}), ${formData.atDestAirport 
+${formData.aircraft} (Aircraft Type: ${selectedAircraft?.type || 'N/A'}, MSN: ${selectedAircraft?.msn || 'N/A'}, ENG TYPE: ${selectedAircraft?.engine || 'N/A'}), FLT No ${formData.flight} (${formData.from}-${formData.to}), ${formData.atDestAirport 
   ? "A/C already landed to destination airport." 
   : `ETA:${format(formData.date, 'dd/MM/yyyy')}, ${formData.etaUtc} UTC.`}
 
@@ -160,9 +164,8 @@ Upon completion, please leave the white original workorder page in the Tech log 
 AIRCRAFT MANUALS
 Access to manuals is made by AirnavX using the link : https://extranet.aegeanair.com Username and password are provided by MCC.`;
     } else {
-      // Generate MAINT ACTION format
       formattedText = `A/C DETAILS:
-${formData.aircraft} (Aircraft Type: A321-231, MSN: 1234, ENG TYPE: IAE V2500), FLT No ${formData.flight} (${formData.from}-${formData.to}), ${formData.atDestAirport 
+${formData.aircraft} (Aircraft Type: ${selectedAircraft?.type || 'N/A'}, MSN: ${selectedAircraft?.msn || 'N/A'}, ENG TYPE: ${selectedAircraft?.engine || 'N/A'}), FLT No ${formData.flight} (${formData.from}-${formData.to}), ${formData.atDestAirport 
   ? "A/C already landed to destination airport." 
   : `ETA:${format(formData.date, 'dd/MM/yyyy')}, ${formData.etaUtc} UTC.`}
 
@@ -180,7 +183,6 @@ AIRCRAFT MANUALS
 Access to manuals is made by AirnavX using the link : https://extranet.aegeanair.com Username and password are provided by MCC.`;
     }
 
-    // Set the prepared text in the form
     setFormData(prev => ({ ...prev, preparedText: formattedText }));
     
     // Copy to clipboard

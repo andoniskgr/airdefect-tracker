@@ -1,7 +1,7 @@
-
 import React from "react";
 import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CalendarIcon } from "lucide-react";
 import { ServiceOrderData } from "./types";
-import { AircraftAutocomplete } from "../defect-records/AircraftAutocomplete";
+import { useAircraftData } from "@/hooks/useAircraftData";
 
 interface ServiceOrderFieldsProps {
   formData: ServiceOrderData;
@@ -28,6 +28,8 @@ const ServiceOrderFields: React.FC<ServiceOrderFieldsProps> = ({
   handleInputChange,
   handleCheckboxChange
 }) => {
+  const { aircraftList } = useAircraftData();
+
   const handleAircraftChange = (value: string) => {
     handleInputChange({
       target: { name: 'aircraft', value }
@@ -38,15 +40,29 @@ const ServiceOrderFields: React.FC<ServiceOrderFieldsProps> = ({
     <>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <div>
-          <AircraftAutocomplete 
-            value={formData.aircraft}
-            onChange={handleAircraftChange}
-            placeholder="SELECT A/C"
-            className={cn(
-              "bg-white text-black w-full",
-              validationErrors.aircraft && "bg-red-100"
-            )}
-          />
+          <Select 
+            value={formData.aircraft} 
+            onValueChange={handleAircraftChange}
+          >
+            <SelectTrigger
+              className={cn(
+                "bg-white text-black w-full",
+                validationErrors.aircraft && "bg-red-100"
+              )}
+            >
+              <SelectValue placeholder="SELECT A/C" />
+            </SelectTrigger>
+            <SelectContent className="max-h-[300px]">
+              {aircraftList.map((aircraft) => (
+                <SelectItem 
+                  key={aircraft.id} 
+                  value={aircraft.registration}
+                >
+                  {aircraft.registration}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         
         <div>
