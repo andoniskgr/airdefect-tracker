@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { MessageSquare, Pencil, Trash } from "lucide-react";
@@ -46,8 +47,39 @@ export const RecordRow = ({
         formattedText += ` // STD: ${record.std}`;
       }
       
-      navigator.clipboard.writeText(formattedText);
-      toast.success("Copied to clipboard for Teams");
+      // Handle environments where navigator.clipboard is not available
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(formattedText)
+          .then(() => {
+            toast.success("Copied to clipboard for Teams");
+          })
+          .catch((err) => {
+            console.error("Failed to copy to clipboard:", err);
+            toast.error("Failed to copy to clipboard");
+          });
+      } else {
+        // Fallback for environments without clipboard API
+        const textArea = document.createElement('textarea');
+        textArea.value = formattedText;
+        textArea.style.position = 'fixed';  // Avoid scrolling to bottom
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        try {
+          const successful = document.execCommand('copy');
+          if (successful) {
+            toast.success("Copied to clipboard for Teams");
+          } else {
+            toast.error("Failed to copy to clipboard");
+          }
+        } catch (err) {
+          console.error("Fallback clipboard copy failed:", err);
+          toast.error("Failed to copy to clipboard");
+        }
+        
+        document.body.removeChild(textArea);
+      }
     } catch (error) {
       console.error("Failed to copy to clipboard:", error);
       toast.error("Failed to copy to clipboard");
