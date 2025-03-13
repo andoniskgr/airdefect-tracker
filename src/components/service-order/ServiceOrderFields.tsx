@@ -1,3 +1,4 @@
+
 import React from "react";
 import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
@@ -10,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { CalendarIcon } from "lucide-react";
 import { ServiceOrderData } from "./types";
 import { useAircraftData } from "@/hooks/useAircraftData";
+import { Textarea } from "@/components/ui/textarea";
 
 interface ServiceOrderFieldsProps {
   formData: ServiceOrderData;
@@ -220,11 +222,10 @@ const ServiceOrderFields: React.FC<ServiceOrderFieldsProps> = ({
       
       <div className="mb-4">
         <label className="block mb-2">Prepared text</label>
-        <textarea 
+        <Textarea 
           name="preparedText"
           value={formData.preparedText}
-          onChange={handleInputChange}
-          className="w-full h-72 p-2 bg-white text-black rounded-md font-mono text-sm"
+          className="w-full h-96 p-2 bg-white text-black rounded-md font-mono text-sm"
           placeholder="Enter prepared text here..."
           readOnly
         />
