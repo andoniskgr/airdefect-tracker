@@ -27,7 +27,7 @@ const AircraftFlightFields: React.FC<AircraftFlightFieldsProps> = ({
   const { aircraftList } = useAircraftData();
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
       <div>
         <Select 
           value={aircraft} 
@@ -35,7 +35,7 @@ const AircraftFlightFields: React.FC<AircraftFlightFieldsProps> = ({
         >
           <SelectTrigger
             className={cn(
-              "bg-white text-black w-full max-w-[12ch]",
+              "bg-white text-black w-full max-w-[15ch]",
               validationErrors.aircraft && "bg-red-100"
             )}
           >

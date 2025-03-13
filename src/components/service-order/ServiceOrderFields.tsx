@@ -31,7 +31,7 @@ const ServiceOrderFields: React.FC<ServiceOrderFieldsProps> = ({
 
   return (
     <>
-      <div className="mb-4">
+      <div className="mb-3">
         <AircraftFlightFields 
           aircraft={formData.aircraft}
           flight={formData.flight}
@@ -43,7 +43,7 @@ const ServiceOrderFields: React.FC<ServiceOrderFieldsProps> = ({
         />
       </div>
       
-      <div className="mb-4">
+      <div className="mb-3">
         <DateEtaFields 
           date={formData.date}
           etaUtc={formData.etaUtc}
@@ -56,7 +56,7 @@ const ServiceOrderFields: React.FC<ServiceOrderFieldsProps> = ({
         />
       </div>
       
-      <div className="mb-4">
+      <div className="mb-3">
         <DefectFields 
           defectType={formData.defectType}
           defectDescription={formData.defectDescription}
@@ -67,7 +67,7 @@ const ServiceOrderFields: React.FC<ServiceOrderFieldsProps> = ({
         />
       </div>
       
-      <div className="mb-4">
+      <div className="mb-3">
         <PreparedTextField 
           preparedText={formData.preparedText}
         />

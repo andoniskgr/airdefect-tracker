@@ -32,14 +32,14 @@ const DateEtaFields: React.FC<DateEtaFieldsProps> = ({
 }) => {
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         <div>
           <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
             <PopoverTrigger asChild>
               <Button
                 variant={"outline"}
                 className={cn(
-                  "w-full max-w-[12ch] justify-start text-left font-normal bg-white text-black hover:bg-white/90",
+                  "w-full max-w-[15ch] justify-start text-left font-normal bg-white text-black hover:bg-white/90",
                   !date && "text-muted-foreground",
                   validationErrors.date && "bg-red-100"
                 )}
@@ -84,7 +84,7 @@ const DateEtaFields: React.FC<DateEtaFieldsProps> = ({
         </div>
       </div>
       
-      <div className="flex items-center space-x-2 mt-4">
+      <div className="flex items-center space-x-2 mt-2">
         <Checkbox 
           id="atDestAirport" 
           checked={atDestAirport} 
