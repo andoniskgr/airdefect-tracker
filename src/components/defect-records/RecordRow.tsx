@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { MessageSquare, Pencil, Trash } from "lucide-react";
@@ -29,7 +28,6 @@ export const RecordRow = ({
     return currentTime >= updTime;
   };
 
-  // Define background colors that work well with dark text
   const getBgColor = () => {
     if (record.ok) return "bg-green-200 text-slate-800";
     if (record.sl) return "bg-yellow-200 text-slate-800";
@@ -38,13 +36,10 @@ export const RecordRow = ({
 
   const copyToTeams = () => {
     try {
-      // Create a simple, clean table format that will render with borders in Teams
-      const tableText = `| TIME | REG | STA | DEFECT | ETA | STD |
-|------|-----|-----|--------|-----|-----|
-| ${record.time} | ${record.registration} | ${record.station} | ${record.defect} | ${record.eta} | ${record.std} |`;
+      const formattedText = `Time: ${record.time} // REG: ${record.registration} // STA: ${record.station} // DEFECT: ${record.defect} // ETA: ${record.eta} // STD: ${record.std}`;
       
-      navigator.clipboard.writeText(tableText);
-      toast.success("Copied table to clipboard for Teams");
+      navigator.clipboard.writeText(formattedText);
+      toast.success("Copied to clipboard for Teams");
     } catch (error) {
       console.error("Failed to copy to clipboard:", error);
       toast.error("Failed to copy to clipboard");
