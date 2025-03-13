@@ -1,8 +1,9 @@
 
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { Pencil, Trash } from "lucide-react";
+import { MessageSquare, Pencil, Trash } from "lucide-react";
 import { DefectRecord } from "./DefectRecord.types";
+import { toast } from "sonner";
 
 interface RecordRowProps {
   record: DefectRecord;
@@ -33,6 +34,21 @@ export const RecordRow = ({
     if (record.ok) return "bg-green-200 text-slate-800";
     if (record.sl) return "bg-yellow-200 text-slate-800";
     return "bg-white text-slate-800";
+  };
+
+  const copyToTeams = () => {
+    try {
+      // Create markdown table format for Teams
+      const tableText = `| TIME | REG | STA | DEFECT | ETA | STD |
+| --- | --- | --- | --- | --- | --- |
+| ${record.time} | ${record.registration} | ${record.station} | ${record.defect} | ${record.eta} | ${record.std} |`;
+      
+      navigator.clipboard.writeText(tableText);
+      toast.success("Copied to clipboard for Teams");
+    } catch (error) {
+      console.error("Failed to copy to clipboard:", error);
+      toast.error("Failed to copy to clipboard");
+    }
   };
 
   return (
@@ -73,6 +89,15 @@ export const RecordRow = ({
           >
             <Trash className="h-4 w-4" />
             <span className="sr-only">Delete</span>
+          </Button>
+          <Button 
+            variant="default" 
+            size="sm" 
+            onClick={copyToTeams}
+            className="p-2 h-8 w-8 bg-blue-500 hover:bg-blue-600"
+          >
+            <MessageSquare className="h-4 w-4" />
+            <span className="sr-only">Copy for Teams</span>
           </Button>
         </div>
       </TableCell>

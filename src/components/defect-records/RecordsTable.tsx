@@ -1,5 +1,6 @@
 
 import { Accordion } from "@/components/ui/accordion";
+import { Toaster } from "sonner";
 import { format } from 'date-fns';
 import { DefectRecord } from "./DefectRecord.types";
 import { useState, useEffect } from "react";
@@ -56,6 +57,7 @@ export const RecordsTable = ({
 
   return (
     <div className="bg-white rounded-lg shadow-lg border w-full mx-auto overflow-hidden">
+      <Toaster position="top-right" />
       {records.length === 0 ? (
         <div className="text-center py-8 text-lg text-gray-500 bg-white">
           No records found

@@ -10,6 +10,7 @@ import { Plus } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useDefectRecords } from "../hooks/useDefectRecords";
 import { useDefectForm } from "../hooks/useDefectForm";
+import { Toaster } from "sonner";
 
 const Index = () => {
   const { currentUser } = useAuth();
@@ -45,6 +46,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-slate-700 text-white p-0 w-full" style={{ margin: 0, maxWidth: '100%' }}>
+      <Toaster position="top-right" />
       <div className="w-full max-w-full px-2" style={{ margin: 0 }}>
         <div className="mb-4 flex items-center justify-between">
           <h1 className="text-2xl font-bold">Defect Records</h1>
