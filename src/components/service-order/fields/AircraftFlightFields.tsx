@@ -27,7 +27,7 @@ const AircraftFlightFields: React.FC<AircraftFlightFieldsProps> = ({
   const { aircraftList } = useAircraftData();
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+    <div className="flex flex-wrap items-center space-x-2">
       <div>
         <Select 
           value={aircraft} 

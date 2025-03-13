@@ -31,60 +31,58 @@ const DateEtaFields: React.FC<DateEtaFieldsProps> = ({
   handleCheckboxChange
 }) => {
   return (
-    <>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-        <div>
-          <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant={"outline"}
-                className={cn(
-                  "w-full max-w-[15ch] justify-start text-left font-normal bg-white text-black hover:bg-white/90",
-                  !date && "text-muted-foreground",
-                  validationErrors.date && "bg-red-100"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {date ? format(date, "dd/MM/yyyy") : "SELECT DATE"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0 bg-white" align="start">
-              <Calendar
-                mode="single"
-                selected={date}
-                onSelect={(date) => {
-                  if (date) {
-                    handleInputChange({
-                      target: { name: 'date', value: date.toString() }
-                    } as React.ChangeEvent<HTMLInputElement>);
-                    setCalendarOpen(false);
-                  }
-                }}
-                initialFocus
-                className="p-3 pointer-events-auto"
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
-        
-        <div>
-          <Input 
-            type="text" 
-            name="etaUtc"
-            value={etaUtc}
-            onChange={handleInputChange}
-            placeholder="ETA UTC" 
-            className={cn(
-              "bg-white text-black max-w-[12ch]",
-              validationErrors.etaUtc && "bg-red-100"
-            )}
-            disabled={atDestAirport}
-            required={!atDestAirport}
-          />
-        </div>
+    <div className="flex items-center space-x-2">
+      <div>
+        <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant={"outline"}
+              className={cn(
+                "w-full max-w-[15ch] justify-start text-left font-normal bg-white text-black hover:bg-white/90",
+                !date && "text-muted-foreground",
+                validationErrors.date && "bg-red-100"
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {date ? format(date, "dd/MM/yyyy") : "SELECT DATE"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0 bg-white" align="start">
+            <Calendar
+              mode="single"
+              selected={date}
+              onSelect={(date) => {
+                if (date) {
+                  handleInputChange({
+                    target: { name: 'date', value: date.toString() }
+                  } as React.ChangeEvent<HTMLInputElement>);
+                  setCalendarOpen(false);
+                }
+              }}
+              initialFocus
+              className="p-3 pointer-events-auto"
+            />
+          </PopoverContent>
+        </Popover>
       </div>
       
-      <div className="flex items-center space-x-2 mt-2">
+      <div>
+        <Input 
+          type="text" 
+          name="etaUtc"
+          value={etaUtc}
+          onChange={handleInputChange}
+          placeholder="ETA UTC" 
+          className={cn(
+            "bg-white text-black max-w-[12ch]",
+            validationErrors.etaUtc && "bg-red-100"
+          )}
+          disabled={atDestAirport}
+          required={!atDestAirport}
+        />
+      </div>
+      
+      <div className="flex items-center space-x-2">
         <Checkbox 
           id="atDestAirport" 
           checked={atDestAirport} 
@@ -92,11 +90,11 @@ const DateEtaFields: React.FC<DateEtaFieldsProps> = ({
             handleCheckboxChange('atDestAirport', checked === true)
           }
         />
-        <label htmlFor="atDestAirport" className="text-white font-medium">
+        <label htmlFor="atDestAirport" className="text-white text-sm whitespace-nowrap">
           At Dest. Airport
         </label>
       </div>
-    </>
+    </div>
   );
 };
 

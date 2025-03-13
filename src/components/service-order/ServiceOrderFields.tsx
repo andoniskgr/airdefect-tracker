@@ -32,28 +32,28 @@ const ServiceOrderFields: React.FC<ServiceOrderFieldsProps> = ({
   return (
     <>
       <div className="mb-3">
-        <AircraftFlightFields 
-          aircraft={formData.aircraft}
-          flight={formData.flight}
-          from={formData.from}
-          to={formData.to}
-          validationErrors={validationErrors}
-          handleAircraftChange={handleAircraftChange}
-          handleInputChange={handleInputChange}
-        />
-      </div>
-      
-      <div className="mb-3">
-        <DateEtaFields 
-          date={formData.date}
-          etaUtc={formData.etaUtc}
-          atDestAirport={formData.atDestAirport}
-          validationErrors={validationErrors}
-          calendarOpen={calendarOpen}
-          setCalendarOpen={setCalendarOpen}
-          handleInputChange={handleInputChange}
-          handleCheckboxChange={handleCheckboxChange}
-        />
+        <div className="flex flex-col md:flex-row md:items-center md:space-x-2 space-y-2 md:space-y-0">
+          <AircraftFlightFields 
+            aircraft={formData.aircraft}
+            flight={formData.flight}
+            from={formData.from}
+            to={formData.to}
+            validationErrors={validationErrors}
+            handleAircraftChange={handleAircraftChange}
+            handleInputChange={handleInputChange}
+          />
+          
+          <DateEtaFields 
+            date={formData.date}
+            etaUtc={formData.etaUtc}
+            atDestAirport={formData.atDestAirport}
+            validationErrors={validationErrors}
+            calendarOpen={calendarOpen}
+            setCalendarOpen={setCalendarOpen}
+            handleInputChange={handleInputChange}
+            handleCheckboxChange={handleCheckboxChange}
+          />
+        </div>
       </div>
       
       <div className="mb-3">
