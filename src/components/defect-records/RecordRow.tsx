@@ -38,9 +38,9 @@ export const RecordRow = ({
 
   const copyToTeams = () => {
     try {
-      // Create a formatted table for Teams with border layout
+      // Create a simple, clean table format that will render with borders in Teams
       const tableText = `| TIME | REG | STA | DEFECT | ETA | STD |
-| --- | --- | --- | --- | --- | --- |
+|------|-----|-----|--------|-----|-----|
 | ${record.time} | ${record.registration} | ${record.station} | ${record.defect} | ${record.eta} | ${record.std} |`;
       
       navigator.clipboard.writeText(tableText);
