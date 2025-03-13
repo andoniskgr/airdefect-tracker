@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { MessageSquare, Pencil, Trash } from "lucide-react";
@@ -36,6 +37,12 @@ export const RecordRow = ({
 
   const copyToTeams = () => {
     try {
+      // Check if ETA or STD is missing
+      if (!record.eta || !record.std) {
+        toast.warning("Cannot copy - ETA or STD is missing");
+        return;
+      }
+      
       const formattedText = `Time: ${record.time} // REG: ${record.registration} // STA: ${record.station} // DEFECT: ${record.defect} // ETA: ${record.eta} // STD: ${record.std}`;
       
       navigator.clipboard.writeText(formattedText);
