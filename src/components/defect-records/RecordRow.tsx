@@ -38,13 +38,13 @@ export const RecordRow = ({
 
   const copyToTeams = () => {
     try {
-      // Create markdown table format for Teams
+      // Create a formatted table for Teams with border layout
       const tableText = `| TIME | REG | STA | DEFECT | ETA | STD |
 | --- | --- | --- | --- | --- | --- |
 | ${record.time} | ${record.registration} | ${record.station} | ${record.defect} | ${record.eta} | ${record.std} |`;
       
       navigator.clipboard.writeText(tableText);
-      toast.success("Copied to clipboard for Teams");
+      toast.success("Copied table to clipboard for Teams");
     } catch (error) {
       console.error("Failed to copy to clipboard:", error);
       toast.error("Failed to copy to clipboard");
