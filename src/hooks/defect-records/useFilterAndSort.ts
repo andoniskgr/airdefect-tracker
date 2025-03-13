@@ -6,7 +6,7 @@ export const useFilterAndSort = () => {
   const [filter, setFilter] = useState<FilterType>('all');
   const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' }>({
     key: 'time',
-    direction: 'asc'
+    direction: 'desc'
   });
 
   const handleSort = (column: string) => {

@@ -43,7 +43,9 @@ export const AircraftAutocomplete: React.FC<AircraftAutocompleteProps> = ({
           doc.data().registration as string
         ).filter(Boolean);
         
-        setRegistrations(aircraftRegs);
+        // Remove duplicates
+        const uniqueRegs = [...new Set(aircraftRegs)];
+        setRegistrations(uniqueRegs);
       } catch (error) {
         console.error("Error fetching aircraft data:", error);
       }
