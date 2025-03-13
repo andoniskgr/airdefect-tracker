@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -143,11 +144,14 @@ export const useServiceOrderForm = () => {
     // Find selected aircraft details
     const selectedAircraft = aircraftList.find(ac => ac.registration === formData.aircraft);
     
+    // Add "SX-" prefix to aircraft registration
+    const aircraftWithPrefix = `SX-${formData.aircraft}`;
+    
     let formattedText = '';
     
     if (formData.defectType === "PIREP") {
       formattedText = `A/C DETAILS:
-${formData.aircraft} (Aircraft Type: ${selectedAircraft?.type || 'N/A'}, MSN: ${selectedAircraft?.msn || 'N/A'}, ENG TYPE: ${selectedAircraft?.engine || 'N/A'}), FLT No ${formData.flight} (${formData.from}-${formData.to}), ${formData.atDestAirport 
+${aircraftWithPrefix} (Aircraft Type: ${selectedAircraft?.type || 'N/A'}, MSN: ${selectedAircraft?.msn || 'N/A'}, ENG TYPE: ${selectedAircraft?.engine || 'N/A'}), FLT No ${formData.flight} (${formData.from}-${formData.to}), ${formData.atDestAirport 
   ? "A/C already landed to destination airport." 
   : `ETA:${format(formData.date, 'dd/MM/yyyy')}, ${formData.etaUtc} UTC.`}
 
@@ -165,7 +169,7 @@ AIRCRAFT MANUALS
 Access to manuals is made by AirnavX using the link : https://extranet.aegeanair.com Username and password are provided by MCC.`;
     } else {
       formattedText = `A/C DETAILS:
-${formData.aircraft} (Aircraft Type: ${selectedAircraft?.type || 'N/A'}, MSN: ${selectedAircraft?.msn || 'N/A'}, ENG TYPE: ${selectedAircraft?.engine || 'N/A'}), FLT No ${formData.flight} (${formData.from}-${formData.to}), ${formData.atDestAirport 
+${aircraftWithPrefix} (Aircraft Type: ${selectedAircraft?.type || 'N/A'}, MSN: ${selectedAircraft?.msn || 'N/A'}, ENG TYPE: ${selectedAircraft?.engine || 'N/A'}), FLT No ${formData.flight} (${formData.from}-${formData.to}), ${formData.atDestAirport 
   ? "A/C already landed to destination airport." 
   : `ETA:${format(formData.date, 'dd/MM/yyyy')}, ${formData.etaUtc} UTC.`}
 

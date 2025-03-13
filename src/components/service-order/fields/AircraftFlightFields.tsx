@@ -35,7 +35,7 @@ const AircraftFlightFields: React.FC<AircraftFlightFieldsProps> = ({
         >
           <SelectTrigger
             className={cn(
-              "bg-white text-black w-full",
+              "bg-white text-black w-full max-w-[12ch]",
               validationErrors.aircraft && "bg-red-100"
             )}
           >
@@ -62,7 +62,7 @@ const AircraftFlightFields: React.FC<AircraftFlightFieldsProps> = ({
           onChange={handleInputChange}
           placeholder="FLIGHT" 
           className={cn(
-            "bg-white text-black",
+            "bg-white text-black max-w-[12ch]",
             validationErrors.flight && "bg-red-100"
           )}
           required
@@ -77,7 +77,7 @@ const AircraftFlightFields: React.FC<AircraftFlightFieldsProps> = ({
           value={from}
           placeholder="FROM" 
           className={cn(
-            "bg-white text-black",
+            "bg-white text-black max-w-[12ch]",
             validationErrors.from && "bg-red-100"
           )}
           required
@@ -92,7 +92,7 @@ const AircraftFlightFields: React.FC<AircraftFlightFieldsProps> = ({
           onChange={handleInputChange}
           placeholder="TO" 
           className={cn(
-            "bg-white text-black",
+            "bg-white text-black max-w-[12ch]",
             validationErrors.to && "bg-red-100"
           )}
           required

@@ -39,7 +39,7 @@ const DateEtaFields: React.FC<DateEtaFieldsProps> = ({
               <Button
                 variant={"outline"}
                 className={cn(
-                  "w-full justify-start text-left font-normal bg-white text-black hover:bg-white/90",
+                  "w-full max-w-[12ch] justify-start text-left font-normal bg-white text-black hover:bg-white/90",
                   !date && "text-muted-foreground",
                   validationErrors.date && "bg-red-100"
                 )}
@@ -75,7 +75,7 @@ const DateEtaFields: React.FC<DateEtaFieldsProps> = ({
             onChange={handleInputChange}
             placeholder="ETA UTC" 
             className={cn(
-              "bg-white text-black",
+              "bg-white text-black max-w-[12ch]",
               validationErrors.etaUtc && "bg-red-100"
             )}
             disabled={atDestAirport}
