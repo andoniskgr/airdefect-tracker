@@ -26,7 +26,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-card border-b border-border py-4">
+    <nav className="bg-card border-b border-border py-4 sticky top-0 z-50 w-full">
       <div className="container mx-auto flex items-center justify-between px-4">
         <div className="flex items-center gap-4">
           <Link to="/" className="text-xl font-bold">
