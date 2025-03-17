@@ -93,3 +93,22 @@
   }
 }
 
+/* Mobile responsive styles */
+@media (max-width: 640px) {
+  .table-cell-mobile {
+    @apply text-xs p-1;
+  }
+  
+  .defect-cell-mobile {
+    max-width: 100px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+/* Improve drawer appearance on mobile */
+.drawer-content {
+  @apply rounded-t-xl;
+  max-height: 80vh;
+}
