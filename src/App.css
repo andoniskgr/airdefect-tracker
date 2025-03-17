@@ -1,7 +1,7 @@
 
 #root {
   margin: 0 auto;
-  padding: 2rem;
+  padding: 0;
   max-width: 1280px;
   text-align: center;
 }
@@ -40,4 +40,11 @@
 
 .read-the-docs {
   color: #888;
+}
+
+/* Sticky header adjustments */
+.sticky {
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }

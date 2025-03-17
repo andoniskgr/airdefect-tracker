@@ -48,21 +48,23 @@ const Index = () => {
     <div className="min-h-screen bg-slate-700 text-white p-0 w-full" style={{ margin: 0, maxWidth: '100%' }}>
       <Toaster position="top-right" />
       <div className="w-full max-w-full px-2" style={{ margin: 0 }}>
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-4 flex items-center justify-between sticky top-0 z-10 bg-slate-700 pt-4 pb-2">
           <h1 className="text-2xl font-bold">Defect Records</h1>
           <div>
-            <Button onClick={() => setIsAddModalOpen(true)}>
+            <Button onClick={() => setIsAddModalOpen(true)} className="mt-2">
               <Plus className="mr-2 h-4 w-4" />
               Add Record
             </Button>
           </div>
         </div>
 
-        <FilterButtons 
-          filter={filter}
-          setFilter={setFilter}
-          exportToExcel={exportToExcel}
-        />
+        <div className="sticky top-16 z-10 bg-slate-700 pb-2">
+          <FilterButtons 
+            filter={filter}
+            setFilter={setFilter}
+            exportToExcel={exportToExcel}
+          />
+        </div>
 
         {loading ? (
           <p>Loading...</p>

@@ -11,7 +11,7 @@ interface FilterButtonsProps {
 
 export const FilterButtons = ({ filter, setFilter, exportToExcel }: FilterButtonsProps) => {
   return (
-    <div className="flex gap-2 items-center mb-4 p-2 bg-slate-100 rounded-md">
+    <div className="flex gap-2 items-center mb-4 p-2 bg-slate-100 rounded-md shadow-md">
       <Button 
         onClick={() => setFilter('all')}
         variant={filter === 'all' ? 'default' : 'outline'}
