@@ -5,8 +5,6 @@ import { RecordsTable } from "../components/defect-records/RecordsTable";
 import { AddDefectModal } from "../components/defect-records/AddDefectModal";
 import { EditDefectModal } from "../components/defect-records/EditDefectModal";
 import { FilterButtons } from "../components/defect-records/FilterButtons";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useDefectRecords } from "../hooks/useDefectRecords";
 import { useDefectForm } from "../hooks/useDefectForm";
@@ -50,12 +48,6 @@ const Index = () => {
       <div className="w-full max-w-full px-2" style={{ margin: 0 }}>
         <div className="mb-4 flex items-center justify-between sticky top-0 z-10 bg-slate-700 pt-4 pb-2">
           <h1 className="text-2xl font-bold">Defect Records</h1>
-          <div>
-            <Button onClick={() => setIsAddModalOpen(true)} className="mt-2">
-              <Plus className="mr-2 h-4 w-4" />
-              Add Record
-            </Button>
-          </div>
         </div>
 
         <div className="sticky top-16 z-10 bg-slate-700 pb-2">
@@ -63,6 +55,7 @@ const Index = () => {
             filter={filter}
             setFilter={setFilter}
             exportToExcel={exportToExcel}
+            onAddRecord={() => setIsAddModalOpen(true)}
           />
         </div>
 
