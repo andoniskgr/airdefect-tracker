@@ -60,6 +60,6 @@
 /* Date group headers sticky */
 .date-group-header {
   position: sticky;
-  top: 116px; /* Adjust based on navbar + filters height */
+  top: 64px; /* Position right under the navbar */
   z-index: 10;
 }
