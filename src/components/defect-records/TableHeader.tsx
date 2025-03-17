@@ -33,7 +33,7 @@ export const DefectTableHeader = ({ handleSort, sortConfig }: TableHeaderProps) 
   );
 
   return (
-    <TableHeader className="bg-slate-800 border-b border-slate-600 sticky top-16 z-30">
+    <TableHeader className="bg-slate-800 border-b border-slate-600">
       <TableRow>
         {renderSortableHeader("Time", "time")}
         {renderSortableHeader("Registration", "registration", "REG.")}

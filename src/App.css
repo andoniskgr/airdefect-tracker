@@ -48,18 +48,3 @@
   top: 0;
   z-index: 100;
 }
-
-/* Table header sticky styling */
-.sticky-table-header {
-  position: sticky;
-  top: 64px; /* Adjust based on navbar height */
-  z-index: 20;
-  background-color: #1e293b;
-}
-
-/* Date group headers sticky */
-.date-group-header {
-  position: sticky;
-  top: 64px; /* Position right under the navbar */
-  z-index: 10;
-}
