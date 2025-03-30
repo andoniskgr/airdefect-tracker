@@ -21,7 +21,17 @@ export const AircraftTable = ({ aircraftData, onEditAircraft, onDeleteAircraft }
   });
 
   useEffect(() => {
-    const sortableData = [...aircraftData];
+    // First remove duplicates based on registration
+    const uniqueAircraft = aircraftData.reduce((acc: Aircraft[], current) => {
+      const isDuplicate = acc.find((item) => item.registration === current.registration);
+      if (!isDuplicate) {
+        acc.push(current);
+      }
+      return acc;
+    }, []);
+
+    // Then sort the unique data
+    const sortableData = [...uniqueAircraft];
     sortableData.sort((a, b) => {
       if (a[sortConfig.key] < b[sortConfig.key]) {
         return sortConfig.direction === 'asc' ? -1 : 1;
