@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -273,19 +272,6 @@ export const AddDefectModal = ({
           <div className="flex justify-center space-x-6 mt-2">
             <div className="flex flex-col items-center space-y-1">
               <Checkbox
-                id="sl"
-                checked={formData.sl}
-                onCheckedChange={(checked) => 
-                  handleFieldChange('sl', checked as boolean)
-                }
-                className="h-5 w-5"
-              />
-              <label htmlFor="sl" className="text-lg font-medium uppercase">
-                SL
-              </label>
-            </div>
-            <div className="flex flex-col items-center space-y-1">
-              <Checkbox
                 id="rst"
                 checked={formData.rst}
                 onCheckedChange={(checked) => 
@@ -299,19 +285,6 @@ export const AddDefectModal = ({
             </div>
             <div className="flex flex-col items-center space-y-1">
               <Checkbox
-                id="ok"
-                checked={formData.ok}
-                onCheckedChange={(checked) => 
-                  handleFieldChange('ok', checked as boolean)
-                }
-                className="h-5 w-5"
-              />
-              <label htmlFor="ok" className="text-lg font-medium uppercase">
-                OK
-              </label>
-            </div>
-            <div className="flex flex-col items-center space-y-1">
-              <Checkbox
                 id="pln"
                 checked={formData.pln}
                 onCheckedChange={(checked) => 
@@ -321,6 +294,32 @@ export const AddDefectModal = ({
               />
               <label htmlFor="pln" className="text-lg font-medium uppercase">
                 PLN
+              </label>
+            </div>
+            <div className="flex flex-col items-center space-y-1">
+              <Checkbox
+                id="sl"
+                checked={formData.sl}
+                onCheckedChange={(checked) => 
+                  handleFieldChange('sl', checked as boolean)
+                }
+                className="h-5 w-5"
+              />
+              <label htmlFor="sl" className="text-lg font-medium uppercase">
+                SL
+              </label>
+            </div>
+            <div className="flex flex-col items-center space-y-1">
+              <Checkbox
+                id="ok"
+                checked={formData.ok}
+                onCheckedChange={(checked) => 
+                  handleFieldChange('ok', checked as boolean)
+                }
+                className="h-5 w-5"
+              />
+              <label htmlFor="ok" className="text-lg font-medium uppercase">
+                OK
               </label>
             </div>
           </div>
