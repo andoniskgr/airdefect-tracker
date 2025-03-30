@@ -25,6 +25,11 @@ export const RegistrationStationSection = ({
   validationErrors,
   handleKeyDown
 }: RegistrationStationSectionProps) => {
+  const handleStationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.toUpperCase();
+    onStationChange(value.slice(0, 6));
+  };
+  
   return (
     <div className="grid grid-cols-2 gap-4">
       <div>
@@ -43,7 +48,7 @@ export const RegistrationStationSection = ({
         <Input
           ref={stationRef}
           value={station}
-          onChange={(e) => onStationChange(e.target.value.toUpperCase().slice(0, 6))}
+          onChange={handleStationChange}
           onKeyDown={(e) => handleKeyDown(e, 'station')}
           placeholder="STATION"
           className={cn(

@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { format } from 'date-fns';
 import { Button } from "@/components/ui/button";
@@ -41,39 +40,42 @@ const TimePicker: React.FC<TimePickerProps> = ({
   const [inputDigits, setInputDigits] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   
-  // Track initial render to focus
+  // Initialize input digits from value prop
   useEffect(() => {
     if (value && value.includes(':')) {
       const [hours, minutes] = value.split(':');
       setInputDigits([...hours.split(''), ...minutes.split('')]);
+    } else {
+      setInputDigits([]);
     }
-  }, []);
-
-  const handleTimeSelection = (time: string) => {
-    onChange(time);
-  };
+  }, [value]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Get only digit characters
-    const input = e.target.value.replace(/[^\d]/g, '');
+    const input = e.target.value;
     
-    // Process new digit
-    if (input.length > 0) {
-      // Get the last digit if there are multiple digits entered at once
-      const lastDigit = input.charAt(input.length - 1);
+    // If the input contains a colon, it's a formatted time
+    if (input.includes(':')) {
+      onChange(input);
+      return;
+    }
+    
+    // Get only digit characters
+    const digitsOnly = input.replace(/[^\d]/g, '');
+    
+    if (digitsOnly.length > 0) {
+      // Create a new array with the digits
+      let newDigits: string[] = [];
       
-      // Manage the input digits array
-      let newDigits = [...inputDigits];
-      if (input.length > inputDigits.join('').length) {
-        // Add the new digit
-        newDigits.push(lastDigit);
+      // If input is shorter than current digits, assume backspace
+      if (digitsOnly.length < inputDigits.join('').length) {
+        newDigits = digitsOnly.split('');
+      } else {
+        // Handle adding new digits
+        newDigits = digitsOnly.split('');
         if (newDigits.length > 4) {
           // Keep only the last 4 digits
           newDigits = newDigits.slice(newDigits.length - 4);
         }
-      } else {
-        // Handle backspace - remove last digit
-        newDigits.pop();
       }
       
       setInputDigits(newDigits);
@@ -124,11 +126,6 @@ const TimePicker: React.FC<TimePickerProps> = ({
     const now = new Date();
     const timeStr = format(now, 'HH:mm');
     onChange(timeStr);
-    
-    // Set the input digits from the current time
-    const hours = timeStr.substring(0, 2);
-    const minutes = timeStr.substring(3, 5);
-    setInputDigits([...hours.split(''), ...minutes.split('')]);
   };
 
   return (

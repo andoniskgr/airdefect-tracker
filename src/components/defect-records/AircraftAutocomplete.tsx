@@ -86,8 +86,10 @@ export const AircraftAutocomplete: React.FC<AircraftAutocompleteProps> = ({
   }, []);
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const inputValue = e.target.value.toUpperCase().slice(0, maxLength);
-    onChange(inputValue);
+    const inputValue = e.target.value.toUpperCase();
+    // Only slice if maxLength is provided and value exceeds it
+    const finalValue = maxLength ? inputValue.slice(0, maxLength) : inputValue;
+    onChange(finalValue);
   };
   
   const handleItemClick = (registration: string) => {

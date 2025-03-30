@@ -24,6 +24,14 @@ export const DescriptionSection = ({
   validationErrors,
   handleKeyDown
 }: DescriptionSectionProps) => {
+  const handleDefectChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onDefectChange(e.target.value.toUpperCase());
+  };
+  
+  const handleRemarksChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onRemarksChange(e.target.value.toUpperCase());
+  };
+  
   return (
     <>
       <div>
@@ -31,7 +39,7 @@ export const DescriptionSection = ({
         <Input
           ref={defectRef}
           value={defect}
-          onChange={(e) => onDefectChange(e.target.value.toUpperCase())}
+          onChange={handleDefectChange}
           onKeyDown={(e) => handleKeyDown(e, 'defect')}
           placeholder="DESCRIPTION"
           className={cn(
@@ -45,7 +53,7 @@ export const DescriptionSection = ({
         <Input
           ref={remarksRef}
           value={remarks}
-          onChange={(e) => onRemarksChange(e.target.value.toUpperCase())}
+          onChange={handleRemarksChange}
           onKeyDown={(e) => handleKeyDown(e, 'remarks')}
           placeholder="REMARKS"
           className="text-lg uppercase"
