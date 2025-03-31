@@ -42,8 +42,8 @@ const DateEtaFields: React.FC<DateEtaFieldsProps> = ({
   };
 
   return (
-    <div className="flex items-start gap-6">
-      <div>
+    <div className="flex items-center gap-6">
+      <div className="flex flex-col">
         <label className="text-sm font-medium mb-1 block text-white">Date</label>
         <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
           <PopoverTrigger asChild>
@@ -78,7 +78,7 @@ const DateEtaFields: React.FC<DateEtaFieldsProps> = ({
         </Popover>
       </div>
       
-      <div>
+      <div className="flex flex-col">
         <label className="text-sm font-medium mb-1 block text-white">ETA (UTC)</label>
         <TimePicker 
           value={etaUtc}
@@ -89,7 +89,7 @@ const DateEtaFields: React.FC<DateEtaFieldsProps> = ({
         />
       </div>
       
-      <div className="flex items-center space-x-2 mt-6">
+      <div className="flex items-center space-x-2">
         <Checkbox 
           id="atDestAirport" 
           checked={atDestAirport} 
