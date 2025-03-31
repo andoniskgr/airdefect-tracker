@@ -43,51 +43,45 @@ const DateEtaFields: React.FC<DateEtaFieldsProps> = ({
 
   return (
     <div className="flex items-center gap-6">
-      <div className="flex flex-col">
-        <label className="text-sm font-medium mb-1 block text-white">Date</label>
-        <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant={"outline"}
-              className={cn(
-                "w-full max-w-[24ch] justify-start text-left font-normal bg-white text-black hover:bg-white/90",
-                !date && "text-muted-foreground",
-                validationErrors.date && "bg-red-100"
-              )}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {date ? format(date, "dd/MM/yyyy") : "SELECT DATE"}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0 bg-white" align="start">
-            <Calendar
-              mode="single"
-              selected={date}
-              onSelect={(date) => {
-                if (date) {
-                  handleInputChange({
-                    target: { name: 'date', value: date.toString() }
-                  } as React.ChangeEvent<HTMLInputElement>);
-                  setCalendarOpen(false);
-                }
-              }}
-              initialFocus
-              className="p-3 pointer-events-auto"
-            />
-          </PopoverContent>
-        </Popover>
-      </div>
+      <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant={"outline"}
+            className={cn(
+              "w-full max-w-[24ch] justify-start text-left font-normal bg-white text-black hover:bg-white/90",
+              !date && "text-muted-foreground",
+              validationErrors.date && "bg-red-100"
+            )}
+          >
+            <CalendarIcon className="mr-2 h-4 w-4" />
+            {date ? format(date, "dd/MM/yyyy") : "SELECT DATE"}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0 bg-white" align="start">
+          <Calendar
+            mode="single"
+            selected={date}
+            onSelect={(date) => {
+              if (date) {
+                handleInputChange({
+                  target: { name: 'date', value: date.toString() }
+                } as React.ChangeEvent<HTMLInputElement>);
+                setCalendarOpen(false);
+              }
+            }}
+            initialFocus
+            className="p-3 pointer-events-auto"
+          />
+        </PopoverContent>
+      </Popover>
       
-      <div className="flex flex-col">
-        <label className="text-sm font-medium mb-1 block text-white">ETA (UTC)</label>
-        <TimePicker 
-          value={etaUtc}
-          onChange={handleEtaChange}
-          onEnterPress={handleEtaEnterPress}
-          isError={validationErrors.etaUtc}
-          disabled={atDestAirport}
-        />
-      </div>
+      <TimePicker 
+        value={etaUtc}
+        onChange={handleEtaChange}
+        onEnterPress={handleEtaEnterPress}
+        isError={validationErrors.etaUtc}
+        disabled={atDestAirport}
+      />
       
       <div className="flex items-center space-x-2">
         <Checkbox 
