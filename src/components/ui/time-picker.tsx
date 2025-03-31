@@ -11,6 +11,7 @@ interface TimePickerProps {
   className?: string;
   isError?: boolean;
   onEnterPress?: () => void;
+  disabled?: boolean;
 }
 
 // Clock icon component
@@ -36,7 +37,8 @@ const TimePicker: React.FC<TimePickerProps> = ({
   onChange, 
   className, 
   isError = false,
-  onEnterPress
+  onEnterPress,
+  disabled = false
 }) => {
   const [inputValue, setInputValue] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -163,12 +165,14 @@ const TimePicker: React.FC<TimePickerProps> = ({
           "text-lg uppercase w-[80px]",
           isError && "bg-red-50 border-red-200 focus-visible:ring-red-300"
         )}
+        disabled={disabled}
       />
       <Button
         type="button"
         variant="outline"
         className="px-3"
         onClick={setCurrentTime}
+        disabled={disabled}
       >
         <span className="sr-only">Set current time</span>
         <Clock />
