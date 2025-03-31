@@ -75,7 +75,7 @@ const ArchiveRecords = () => {
 
   return (
     <div className="min-h-screen bg-slate-700 text-white p-4">
-      <div className="max-w-7xl mx-auto">
+      <div className="w-full mx-auto">
         <h1 className="text-2xl font-bold mb-6">Archived Records</h1>
         
         <div className="flex flex-col md:flex-row gap-4 mb-6">
@@ -121,15 +121,17 @@ const ArchiveRecords = () => {
                 <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-white"></div>
               </div>
             ) : (
-              <RecordsTable
-                records={recordsToShow}
-                handleSort={handleSort}
-                handleEditRecord={() => {}}  // No editing in archive view
-                handleDeleteRecord={handleDeleteRecord}
-                handleDeleteAllByDate={handleDeleteAllByDate}
-                handleArchiveDate={handleArchiveDate}
-                sortConfig={sortConfig}
-              />
+              <div className="w-full overflow-x-auto">
+                <RecordsTable
+                  records={recordsToShow}
+                  handleSort={handleSort}
+                  handleEditRecord={() => {}}  // No editing in archive view
+                  handleDeleteRecord={handleDeleteRecord}
+                  handleDeleteAllByDate={handleDeleteAllByDate}
+                  handleArchiveDate={handleArchiveDate}
+                  sortConfig={sortConfig}
+                />
+              </div>
             )}
           </>
         )}
