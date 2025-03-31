@@ -13,6 +13,9 @@ import { RecordsTable } from "../components/defect-records/RecordsTable";
 import { useDefectRecords } from "../hooks/useDefectRecords";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "sonner";
+import { useDefectForm } from "../hooks/useDefectForm";
+import { EditDefectModal } from "../components/defect-records/EditDefectModal";
+import { DefectRecord } from "../components/defect-records/DefectRecord.types";
 
 const ArchiveRecords = () => {
   const { currentUser } = useAuth();
@@ -32,6 +35,15 @@ const ArchiveRecords = () => {
     getArchivedRecordsByDate,
     unarchiveDate
   } = useDefectRecords(currentUser?.email);
+
+  const {
+    isEditModalOpen,
+    setIsEditModalOpen,
+    editingRecord,
+    setEditingRecord,
+    handleEditRecord,
+    handleEditSubmit
+  } = useDefectForm(currentUser?.email);
 
   useEffect(() => {
     // Load archived dates from localStorage on component mount
@@ -125,7 +137,7 @@ const ArchiveRecords = () => {
                 <RecordsTable
                   records={recordsToShow}
                   handleSort={handleSort}
-                  handleEditRecord={() => {}}  // No editing in archive view
+                  handleEditRecord={handleEditRecord}
                   handleDeleteRecord={handleDeleteRecord}
                   handleDeleteAllByDate={handleDeleteAllByDate}
                   handleArchiveDate={handleArchiveDate}
@@ -136,6 +148,17 @@ const ArchiveRecords = () => {
           </>
         )}
       </div>
+      
+      {/* Add the edit modal */}
+      {editingRecord && (
+        <EditDefectModal
+          isOpen={isEditModalOpen}
+          onOpenChange={setIsEditModalOpen}
+          editingRecord={editingRecord}
+          setEditingRecord={setEditingRecord}
+          handleEditSubmit={handleEditSubmit}
+        />
+      )}
     </div>
   );
 };
