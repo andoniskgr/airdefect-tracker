@@ -126,7 +126,7 @@ const TimePicker: React.FC<TimePickerProps> = ({
         onKeyDown={handleKeyDown}
         placeholder="HH:MM"
         className={cn(
-          "text-lg w-[80px]",
+          "text-lg w-[80px] text-black",
           isError && "bg-red-50 border-red-200 focus-visible:ring-red-300"
         )}
         disabled={disabled}
@@ -134,7 +134,7 @@ const TimePicker: React.FC<TimePickerProps> = ({
       <Button
         type="button"
         variant="outline"
-        className="px-3"
+        className="px-3 text-black bg-white hover:bg-white/90"
         onClick={setCurrentTime}
         disabled={disabled}
       >

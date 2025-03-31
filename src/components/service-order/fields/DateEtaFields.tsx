@@ -42,7 +42,7 @@ const DateEtaFields: React.FC<DateEtaFieldsProps> = ({
   };
 
   return (
-    <div className="flex items-center gap-6">
+    <div className="flex items-end gap-6">
       <div>
         <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
           <PopoverTrigger asChild>
