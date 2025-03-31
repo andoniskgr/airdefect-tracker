@@ -26,6 +26,21 @@ export const useRecordOperations = (userEmail: string | null | undefined) => {
     }
   };
 
+  const archiveDate = (date: string) => {
+    // Get existing archived dates from localStorage
+    const archivedDatesJSON = localStorage.getItem('archivedDates') || '[]';
+    const archivedDates = JSON.parse(archivedDatesJSON) as string[];
+    
+    // Add new date to archived dates if not already there
+    if (!archivedDates.includes(date)) {
+      archivedDates.push(date);
+      localStorage.setItem('archivedDates', JSON.stringify(archivedDates));
+      toast.success(`Date ${format(new Date(date), 'dd/MM/yyyy')} archived successfully!`);
+      return true;
+    }
+    return false;
+  };
+
   const exportToExcel = (getRecords: () => DefectRecord[]) => {
     try {
       const recordsToExport = getRecords();
@@ -84,6 +99,7 @@ export const useRecordOperations = (userEmail: string | null | undefined) => {
   return {
     handleDeleteRecord,
     handleDeleteAllByDate,
+    archiveDate,
     exportToExcel
   };
 };

@@ -23,6 +23,7 @@ const Index = () => {
     handleSort,
     handleDeleteRecord,
     handleDeleteAllByDate,
+    handleArchiveDate,
     exportToExcel,
     getFilteredRecords
   } = useDefectRecords(currentUser?.email);
@@ -73,6 +74,7 @@ const Index = () => {
               handleEditRecord={handleEditRecord}
               handleDeleteRecord={handleDeleteRecord}
               handleDeleteAllByDate={handleDeleteAllByDate}
+              handleArchiveDate={handleArchiveDate}
               sortConfig={sortConfig}
             />
           </div>

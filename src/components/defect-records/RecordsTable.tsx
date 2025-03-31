@@ -12,6 +12,7 @@ interface RecordsTableProps {
   handleEditRecord: (record: DefectRecord) => void;
   handleDeleteRecord: (id: string) => void;
   handleDeleteAllByDate: (date: string) => void;
+  handleArchiveDate: (date: string) => void;
   sortConfig: { key: string, direction: 'asc' | 'desc' };
 }
 
@@ -21,6 +22,7 @@ export const RecordsTable = ({
   handleEditRecord, 
   handleDeleteRecord,
   handleDeleteAllByDate,
+  handleArchiveDate,
   sortConfig
 }: RecordsTableProps) => {
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -71,6 +73,7 @@ export const RecordsTable = ({
               handleEditRecord={handleEditRecord}
               handleDeleteRecord={handleDeleteRecord}
               handleDeleteAllByDate={handleDeleteAllByDate}
+              handleArchiveDate={handleArchiveDate}
               handleSort={handleSort}
               sortConfig={sortConfig}
               currentTime={currentTime}
