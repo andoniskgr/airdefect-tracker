@@ -39,99 +39,102 @@ const TimePicker: React.FC<TimePickerProps> = ({
   onEnterPress
 }) => {
   const [inputValue, setInputValue] = useState(value);
-  const [inputDigits, setInputDigits] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [cursorPosition, setCursorPosition] = useState<number | null>(null);
   
-  // Update local state when value prop changes
+  // Update local state when value prop changes from external sources only
   useEffect(() => {
-    setInputValue(value);
-    
-    if (value && value.includes(':')) {
-      const [hours, minutes] = value.split(':');
-      setInputDigits([...hours.split(''), ...minutes.split('')]);
-    } else {
-      setInputDigits([]);
+    if (value !== inputValue && document.activeElement !== inputRef.current) {
+      setInputValue(value);
     }
   }, [value]);
   
-  const formatTimeFromDigits = (digits: string[]): string => {
-    if (digits.length === 0) return '';
-    
-    let formattedTime = "";
-    if (digits.length === 1) {
-      formattedTime = `00:0${digits[0]}`;
-    } else if (digits.length === 2) {
-      formattedTime = `00:${digits[0]}${digits[1]}`;
-    } else if (digits.length === 3) {
-      formattedTime = `0${digits[0]}:${digits[1]}${digits[2]}`;
-    } else if (digits.length >= 4) {
-      formattedTime = `${digits[0]}${digits[1]}:${digits[2]}${digits[3]}`;
-    }
-    
-    // Validate time
-    const [hours, minutes] = formattedTime.split(':').map(num => parseInt(num, 10));
-    
-    let validatedTime = formattedTime;
-    
-    // Validate hours (0-23)
-    if (hours > 23) {
-      validatedTime = `23:${minutes < 10 ? '0' + minutes : minutes}`;
-    }
-    
-    // Validate minutes (0-59)
-    if (minutes > 59) {
-      validatedTime = `${hours < 10 ? '0' + hours : hours}:59`;
-    }
-    
-    return validatedTime;
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const input = e.target.value;
-    
-    // Update input value for immediate feedback
-    setInputValue(input);
-    
-    // If the input contains a colon, it's a formatted time
+  const validateAndFormatTime = (input: string): string => {
+    // If input contains a colon, it may already be formatted
     if (input.includes(':')) {
-      onChange(input);
-      return;
+      const [hours, minutes] = input.split(':');
+      
+      // Check if hours and minutes are valid numbers
+      const hoursNum = parseInt(hours, 10);
+      const minutesNum = parseInt(minutes, 10);
+      
+      if (!isNaN(hoursNum) && !isNaN(minutesNum)) {
+        // Validate and format
+        const validHours = Math.min(Math.max(0, hoursNum), 23);
+        const validMinutes = Math.min(Math.max(0, minutesNum), 59);
+        
+        return `${validHours.toString().padStart(2, '0')}:${validMinutes.toString().padStart(2, '0')}`;
+      }
     }
     
     // Get only digit characters
     const digitsOnly = input.replace(/[^\d]/g, '');
     
-    if (digitsOnly.length > 0) {
-      // Create a new array with the digits
-      let newDigits: string[] = [];
-      
-      // If input is shorter than current digits, assume backspace
-      if (digitsOnly.length < inputDigits.join('').length) {
-        newDigits = digitsOnly.split('');
-      } else {
-        // Handle adding new digits
-        newDigits = digitsOnly.split('');
-        if (newDigits.length > 4) {
-          // Keep only the last 4 digits
-          newDigits = newDigits.slice(newDigits.length - 4);
-        }
+    if (digitsOnly.length === 0) return '';
+    
+    // Format based on number of digits
+    if (digitsOnly.length <= 2) {
+      // Assume minutes only
+      const minutes = parseInt(digitsOnly, 10);
+      if (minutes > 59) {
+        return '00:59';
       }
+      return `00:${digitsOnly.padStart(2, '0')}`;
+    } else if (digitsOnly.length === 3) {
+      // One digit hour, two digit minutes
+      const hour = parseInt(digitsOnly[0], 10);
+      const minutes = parseInt(digitsOnly.slice(1), 10);
       
-      setInputDigits(newDigits);
-      
-      // Format and validate time
-      const formattedTime = formatTimeFromDigits(newDigits);
-      
-      // Update local state and propagate to parent
-      setInputValue(formattedTime);
-      onChange(formattedTime);
+      if (minutes > 59) {
+        return `0${hour}:59`;
+      }
+      return `0${hour}:${digitsOnly.slice(1).padStart(2, '0')}`;
     } else {
-      // Clear input
-      setInputDigits([]);
-      setInputValue('');
-      onChange('');
+      // At least two digit hour, two digit minutes
+      const hour = parseInt(digitsOnly.slice(0, 2), 10);
+      const minutes = parseInt(digitsOnly.slice(2, 4), 10);
+      
+      const validHour = Math.min(hour, 23);
+      const validMinutes = Math.min(isNaN(minutes) ? 0 : minutes, 59);
+      
+      return `${validHour.toString().padStart(2, '0')}:${validMinutes.toString().padStart(2, '0')}`;
     }
   };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target.value;
+    const curPos = e.target.selectionStart;
+    
+    // Store cursor position
+    if (curPos !== null) {
+      setCursorPosition(curPos);
+    }
+    
+    // Update local state immediately for responsive UI
+    setInputValue(input);
+    
+    // Debounce the validation and onChange propagation
+    const timeoutId = setTimeout(() => {
+      // Only format if we have input
+      if (input.trim()) {
+        const formattedTime = validateAndFormatTime(input);
+        setInputValue(formattedTime);
+        onChange(formattedTime);
+      } else {
+        // Empty input
+        onChange('');
+      }
+    }, 300);
+    
+    return () => clearTimeout(timeoutId);
+  };
+  
+  // Restore cursor position after render
+  useEffect(() => {
+    if (cursorPosition !== null && inputRef.current) {
+      inputRef.current.setSelectionRange(cursorPosition, cursorPosition);
+    }
+  }, [inputValue, cursorPosition]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && onEnterPress) {
@@ -144,7 +147,6 @@ const TimePicker: React.FC<TimePickerProps> = ({
     const now = new Date();
     const timeStr = format(now, 'HH:mm');
     setInputValue(timeStr);
-    setInputDigits([...timeStr.replace(':', '').split('')]);
     onChange(timeStr);
   };
 

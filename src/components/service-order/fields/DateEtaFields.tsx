@@ -8,6 +8,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { CalendarIcon } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { TimePicker } from "@/components/ui/time-picker";
 
 interface DateEtaFieldsProps {
   date?: Date;
@@ -30,6 +31,12 @@ const DateEtaFields: React.FC<DateEtaFieldsProps> = ({
   handleInputChange,
   handleCheckboxChange
 }) => {
+  const handleEtaChange = (value: string) => {
+    handleInputChange({
+      target: { name: 'etaUtc', value }
+    } as React.ChangeEvent<HTMLInputElement>);
+  };
+
   return (
     <div className="flex items-center space-x-2">
       <div>
@@ -67,18 +74,14 @@ const DateEtaFields: React.FC<DateEtaFieldsProps> = ({
       </div>
       
       <div>
-        <Input 
-          type="text" 
-          name="etaUtc"
+        <TimePicker 
           value={etaUtc}
-          onChange={handleInputChange}
-          placeholder="ETA UTC" 
+          onChange={handleEtaChange}
           className={cn(
-            "bg-white text-black max-w-[12ch]",
             validationErrors.etaUtc && "bg-red-100"
           )}
+          isError={validationErrors.etaUtc}
           disabled={atDestAirport}
-          required={!atDestAirport}
         />
       </div>
       

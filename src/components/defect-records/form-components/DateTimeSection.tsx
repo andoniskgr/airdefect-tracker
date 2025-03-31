@@ -34,7 +34,7 @@ export const DateTimeSection = ({ date, time, onDateChange, onTimeChange }: Date
                 {date ? format(new Date(date), "dd/MM/yyyy") : "Select date"}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
+            <PopoverContent className="w-auto p-0 bg-white" align="start">
               <Calendar
                 mode="single"
                 selected={date ? new Date(date) : undefined}
@@ -45,6 +45,7 @@ export const DateTimeSection = ({ date, time, onDateChange, onTimeChange }: Date
                   }
                 }}
                 initialFocus
+                className="p-3 pointer-events-auto"
               />
             </PopoverContent>
           </Popover>
