@@ -49,6 +49,7 @@ export const DefectTableHeader = ({ handleSort, sortConfig }: TableHeaderProps) 
           {renderSortableHeader("REG", "registration", "REG")}
           {renderSortableHeader("STA", "station", "STA")}
           {renderSortableHeader("Defect", "defect")}
+          {renderSortableHeader("DLY", "dly")}
           {renderSortableHeader("SL", "sl")}
           {renderSortableHeader("OK", "ok")}
           <TableHead className="text-xs uppercase px-1 py-2 text-white font-bold">Actions</TableHead>
@@ -71,6 +72,7 @@ export const DefectTableHeader = ({ handleSort, sortConfig }: TableHeaderProps) 
         {renderSortableHeader("UPD", "upd")}
         {renderSortableHeader("NXS", "nxs")}
         {renderSortableHeader("RST", "rst")}
+        {renderSortableHeader("DLY", "dly")}
         {renderSortableHeader("SL", "sl")}
         {renderSortableHeader("PLN", "pln")}
         {renderSortableHeader("OK", "ok")}
