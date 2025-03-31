@@ -27,7 +27,7 @@ const AircraftFlightFields: React.FC<AircraftFlightFieldsProps> = ({
   const { aircraftList } = useAircraftData();
 
   return (
-    <div className="flex flex-wrap items-center space-x-2">
+    <div className="flex flex-wrap items-center gap-4">
       <div>
         <Select 
           value={aircraft} 
