@@ -42,14 +42,14 @@ const DateEtaFields: React.FC<DateEtaFieldsProps> = ({
   };
 
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex items-center gap-6">
       <div>
         <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
           <PopoverTrigger asChild>
             <Button
               variant={"outline"}
               className={cn(
-                "w-full max-w-[19ch] justify-start text-left font-normal bg-white text-black hover:bg-white/90",
+                "w-full max-w-[24ch] justify-start text-left font-normal bg-white text-black hover:bg-white/90",
                 !date && "text-muted-foreground",
                 validationErrors.date && "bg-red-100"
               )}

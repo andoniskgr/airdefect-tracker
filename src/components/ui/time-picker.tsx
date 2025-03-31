@@ -40,13 +40,15 @@ const TimePicker: React.FC<TimePickerProps> = ({
   onEnterPress,
   disabled = false
 }) => {
-  const [inputValue, setInputValue] = useState(value);
+  const [inputValue, setInputValue] = useState(value || '');
   const inputRef = useRef<HTMLInputElement>(null);
   
-  // Update local state when value prop changes from external sources only
+  // Update local state when value prop changes from external sources
   useEffect(() => {
+    // Only update if the component's internal value doesn't match the prop
+    // and the input isn't focused (to avoid overriding user typing)
     if (value !== inputValue && document.activeElement !== inputRef.current) {
-      setInputValue(value);
+      setInputValue(value || '');
     }
   }, [value]);
   
@@ -59,18 +61,29 @@ const TimePicker: React.FC<TimePickerProps> = ({
       const hours = Math.min(parseInt(digitsOnly.substring(0, 2), 10), 23);
       const minutes = Math.min(parseInt(digitsOnly.substring(2, 4), 10), 59);
       return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+    } else if (digitsOnly.length > 0) {
+      // Handle partial input (less than 4 digits)
+      if (digitsOnly.length <= 2) {
+        // Just hours, pad with leading zero if needed
+        const hours = Math.min(parseInt(digitsOnly, 10), 23);
+        return `${hours.toString().padStart(2, '0')}:00`;
+      } else {
+        // Hours and partial minutes
+        const hours = Math.min(parseInt(digitsOnly.substring(0, 2), 10), 23);
+        const minutes = Math.min(parseInt(digitsOnly.substring(2), 10), 59);
+        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+      }
     }
     
-    // Return raw input for fewer than 4 digits
-    return input;
+    // Return empty string if no valid input
+    return '';
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target.value;
     
-    // Allow direct input of digits (up to 4)
-    const digitsOnly = input.replace(/[^\d]/g, '');
-    if (digitsOnly.length <= 4) {
+    // For direct typing, allow digits and colon
+    if (/^[\d:]*$/.test(input) && input.length <= 5) {
       setInputValue(input);
     }
   };
@@ -113,7 +126,7 @@ const TimePicker: React.FC<TimePickerProps> = ({
         onKeyDown={handleKeyDown}
         placeholder="HH:MM"
         className={cn(
-          "text-lg uppercase w-[80px]",
+          "text-lg w-[80px]",
           isError && "bg-red-50 border-red-200 focus-visible:ring-red-300"
         )}
         disabled={disabled}
