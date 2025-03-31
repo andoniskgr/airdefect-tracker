@@ -10,6 +10,7 @@ export interface DefectRecord {
   eta: string;
   std: string;
   upd: string;
+  nxs: boolean;
   rst: boolean;
   sl: boolean;
   ok: boolean;

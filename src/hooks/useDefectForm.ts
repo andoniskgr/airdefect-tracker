@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from "react";
 import { DefectRecord } from "../components/defect-records/DefectRecord.types";
 import { saveRecord } from "../utils/firebaseDB";
@@ -16,6 +15,7 @@ export const useDefectForm = (currentUserEmail: string | null | undefined) => {
     eta: '',
     std: '',
     upd: '',
+    nxs: false,
     rst: false,
     sl: false,
     ok: false,

@@ -69,6 +69,7 @@ export const DefectTableHeader = ({ handleSort, sortConfig }: TableHeaderProps) 
         {renderSortableHeader("ETA", "eta")}
         {renderSortableHeader("STD", "std")}
         {renderSortableHeader("UPD", "upd")}
+        {renderSortableHeader("NXS", "nxs")}
         {renderSortableHeader("RST", "rst")}
         {renderSortableHeader("SL", "sl")}
         {renderSortableHeader("PLN", "pln")}

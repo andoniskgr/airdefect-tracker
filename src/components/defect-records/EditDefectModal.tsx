@@ -99,6 +99,7 @@ export const EditDefectModal = ({
           
           <CheckboxGroup 
             values={{
+              nxs: editingRecord.nxs,
               rst: editingRecord.rst,
               pln: editingRecord.pln,
               sl: editingRecord.sl,

@@ -168,6 +168,7 @@ export const AddDefectModal = ({
           
           <CheckboxGroup 
             values={{
+              nxs: formData.nxs,
               rst: formData.rst,
               pln: formData.pln,
               sl: formData.sl,

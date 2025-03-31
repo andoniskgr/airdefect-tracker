@@ -101,6 +101,7 @@ export const RecordRow = ({
       <TableCell className={`text-lg uppercase px-4 py-3 font-medium ${shouldFlashUpd(record) ? 'flash-upd' : ''}`}>
         {record.upd}
       </TableCell>
+      <TableCell className="text-lg uppercase text-center px-4 py-3 font-medium">{record.nxs ? "YES" : "NO"}</TableCell>
       <TableCell className="text-lg uppercase text-center px-4 py-3 font-medium">{record.rst ? "YES" : "NO"}</TableCell>
       <TableCell className="text-lg uppercase text-center px-4 py-3 font-medium">{record.sl ? "YES" : "NO"}</TableCell>
       <TableCell className="text-lg uppercase text-center px-4 py-3 font-medium">{record.pln ? "YES" : "NO"}</TableCell>
