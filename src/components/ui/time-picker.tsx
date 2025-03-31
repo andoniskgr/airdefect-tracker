@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { format } from 'date-fns';
 import { Button } from "@/components/ui/button";
@@ -37,11 +38,14 @@ const TimePicker: React.FC<TimePickerProps> = ({
   isError = false,
   onEnterPress
 }) => {
+  const [inputValue, setInputValue] = useState(value);
   const [inputDigits, setInputDigits] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   
-  // Initialize input digits from value prop
+  // Update local state when value prop changes
   useEffect(() => {
+    setInputValue(value);
+    
     if (value && value.includes(':')) {
       const [hours, minutes] = value.split(':');
       setInputDigits([...hours.split(''), ...minutes.split('')]);
@@ -49,9 +53,44 @@ const TimePicker: React.FC<TimePickerProps> = ({
       setInputDigits([]);
     }
   }, [value]);
+  
+  const formatTimeFromDigits = (digits: string[]): string => {
+    if (digits.length === 0) return '';
+    
+    let formattedTime = "";
+    if (digits.length === 1) {
+      formattedTime = `00:0${digits[0]}`;
+    } else if (digits.length === 2) {
+      formattedTime = `00:${digits[0]}${digits[1]}`;
+    } else if (digits.length === 3) {
+      formattedTime = `0${digits[0]}:${digits[1]}${digits[2]}`;
+    } else if (digits.length >= 4) {
+      formattedTime = `${digits[0]}${digits[1]}:${digits[2]}${digits[3]}`;
+    }
+    
+    // Validate time
+    const [hours, minutes] = formattedTime.split(':').map(num => parseInt(num, 10));
+    
+    let validatedTime = formattedTime;
+    
+    // Validate hours (0-23)
+    if (hours > 23) {
+      validatedTime = `23:${minutes < 10 ? '0' + minutes : minutes}`;
+    }
+    
+    // Validate minutes (0-59)
+    if (minutes > 59) {
+      validatedTime = `${hours < 10 ? '0' + hours : hours}:59`;
+    }
+    
+    return validatedTime;
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target.value;
+    
+    // Update input value for immediate feedback
+    setInputValue(input);
     
     // If the input contains a colon, it's a formatted time
     if (input.includes(':')) {
@@ -80,37 +119,16 @@ const TimePicker: React.FC<TimePickerProps> = ({
       
       setInputDigits(newDigits);
       
-      // Format time based on digits entered
-      let formattedTime = "";
-      if (newDigits.length === 1) {
-        formattedTime = `00:0${newDigits[0]}`;
-      } else if (newDigits.length === 2) {
-        formattedTime = `00:${newDigits[0]}${newDigits[1]}`;
-      } else if (newDigits.length === 3) {
-        formattedTime = `0${newDigits[0]}:${newDigits[1]}${newDigits[2]}`;
-      } else if (newDigits.length === 4) {
-        formattedTime = `${newDigits[0]}${newDigits[1]}:${newDigits[2]}${newDigits[3]}`;
-      }
+      // Format and validate time
+      const formattedTime = formatTimeFromDigits(newDigits);
       
-      // Validate hours and minutes
-      if (formattedTime) {
-        const [hours, minutes] = formattedTime.split(':').map(num => parseInt(num, 10));
-        
-        // Validate hours (0-23)
-        if (hours > 23) {
-          formattedTime = `23:${minutes < 10 ? '0' + minutes : minutes}`;
-        }
-        
-        // Validate minutes (0-59)
-        if (minutes > 59) {
-          formattedTime = `${hours < 10 ? '0' + hours : hours}:59`;
-        }
-        
-        onChange(formattedTime);
-      }
+      // Update local state and propagate to parent
+      setInputValue(formattedTime);
+      onChange(formattedTime);
     } else {
       // Clear input
       setInputDigits([]);
+      setInputValue('');
       onChange('');
     }
   };
@@ -125,6 +143,8 @@ const TimePicker: React.FC<TimePickerProps> = ({
   const setCurrentTime = () => {
     const now = new Date();
     const timeStr = format(now, 'HH:mm');
+    setInputValue(timeStr);
+    setInputDigits([...timeStr.replace(':', '').split('')]);
     onChange(timeStr);
   };
 
@@ -133,7 +153,7 @@ const TimePicker: React.FC<TimePickerProps> = ({
       <Input
         ref={inputRef}
         type="text"
-        value={value}
+        value={inputValue}
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}
         placeholder="HH:MM"

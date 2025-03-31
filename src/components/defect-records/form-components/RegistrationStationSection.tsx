@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { AircraftAutocomplete } from '../AircraftAutocomplete';
@@ -25,9 +25,18 @@ export const RegistrationStationSection = ({
   validationErrors,
   handleKeyDown
 }: RegistrationStationSectionProps) => {
+  const [internalStation, setInternalStation] = useState(station);
+  
+  // Update internal state when props change
+  useEffect(() => {
+    setInternalStation(station);
+  }, [station]);
+  
   const handleStationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toUpperCase();
-    onStationChange(value.slice(0, 6));
+    const newValue = value.slice(0, 6);
+    setInternalStation(newValue);
+    onStationChange(newValue);
   };
   
   return (
@@ -47,7 +56,7 @@ export const RegistrationStationSection = ({
         <label className="text-lg font-medium mb-1 block uppercase">Station</label>
         <Input
           ref={stationRef}
-          value={station}
+          value={internalStation}
           onChange={handleStationChange}
           onKeyDown={(e) => handleKeyDown(e, 'station')}
           placeholder="STATION"

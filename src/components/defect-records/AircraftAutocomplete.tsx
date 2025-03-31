@@ -31,7 +31,13 @@ export const AircraftAutocomplete: React.FC<AircraftAutocompleteProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [registrations, setRegistrations] = useState<string[]>([]);
   const [filteredRegistrations, setFilteredRegistrations] = useState<string[]>([]);
+  const [inputValue, setInputValue] = useState(value);
   const containerRef = useRef<HTMLDivElement>(null);
+  
+  // Update local input value when external value changes
+  useEffect(() => {
+    setInputValue(value);
+  }, [value]);
   
   // Fetch aircraft registrations from Firestore
   useEffect(() => {
@@ -56,7 +62,7 @@ export const AircraftAutocomplete: React.FC<AircraftAutocompleteProps> = ({
   
   // Filter registrations based on input value
   useEffect(() => {
-    if (!value) {
+    if (!inputValue) {
       setFilteredRegistrations([]);
       setIsOpen(false);
       return;
@@ -64,12 +70,12 @@ export const AircraftAutocomplete: React.FC<AircraftAutocompleteProps> = ({
     
     // Filter registrations that contain the input value (case insensitive)
     const filtered = registrations.filter(reg => 
-      reg.toLowerCase().includes(value.toLowerCase())
+      reg.toLowerCase().includes(inputValue.toLowerCase())
     );
     
     setFilteredRegistrations(filtered);
     setIsOpen(filtered.length > 0);
-  }, [value, registrations]);
+  }, [inputValue, registrations]);
   
   // Click outside to close dropdown
   useEffect(() => {
@@ -86,13 +92,19 @@ export const AircraftAutocomplete: React.FC<AircraftAutocompleteProps> = ({
   }, []);
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const inputValue = e.target.value.toUpperCase();
+    const newValue = e.target.value.toUpperCase();
     // Only slice if maxLength is provided and value exceeds it
-    const finalValue = maxLength ? inputValue.slice(0, maxLength) : inputValue;
+    const finalValue = maxLength ? newValue.slice(0, maxLength) : newValue;
+    
+    // Update local state immediately for responsive UI
+    setInputValue(finalValue);
+    
+    // Propagate change to parent component
     onChange(finalValue);
   };
   
   const handleItemClick = (registration: string) => {
+    setInputValue(registration);
     onChange(registration);
     setIsOpen(false);
   };
@@ -101,11 +113,11 @@ export const AircraftAutocomplete: React.FC<AircraftAutocompleteProps> = ({
     <div className="relative" ref={containerRef}>
       <Input
         ref={inputRef}
-        value={value}
+        value={inputValue}
         onChange={handleInputChange}
         onKeyDown={onKeyDown}
         onFocus={() => {
-          if (value && filteredRegistrations.length > 0) {
+          if (inputValue && filteredRegistrations.length > 0) {
             setIsOpen(true);
           }
         }}

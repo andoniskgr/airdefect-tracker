@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { DefectRecord } from "../components/defect-records/DefectRecord.types";
 import { saveRecord } from "../utils/firebaseDB";
 import { format } from "date-fns";
@@ -28,13 +28,14 @@ export const useDefectForm = (currentUserEmail: string | null | undefined) => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<DefectRecord | null>(null);
   
-  const handleClear = () => {
+  const handleClear = useCallback(() => {
+    console.log('Clearing form data');
     setFormData({
       ...defaultFormData,
       date: format(new Date(), 'yyyy-MM-dd'),
       time: format(new Date(), 'HH:mm'),
     });
-  };
+  }, []);
   
   const handleSubmit = async () => {
     try {

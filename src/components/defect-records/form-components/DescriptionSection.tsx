@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
@@ -24,12 +24,28 @@ export const DescriptionSection = ({
   validationErrors,
   handleKeyDown
 }: DescriptionSectionProps) => {
+  const [internalDefect, setInternalDefect] = useState(defect);
+  const [internalRemarks, setInternalRemarks] = useState(remarks);
+
+  // Update internal state when props change
+  useEffect(() => {
+    setInternalDefect(defect);
+  }, [defect]);
+
+  useEffect(() => {
+    setInternalRemarks(remarks);
+  }, [remarks]);
+
   const handleDefectChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onDefectChange(e.target.value.toUpperCase());
+    const newValue = e.target.value.toUpperCase();
+    setInternalDefect(newValue);
+    onDefectChange(newValue);
   };
   
   const handleRemarksChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onRemarksChange(e.target.value.toUpperCase());
+    const newValue = e.target.value.toUpperCase();
+    setInternalRemarks(newValue);
+    onRemarksChange(newValue);
   };
   
   return (
@@ -38,7 +54,7 @@ export const DescriptionSection = ({
         <label className="text-lg font-medium mb-1 block uppercase">Defect Description</label>
         <Input
           ref={defectRef}
-          value={defect}
+          value={internalDefect}
           onChange={handleDefectChange}
           onKeyDown={(e) => handleKeyDown(e, 'defect')}
           placeholder="DESCRIPTION"
@@ -52,7 +68,7 @@ export const DescriptionSection = ({
         <label className="text-lg font-medium mb-1 block uppercase">Remarks</label>
         <Input
           ref={remarksRef}
-          value={remarks}
+          value={internalRemarks}
           onChange={handleRemarksChange}
           onKeyDown={(e) => handleKeyDown(e, 'remarks')}
           placeholder="REMARKS"

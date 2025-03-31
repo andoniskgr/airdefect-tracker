@@ -34,6 +34,7 @@ export const AddDefectModal = ({
   const remarksRef = useRef<HTMLInputElement>(null);
   
   const { validationErrors, setValidationErrors, validateField, validateForm } = useDefectValidation();
+  const [initialRender, setInitialRender] = useState(true);
 
   const validateAndSubmit = () => {
     const { hasErrors, errors } = validateForm(formData);
@@ -54,7 +55,13 @@ export const AddDefectModal = ({
   });
 
   const handleFieldChange = (field: keyof Omit<DefectRecord, 'id'>, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    console.log(`Field ${field} changing to:`, value);
+    
+    setFormData(prev => {
+      const updated = { ...prev, [field]: value };
+      console.log('Updated form data:', updated);
+      return updated;
+    });
     
     if (typeof value === 'string') {
       const isValid = validateField(field as string, value);
@@ -65,36 +72,52 @@ export const AddDefectModal = ({
     }
   };
 
+  // Reset form when modal opens
+  useEffect(() => {
+    if (isOpen && !initialRender) {
+      console.log('Modal opened, resetting form');
+      handleClear();
+    } else if (isOpen) {
+      setInitialRender(false);
+    }
+  }, [isOpen, handleClear, initialRender]);
+
+  // Focus registration field when modal opens
   useEffect(() => {
     if (isOpen) {
-      setTimeout(() => {
-        handleClear();
-      }, 50);
-      
       const focusInterval = setInterval(() => {
         if (registrationRef.current) {
           registrationRef.current.focus();
+          console.log('Registration field focused');
           clearInterval(focusInterval);
+        } else {
+          console.log('Registration ref not available yet');
         }
       }, 100);
       
-      setTimeout(() => clearInterval(focusInterval), 2000);
-      
       return () => clearInterval(focusInterval);
-    }
-  }, [isOpen, handleClear]);
-
-  useEffect(() => {
-    if (isOpen) {
-      console.log("Modal opened, registration ref exists:", !!registrationRef.current);
     }
   }, [isOpen]);
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog 
+      open={isOpen} 
+      onOpenChange={(open) => {
+        if (!open) {
+          // Only reset validation errors when closing
+          setValidationErrors({});
+        }
+        onOpenChange(open);
+      }}
+    >
       <DialogContent className="sm:max-w-md" onOpenAutoFocus={(e) => {
         e.preventDefault();
-        setTimeout(() => registrationRef.current?.focus(), 50);
+        setTimeout(() => {
+          if (registrationRef.current) {
+            registrationRef.current.focus();
+            console.log('Focus set on registration input via onOpenAutoFocus');
+          }
+        }, 100);
       }}>
         <DialogHeader>
           <DialogTitle className="text-2xl uppercase">Record Aircraft Defect</DialogTitle>
