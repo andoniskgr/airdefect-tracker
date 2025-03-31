@@ -37,6 +37,10 @@ const DateEtaFields: React.FC<DateEtaFieldsProps> = ({
     } as React.ChangeEvent<HTMLInputElement>);
   };
 
+  const handleEtaEnterPress = () => {
+    // Optional: Add any specific behavior needed when Enter is pressed in the ETA field
+  };
+
   return (
     <div className="flex items-center gap-4">
       <div>
@@ -74,12 +78,11 @@ const DateEtaFields: React.FC<DateEtaFieldsProps> = ({
       </div>
       
       <div>
+        <label className="text-sm font-medium mb-1 block text-white">ETA (UTC)</label>
         <TimePicker 
           value={etaUtc}
           onChange={handleEtaChange}
-          className={cn(
-            validationErrors.etaUtc && "bg-red-100"
-          )}
+          onEnterPress={handleEtaEnterPress}
           isError={validationErrors.etaUtc}
           disabled={atDestAirport}
         />
