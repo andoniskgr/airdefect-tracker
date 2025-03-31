@@ -142,6 +142,7 @@ const ArchiveRecords = () => {
                   handleDeleteAllByDate={handleDeleteAllByDate}
                   handleArchiveDate={handleArchiveDate}
                   sortConfig={sortConfig}
+                  isArchiveView={true} // Add this prop to indicate we're in archive view
                 />
               </div>
             )}
