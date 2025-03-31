@@ -22,6 +22,7 @@ interface DateGroupAccordionProps {
   handleSort: (column: string) => void;
   sortConfig: { key: string, direction: 'asc' | 'desc' };
   currentTime: Date;
+  isArchiveView?: boolean; // Add optional isArchiveView prop
 }
 
 export const DateGroupAccordion = ({
@@ -32,7 +33,8 @@ export const DateGroupAccordion = ({
   handleArchiveDate,
   handleSort,
   sortConfig,
-  currentTime
+  currentTime,
+  isArchiveView = false // Default to false
 }: DateGroupAccordionProps) => {
   return (
     <AccordionItem key={group.date} value={group.date} className="border-b border-slate-300">
@@ -41,20 +43,23 @@ export const DateGroupAccordion = ({
           {group.formattedDate} ({group.records.length} Records)
         </AccordionTrigger>
         <div className="flex space-x-2">
-          <Button 
-            variant="secondary" 
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              if (window.confirm(`Archive all records for ${group.formattedDate}? They will be hidden from view.`)) {
-                handleArchiveDate(group.date);
-              }
-            }}
-            className="h-8 flex items-center gap-1"
-          >
-            <Archive className="h-4 w-4" />
-            <span>Archive</span>
-          </Button>
+          {/* Only render the Archive button if not in archive view */}
+          {!isArchiveView && (
+            <Button 
+              variant="secondary" 
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (window.confirm(`Archive all records for ${group.formattedDate}? They will be hidden from view.`)) {
+                  handleArchiveDate(group.date);
+                }
+              }}
+              className="h-8 flex items-center gap-1"
+            >
+              <Archive className="h-4 w-4" />
+              <span>Archive</span>
+            </Button>
+          )}
           <Button 
             variant="destructive" 
             size="sm"

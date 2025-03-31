@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { 
   Select, 
@@ -46,13 +45,11 @@ const ArchiveRecords = () => {
   } = useDefectForm(currentUser?.email);
 
   useEffect(() => {
-    // Load archived dates from localStorage on component mount
     const storedArchivedDates = localStorage.getItem('archivedDates');
     if (storedArchivedDates) {
       const dates = JSON.parse(storedArchivedDates);
       setArchivedDates(dates);
       
-      // Set first date as default selected if available
       if (dates.length > 0) {
         setSelectedDate(dates[0]);
       }
@@ -67,11 +64,9 @@ const ArchiveRecords = () => {
     if (selectedDate) {
       const success = unarchiveDate(selectedDate);
       if (success) {
-        // Remove date from archivedDates locally
         const updatedDates = archivedDates.filter(date => date !== selectedDate);
         setArchivedDates(updatedDates);
         
-        // If there are other dates, select the first one
         if (updatedDates.length > 0) {
           setSelectedDate(updatedDates[0]);
         } else {
@@ -142,7 +137,7 @@ const ArchiveRecords = () => {
                   handleDeleteAllByDate={handleDeleteAllByDate}
                   handleArchiveDate={handleArchiveDate}
                   sortConfig={sortConfig}
-                  isArchiveView={true} // Add this prop to indicate we're in archive view
+                  isArchiveView={true}
                 />
               </div>
             )}
@@ -150,7 +145,6 @@ const ArchiveRecords = () => {
         )}
       </div>
       
-      {/* Add the edit modal */}
       {editingRecord && (
         <EditDefectModal
           isOpen={isEditModalOpen}
