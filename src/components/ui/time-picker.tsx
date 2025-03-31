@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { format } from 'date-fns';
 import { Button } from "@/components/ui/button";
@@ -43,6 +42,7 @@ const TimePicker: React.FC<TimePickerProps> = ({
   const [inputValue, setInputValue] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
   const [cursorPosition, setCursorPosition] = useState<number | null>(null);
+  const [isFormatting, setIsFormatting] = useState(false);
   
   // Update local state when value prop changes from external sources only
   useEffect(() => {
@@ -106,14 +106,31 @@ const TimePicker: React.FC<TimePickerProps> = ({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target.value;
     const curPos = e.target.selectionStart;
+    const oldLength = inputValue.length;
     
-    // Store cursor position
+    // Store cursor position adjusted for potential formatting
     if (curPos !== null) {
-      setCursorPosition(curPos);
+      const isAddingChars = input.length > oldLength;
+      
+      // Check if user is adding digits
+      if (isAddingChars) {
+        const addedDigits = (input.match(/\d/g) || []).length - (inputValue.match(/\d/g) || []).length;
+        // If adding digits, advance cursor appropriately
+        if (addedDigits > 0) {
+          // For intelligently moving cursor forward
+          setCursorPosition(curPos + (input.includes(':') && !inputValue.includes(':') ? 1 : 0));
+        } else {
+          setCursorPosition(curPos);
+        }
+      } else {
+        // If removing characters, try to keep cursor at same position
+        setCursorPosition(curPos);
+      }
     }
     
     // Update local state immediately for responsive UI
     setInputValue(input);
+    setIsFormatting(true);
     
     // Debounce the validation and onChange propagation
     const timeoutId = setTimeout(() => {
@@ -126,17 +143,22 @@ const TimePicker: React.FC<TimePickerProps> = ({
         // Empty input
         onChange('');
       }
+      
+      // Once formatting is done
+      setIsFormatting(false);
     }, 300);
     
     return () => clearTimeout(timeoutId);
   };
   
-  // Restore cursor position after render
+  // Restore cursor position after render, but only if not actively formatting
   useEffect(() => {
-    if (cursorPosition !== null && inputRef.current) {
-      inputRef.current.setSelectionRange(cursorPosition, cursorPosition);
+    if (cursorPosition !== null && inputRef.current && !isFormatting) {
+      // Ensure cursor position doesn't exceed input length
+      const safePosition = Math.min(cursorPosition, inputValue.length);
+      inputRef.current.setSelectionRange(safePosition, safePosition);
     }
-  }, [inputValue, cursorPosition]);
+  }, [inputValue, cursorPosition, isFormatting]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && onEnterPress) {
