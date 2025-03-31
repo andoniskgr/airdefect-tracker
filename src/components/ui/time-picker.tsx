@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { format } from 'date-fns';
 import { Button } from "@/components/ui/button";
@@ -41,8 +42,6 @@ const TimePicker: React.FC<TimePickerProps> = ({
 }) => {
   const [inputValue, setInputValue] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
-  const [cursorPosition, setCursorPosition] = useState<number | null>(null);
-  const [isFormatting, setIsFormatting] = useState(false);
   
   // Update local state when value prop changes from external sources only
   useEffect(() => {
@@ -51,119 +50,48 @@ const TimePicker: React.FC<TimePickerProps> = ({
     }
   }, [value]);
   
-  const validateAndFormatTime = (input: string): string => {
-    // If input contains a colon, it may already be formatted
-    if (input.includes(':')) {
-      const [hours, minutes] = input.split(':');
-      
-      // Check if hours and minutes are valid numbers
-      const hoursNum = parseInt(hours, 10);
-      const minutesNum = parseInt(minutes, 10);
-      
-      if (!isNaN(hoursNum) && !isNaN(minutesNum)) {
-        // Validate and format
-        const validHours = Math.min(Math.max(0, hoursNum), 23);
-        const validMinutes = Math.min(Math.max(0, minutesNum), 59);
-        
-        return `${validHours.toString().padStart(2, '0')}:${validMinutes.toString().padStart(2, '0')}`;
-      }
-    }
-    
-    // Get only digit characters
+  const formatTimeInput = (input: string): string => {
+    // Remove any non-digit characters
     const digitsOnly = input.replace(/[^\d]/g, '');
     
-    if (digitsOnly.length === 0) return '';
-    
-    // Format based on number of digits
-    if (digitsOnly.length <= 2) {
-      // Assume minutes only
-      const minutes = parseInt(digitsOnly, 10);
-      if (minutes > 59) {
-        return '00:59';
-      }
-      return `00:${digitsOnly.padStart(2, '0')}`;
-    } else if (digitsOnly.length === 3) {
-      // One digit hour, two digit minutes
-      const hour = parseInt(digitsOnly[0], 10);
-      const minutes = parseInt(digitsOnly.slice(1), 10);
-      
-      if (minutes > 59) {
-        return `0${hour}:59`;
-      }
-      return `0${hour}:${digitsOnly.slice(1).padStart(2, '0')}`;
-    } else {
-      // At least two digit hour, two digit minutes
-      const hour = parseInt(digitsOnly.slice(0, 2), 10);
-      const minutes = parseInt(digitsOnly.slice(2, 4), 10);
-      
-      const validHour = Math.min(hour, 23);
-      const validMinutes = Math.min(isNaN(minutes) ? 0 : minutes, 59);
-      
-      return `${validHour.toString().padStart(2, '0')}:${validMinutes.toString().padStart(2, '0')}`;
+    // If we have 4 or more digits, format as HH:MM
+    if (digitsOnly.length >= 4) {
+      const hours = Math.min(parseInt(digitsOnly.substring(0, 2), 10), 23);
+      const minutes = Math.min(parseInt(digitsOnly.substring(2, 4), 10), 59);
+      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
     }
+    
+    // Return raw input for fewer than 4 digits
+    return input;
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target.value;
-    const curPos = e.target.selectionStart;
-    const oldLength = inputValue.length;
     
-    // Store cursor position adjusted for potential formatting
-    if (curPos !== null) {
-      const isAddingChars = input.length > oldLength;
-      
-      // Check if user is adding digits
-      if (isAddingChars) {
-        const addedDigits = (input.match(/\d/g) || []).length - (inputValue.match(/\d/g) || []).length;
-        // If adding digits, advance cursor appropriately
-        if (addedDigits > 0) {
-          // For intelligently moving cursor forward
-          setCursorPosition(curPos + (input.includes(':') && !inputValue.includes(':') ? 1 : 0));
-        } else {
-          setCursorPosition(curPos);
-        }
-      } else {
-        // If removing characters, try to keep cursor at same position
-        setCursorPosition(curPos);
-      }
+    // Allow direct input of digits (up to 4)
+    const digitsOnly = input.replace(/[^\d]/g, '');
+    if (digitsOnly.length <= 4) {
+      setInputValue(input);
     }
-    
-    // Update local state immediately for responsive UI
-    setInputValue(input);
-    setIsFormatting(true);
-    
-    // Debounce the validation and onChange propagation
-    const timeoutId = setTimeout(() => {
-      // Only format if we have input
-      if (input.trim()) {
-        const formattedTime = validateAndFormatTime(input);
-        setInputValue(formattedTime);
-        onChange(formattedTime);
-      } else {
-        // Empty input
-        onChange('');
-      }
-      
-      // Once formatting is done
-      setIsFormatting(false);
-    }, 300);
-    
-    return () => clearTimeout(timeoutId);
   };
   
-  // Restore cursor position after render, but only if not actively formatting
-  useEffect(() => {
-    if (cursorPosition !== null && inputRef.current && !isFormatting) {
-      // Ensure cursor position doesn't exceed input length
-      const safePosition = Math.min(cursorPosition, inputValue.length);
-      inputRef.current.setSelectionRange(safePosition, safePosition);
+  const handleBlur = () => {
+    // Format time on blur
+    if (inputValue.trim()) {
+      const formattedTime = formatTimeInput(inputValue);
+      setInputValue(formattedTime);
+      onChange(formattedTime);
+    } else {
+      onChange('');
     }
-  }, [inputValue, cursorPosition, isFormatting]);
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && onEnterPress) {
-      e.preventDefault();
-      onEnterPress();
+    if (e.key === 'Enter') {
+      handleBlur();
+      if (onEnterPress) {
+        onEnterPress();
+      }
     }
   };
 
@@ -181,6 +109,7 @@ const TimePicker: React.FC<TimePickerProps> = ({
         type="text"
         value={inputValue}
         onChange={handleInputChange}
+        onBlur={handleBlur}
         onKeyDown={handleKeyDown}
         placeholder="HH:MM"
         className={cn(
