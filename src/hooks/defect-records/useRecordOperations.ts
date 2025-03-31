@@ -37,7 +37,7 @@ export const useRecordOperations = (userEmail: string | null | undefined) => {
       
       // New headers and column mapping to match the desired layout
       const headers = [
-        "TIME", "A/C", "STAND", "REPORTED DEFECT", "ACTION TAKEN", "RESET", "DELAY", "OK"
+        "TIME", "A/C", "STAND", "REPORTED DEFECT", "ACTION TAKEN", "RESET", "DLY", "DELAY", "OK"
       ];
       
       const data = recordsToExport.map(record => [
@@ -47,6 +47,7 @@ export const useRecordOperations = (userEmail: string | null | undefined) => {
         record.defect,                     // REPORTED DEFECT
         record.remarks,                    // ACTION TAKEN
         record.rst ? "YES" : "NO",         // RESET
+        record.dly ? "YES" : "NO",         // DLY (new field)
         record.sl ? "YES" : "NO",          // DELAY (using sl field)
         record.ok ? "YES" : "NO"           // OK
       ]);

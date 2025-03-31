@@ -12,6 +12,7 @@ export interface DefectRecord {
   upd: string;
   nxs: boolean;
   rst: boolean;
+  dly: boolean;  // New DLY field
   sl: boolean;
   ok: boolean;
   pln: boolean;

@@ -170,6 +170,7 @@ export const AddDefectModal = ({
             values={{
               nxs: formData.nxs,
               rst: formData.rst,
+              dly: formData.dly,
               pln: formData.pln,
               sl: formData.sl,
               ok: formData.ok

@@ -101,6 +101,7 @@ export const EditDefectModal = ({
             values={{
               nxs: editingRecord.nxs,
               rst: editingRecord.rst,
+              dly: editingRecord.dly,
               pln: editingRecord.pln,
               sl: editingRecord.sl,
               ok: editingRecord.ok

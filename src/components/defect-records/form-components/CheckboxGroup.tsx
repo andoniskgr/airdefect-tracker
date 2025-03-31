@@ -5,11 +5,12 @@ interface CheckboxGroupProps {
   values: {
     nxs: boolean;
     rst: boolean;
+    dly: boolean;  // Added DLY field
     pln: boolean;
     sl: boolean;
     ok: boolean;
   };
-  onCheckedChange: (field: 'nxs' | 'rst' | 'pln' | 'sl' | 'ok', checked: boolean) => void;
+  onCheckedChange: (field: 'nxs' | 'rst' | 'dly' | 'pln' | 'sl' | 'ok', checked: boolean) => void;
 }
 
 export const CheckboxGroup = ({ values, onCheckedChange }: CheckboxGroupProps) => {
@@ -39,6 +40,19 @@ export const CheckboxGroup = ({ values, onCheckedChange }: CheckboxGroupProps) =
         />
         <label htmlFor="rst" className="text-lg font-medium uppercase">
           RST
+        </label>
+      </div>
+      <div className="flex flex-col items-center space-y-1">
+        <Checkbox
+          id="dly"
+          checked={values.dly}
+          onCheckedChange={(checked) => 
+            onCheckedChange('dly', checked as boolean)
+          }
+          className="h-5 w-5"
+        />
+        <label htmlFor="dly" className="text-lg font-medium uppercase">
+          DLY
         </label>
       </div>
       <div className="flex flex-col items-center space-y-1">
