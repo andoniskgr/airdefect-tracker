@@ -24,3 +24,9 @@ export interface DefectRecord {
 
 export type FilterType = 'all' | 'sl' | 'ok' | 'pln';
 export type ExportType = 'pdf' | 'excel';
+
+// Field mapping for Excel export
+export interface ExcelColumnMapping {
+  header: string;
+  field: keyof DefectRecord | ((record: DefectRecord) => string);
+}

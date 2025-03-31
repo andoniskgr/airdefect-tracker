@@ -35,25 +35,20 @@ export const useRecordOperations = (userEmail: string | null | undefined) => {
         return;
       }
       
+      // New headers and column mapping to match the desired layout
       const headers = [
-        "Date", "Time", "Registration", "Station", "Defect", "Remarks", 
-        "ETA", "STD", "UPD", "RST", "SL", "OK", "PLN"
+        "TIME", "A/C", "STAND", "REPORTED DEFECT", "ACTION TAKEN", "RESET", "DELAY", "OK"
       ];
       
       const data = recordsToExport.map(record => [
-        format(new Date(record.date), 'dd/MM/yyyy'),
-        record.time,
-        record.registration,
-        record.station,
-        record.defect,
-        record.remarks,
-        record.eta,
-        record.std,
-        record.upd,
-        record.rst ? "YES" : "NO",
-        record.sl ? "YES" : "NO",
-        record.ok ? "YES" : "NO",
-        record.pln ? "YES" : "NO"
+        record.time,                       // TIME
+        record.registration,               // A/C
+        record.station,                    // STAND
+        record.defect,                     // REPORTED DEFECT
+        record.remarks,                    // ACTION TAKEN
+        record.rst ? "YES" : "NO",         // RESET
+        record.sl ? "YES" : "NO",          // DELAY (using sl field)
+        record.ok ? "YES" : "NO"           // OK
       ]);
       
       let csvContent = headers.join(',') + '\n';
