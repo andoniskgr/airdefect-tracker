@@ -14,7 +14,6 @@ interface RecordsTableProps {
   handleDeleteAllByDate: (date: string) => void;
   handleArchiveDate: (date: string) => void;
   sortConfig: { key: string, direction: 'asc' | 'desc' };
-  isArchiveView?: boolean; // Add this prop with optional flag
 }
 
 export const RecordsTable = ({ 
@@ -24,8 +23,7 @@ export const RecordsTable = ({
   handleDeleteRecord,
   handleDeleteAllByDate,
   handleArchiveDate,
-  sortConfig,
-  isArchiveView = false // Default to false if not provided
+  sortConfig
 }: RecordsTableProps) => {
   const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -79,7 +77,6 @@ export const RecordsTable = ({
               handleSort={handleSort}
               sortConfig={sortConfig}
               currentTime={currentTime}
-              isArchiveView={isArchiveView} // Pass the prop down to DateGroupAccordion
             />
           ))}
         </Accordion>
