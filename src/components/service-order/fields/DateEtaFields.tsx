@@ -42,8 +42,9 @@ const DateEtaFields: React.FC<DateEtaFieldsProps> = ({
   };
 
   return (
-    <div className="flex items-end gap-6">
+    <div className="flex items-start gap-6">
       <div>
+        <label className="text-sm font-medium mb-1 block text-white">Date</label>
         <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
           <PopoverTrigger asChild>
             <Button
@@ -88,7 +89,7 @@ const DateEtaFields: React.FC<DateEtaFieldsProps> = ({
         />
       </div>
       
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center space-x-2 mt-6">
         <Checkbox 
           id="atDestAirport" 
           checked={atDestAirport} 
