@@ -13,6 +13,7 @@ import Signup from "./pages/Signup";
 import NotFound from "./pages/NotFound";
 import ServiceOrder from "./pages/ServiceOrder";
 import AircraftAdmin from "./pages/AircraftAdmin";
+import ArchiveRecords from "./pages/ArchiveRecords";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +31,11 @@ const App = () => (
             <Route path="/" element={
               <ProtectedRoute>
                 <Index />
+              </ProtectedRoute>
+            } />
+            <Route path="/archive-records" element={
+              <ProtectedRoute>
+                <ArchiveRecords />
               </ProtectedRoute>
             } />
             <Route path="/service-order" element={

@@ -3,8 +3,12 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { deleteRecord, deleteRecordsByDate } from "../../utils/firebaseDB";
 import { DefectRecord } from "../../components/defect-records/DefectRecord.types";
+import { Dispatch, SetStateAction } from "react";
 
-export const useRecordOperations = (userEmail: string | null | undefined) => {
+export const useRecordOperations = (
+  userEmail: string | null | undefined,
+  setArchivedDates?: Dispatch<SetStateAction<string[]>>
+) => {
   const handleDeleteRecord = async (id: string) => {
     try {
       console.log("Deleting record with ID:", id);
@@ -39,6 +43,23 @@ export const useRecordOperations = (userEmail: string | null | undefined) => {
       return true;
     }
     return false;
+  };
+
+  const unarchiveDate = (date: string) => {
+    // Get existing archived dates from localStorage
+    const archivedDatesJSON = localStorage.getItem('archivedDates') || '[]';
+    const archivedDates = JSON.parse(archivedDatesJSON) as string[];
+    
+    // Remove date from archived dates
+    const updatedDates = archivedDates.filter(d => d !== date);
+    localStorage.setItem('archivedDates', JSON.stringify(updatedDates));
+    
+    // Update state if setter provided
+    if (setArchivedDates) {
+      setArchivedDates(updatedDates);
+    }
+    
+    return true;
   };
 
   const exportToExcel = (getRecords: () => DefectRecord[]) => {
@@ -100,6 +121,7 @@ export const useRecordOperations = (userEmail: string | null | undefined) => {
     handleDeleteRecord,
     handleDeleteAllByDate,
     archiveDate,
+    unarchiveDate,
     exportToExcel
   };
 };

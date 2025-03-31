@@ -29,8 +29,9 @@ export const useDefectRecords = (userEmail: string | null | undefined) => {
     handleDeleteRecord, 
     handleDeleteAllByDate, 
     archiveDate,
+    unarchiveDate,
     exportToExcel 
-  } = useRecordOperations(userEmail);
+  } = useRecordOperations(userEmail, setArchivedDates);
 
   // Filter out records from archived dates
   const getFilteredAndNonArchivedRecords = () => {
@@ -48,6 +49,14 @@ export const useDefectRecords = (userEmail: string | null | undefined) => {
     return filteredRecords;
   };
   
+  // Get records for a specific archived date
+  const getArchivedRecordsByDate = (date: string) => {
+    return defectRecords.filter(record => {
+      const recordDate = record.date.split('T')[0]; // Get YYYY-MM-DD part
+      return recordDate === date;
+    });
+  };
+
   // Handle archiving a date
   const handleArchiveDate = (date: string) => {
     const success = archiveDate(date);
@@ -71,7 +80,9 @@ export const useDefectRecords = (userEmail: string | null | undefined) => {
     handleDeleteRecord,
     handleDeleteAllByDate,
     handleArchiveDate,
+    unarchiveDate,
     exportToExcel: exportToExcelWrapper,
-    getFilteredRecords: getFilteredAndNonArchivedRecords
+    getFilteredRecords: getFilteredAndNonArchivedRecords,
+    getArchivedRecordsByDate
   };
 };
