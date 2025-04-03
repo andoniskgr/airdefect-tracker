@@ -1,14 +1,31 @@
-
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { deleteRecord, deleteRecordsByDate } from "../../utils/firebaseDB";
+import { deleteRecord, deleteRecordsByDate, saveArchivedDate, removeArchivedDate, getUserArchivedDates } from "../../utils/firebaseDB";
 import { DefectRecord } from "../../components/defect-records/DefectRecord.types";
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useEffect } from "react";
 
 export const useRecordOperations = (
   userEmail: string | null | undefined,
   setArchivedDates?: Dispatch<SetStateAction<string[]>>
 ) => {
+  useEffect(() => {
+    if (userEmail && setArchivedDates) {
+      const loadArchivedDates = async () => {
+        try {
+          const dates = await getUserArchivedDates(userEmail);
+          setArchivedDates(dates);
+          
+          // Also update localStorage as a backup
+          localStorage.setItem('archivedDates', JSON.stringify(dates));
+        } catch (error) {
+          console.error("Error loading archived dates:", error);
+        }
+      };
+      
+      loadArchivedDates();
+    }
+  }, [userEmail, setArchivedDates]);
+
   const handleDeleteRecord = async (id: string) => {
     try {
       console.log("Deleting record with ID:", id);
@@ -30,36 +47,62 @@ export const useRecordOperations = (
     }
   };
 
-  const archiveDate = (date: string) => {
-    // Get existing archived dates from localStorage
-    const archivedDatesJSON = localStorage.getItem('archivedDates') || '[]';
-    const archivedDates = JSON.parse(archivedDatesJSON) as string[];
+  const archiveDate = async (date: string) => {
+    if (!userEmail) {
+      toast.error("You must be logged in to archive dates");
+      return false;
+    }
     
-    // Add new date to archived dates if not already there
-    if (!archivedDates.includes(date)) {
-      archivedDates.push(date);
-      localStorage.setItem('archivedDates', JSON.stringify(archivedDates));
+    try {
+      // Save to Firebase
+      await saveArchivedDate(userEmail, date);
+      
+      // Update localStorage as a backup
+      const archivedDatesJSON = localStorage.getItem('archivedDates') || '[]';
+      const archivedDates = JSON.parse(archivedDatesJSON) as string[];
+      
+      if (!archivedDates.includes(date)) {
+        archivedDates.push(date);
+        localStorage.setItem('archivedDates', JSON.stringify(archivedDates));
+      }
+      
       toast.success(`Date ${format(new Date(date), 'dd/MM/yyyy')} archived successfully!`);
       return true;
+    } catch (error) {
+      console.error("Error archiving date:", error);
+      toast.error("Failed to archive date");
+      return false;
     }
-    return false;
   };
 
-  const unarchiveDate = (date: string) => {
-    // Get existing archived dates from localStorage
-    const archivedDatesJSON = localStorage.getItem('archivedDates') || '[]';
-    const archivedDates = JSON.parse(archivedDatesJSON) as string[];
-    
-    // Remove date from archived dates
-    const updatedDates = archivedDates.filter(d => d !== date);
-    localStorage.setItem('archivedDates', JSON.stringify(updatedDates));
-    
-    // Update state if setter provided
-    if (setArchivedDates) {
-      setArchivedDates(updatedDates);
+  const unarchiveDate = async (date: string) => {
+    if (!userEmail) {
+      toast.error("You must be logged in to unarchive dates");
+      return false;
     }
     
-    return true;
+    try {
+      // Remove from Firebase
+      await removeArchivedDate(userEmail, date);
+      
+      // Update localStorage as a backup
+      const archivedDatesJSON = localStorage.getItem('archivedDates') || '[]';
+      const archivedDates = JSON.parse(archivedDatesJSON) as string[];
+      const updatedDates = archivedDates.filter(d => d !== date);
+      localStorage.setItem('archivedDates', JSON.stringify(updatedDates));
+      
+      // Update state if setter provided
+      if (setArchivedDates) {
+        setArchivedDates(updatedDates);
+      }
+      
+      toast.success(`Date ${format(new Date(date), 'dd/MM/yyyy')} unarchived successfully!`);
+      return true;
+    } catch (error) {
+      console.error("Error unarchiving date:", error);
+      toast.error("Failed to unarchive date");
+      return false;
+    }
   };
 
   const exportToExcel = (getRecords: () => DefectRecord[]) => {

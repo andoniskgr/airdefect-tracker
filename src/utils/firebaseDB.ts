@@ -1,4 +1,3 @@
-
 import { DefectRecord } from "@/components/defect-records/DefectRecord.types";
 import { initializeApp } from "firebase/app";
 import { 
@@ -13,7 +12,9 @@ import {
   writeBatch,
   getDoc,
   addDoc,
-  updateDoc
+  updateDoc,
+  serverTimestamp,
+  arrayUnion
 } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
@@ -223,6 +224,89 @@ export const deleteRecordsByDate = async (date: string, userEmail?: string | nul
     }
     
     throw error;
+  }
+};
+
+// New functions for archived dates
+export const saveArchivedDate = async (userEmail: string, date: string) => {
+  if (!userEmail) throw new Error("User email is required");
+  
+  const db = getFirestore();
+  const archivedDatesRef = doc(db, "archivedDates", userEmail);
+  
+  try {
+    // Check if document exists
+    const docSnap = await getDoc(archivedDatesRef);
+    
+    if (docSnap.exists()) {
+      // Get current dates and add new one if not exists
+      const currentDates = docSnap.data().dates || [];
+      if (!currentDates.includes(date)) {
+        await updateDoc(archivedDatesRef, {
+          dates: arrayUnion(date),
+          updatedAt: serverTimestamp()
+        });
+      }
+    } else {
+      // Create new document
+      await setDoc(archivedDatesRef, {
+        email: userEmail,
+        dates: [date],
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+    }
+    
+    return true;
+  } catch (error) {
+    console.error("Error saving archived date:", error);
+    throw error;
+  }
+};
+
+export const removeArchivedDate = async (userEmail: string, date: string) => {
+  if (!userEmail) throw new Error("User email is required");
+  
+  const db = getFirestore();
+  const archivedDatesRef = doc(db, "archivedDates", userEmail);
+  
+  try {
+    const docSnap = await getDoc(archivedDatesRef);
+    
+    if (docSnap.exists()) {
+      const currentDates = docSnap.data().dates || [];
+      const updatedDates = currentDates.filter((d: string) => d !== date);
+      
+      await updateDoc(archivedDatesRef, {
+        dates: updatedDates,
+        updatedAt: serverTimestamp()
+      });
+    }
+    
+    return true;
+  } catch (error) {
+    console.error("Error removing archived date:", error);
+    throw error;
+  }
+};
+
+export const getUserArchivedDates = async (userEmail: string): Promise<string[]> => {
+  if (!userEmail) return [];
+  
+  const db = getFirestore();
+  const archivedDatesRef = doc(db, "archivedDates", userEmail);
+  
+  try {
+    const docSnap = await getDoc(archivedDatesRef);
+    
+    if (docSnap.exists()) {
+      return docSnap.data().dates || [];
+    }
+    
+    return [];
+  } catch (error) {
+    console.error("Error getting archived dates:", error);
+    return [];
   }
 };
 

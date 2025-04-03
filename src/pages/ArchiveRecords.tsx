@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { 
   Select, 
@@ -60,20 +61,23 @@ const ArchiveRecords = () => {
     setSelectedDate(date);
   };
 
-  const handleUnarchive = () => {
+  const handleUnarchive = async () => {
     if (selectedDate) {
-      const success = unarchiveDate(selectedDate);
-      if (success) {
-        const updatedDates = archivedDates.filter(date => date !== selectedDate);
-        setArchivedDates(updatedDates);
-        
-        if (updatedDates.length > 0) {
-          setSelectedDate(updatedDates[0]);
-        } else {
-          setSelectedDate(null);
+      try {
+        const success = await unarchiveDate(selectedDate);
+        if (success) {
+          const updatedDates = archivedDates.filter(date => date !== selectedDate);
+          setArchivedDates(updatedDates);
+          
+          if (updatedDates.length > 0) {
+            setSelectedDate(updatedDates[0]);
+          } else {
+            setSelectedDate(null);
+          }
         }
-        
-        toast.success(`Date ${format(new Date(selectedDate), 'dd/MM/yyyy')} unarchived successfully!`);
+      } catch (error) {
+        console.error("Error unarchiving date:", error);
+        toast.error("Failed to unarchive date");
       }
     }
   };

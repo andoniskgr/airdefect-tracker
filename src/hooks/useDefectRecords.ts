@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useFilterAndSort } from "./defect-records/useFilterAndSort";
 import { useRecordOperations } from "./defect-records/useRecordOperations";
@@ -9,13 +8,14 @@ export const useDefectRecords = (userEmail: string | null | undefined) => {
   const { defectRecords, loading } = useFetchRecords(userEmail);
   const [archivedDates, setArchivedDates] = useState<string[]>([]);
   
-  // Load archived dates from localStorage on component mount
-  useEffect(() => {
-    const storedArchivedDates = localStorage.getItem('archivedDates');
-    if (storedArchivedDates) {
-      setArchivedDates(JSON.parse(storedArchivedDates));
-    }
-  }, []);
+  // useRecordOperations now handles loading archived dates from Firebase
+  const { 
+    handleDeleteRecord, 
+    handleDeleteAllByDate, 
+    archiveDate,
+    unarchiveDate,
+    exportToExcel 
+  } = useRecordOperations(userEmail, setArchivedDates);
   
   const { 
     filter, 
@@ -24,14 +24,6 @@ export const useDefectRecords = (userEmail: string | null | undefined) => {
     handleSort, 
     getFilteredRecords 
   } = useFilterAndSort();
-  
-  const { 
-    handleDeleteRecord, 
-    handleDeleteAllByDate, 
-    archiveDate,
-    unarchiveDate,
-    exportToExcel 
-  } = useRecordOperations(userEmail, setArchivedDates);
 
   // Filter out records from archived dates
   const getFilteredAndNonArchivedRecords = () => {
@@ -58,8 +50,8 @@ export const useDefectRecords = (userEmail: string | null | undefined) => {
   };
 
   // Handle archiving a date
-  const handleArchiveDate = (date: string) => {
-    const success = archiveDate(date);
+  const handleArchiveDate = async (date: string) => {
+    const success = await archiveDate(date);
     if (success) {
       setArchivedDates(prev => [...prev, date]);
     }
