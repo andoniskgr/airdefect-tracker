@@ -25,17 +25,12 @@ export const RegistrationStationSection = ({
   validationErrors,
   handleKeyDown
 }: RegistrationStationSectionProps) => {
-  const [internalStation, setInternalStation] = useState(station);
-  
-  // Update internal state when props change
-  useEffect(() => {
-    setInternalStation(station);
-  }, [station]);
+  // Remove the internal state and directly use the props
+  // This prevents the cursor jumping issue
   
   const handleStationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toUpperCase();
     const newValue = value.slice(0, 6);
-    setInternalStation(newValue);
     onStationChange(newValue);
   };
   
@@ -56,7 +51,7 @@ export const RegistrationStationSection = ({
         <label className="text-lg font-medium mb-1 block uppercase">Station</label>
         <Input
           ref={stationRef}
-          value={internalStation}
+          value={station}
           onChange={handleStationChange}
           onKeyDown={(e) => handleKeyDown(e, 'station')}
           placeholder="STATION"

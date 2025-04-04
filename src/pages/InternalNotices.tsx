@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { 
   Card, 
   CardContent, 
@@ -47,9 +47,10 @@ const InternalNotices = () => {
     }
   });
 
-  // Reset form when selectedNotice changes
+  // Reset form when selectedNotice changes or editing mode changes
   useEffect(() => {
     if (selectedNotice && isEditing) {
+      // When editing, set form values from the selected notice
       form.reset({
         title: selectedNotice.title,
         category: selectedNotice.category,
@@ -57,6 +58,7 @@ const InternalNotices = () => {
         content: selectedNotice.content
       });
     } else if (!isEditing) {
+      // When not editing, reset to empty values
       form.reset({
         title: "",
         category: "",
