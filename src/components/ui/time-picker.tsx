@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { format } from 'date-fns';
 import { Button } from "@/components/ui/button";
@@ -40,17 +39,21 @@ const TimePicker: React.FC<TimePickerProps> = ({
   onEnterPress,
   disabled = false
 }) => {
+  // Keep internal state for input value to prevent cursor jumping
   const [inputValue, setInputValue] = useState(value || '');
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Store cursor position
+  const cursorPositionRef = useRef<number | null>(null);
   
-  // Update local state when value prop changes from external sources
+  // Update local state only when value prop changes from external sources
   useEffect(() => {
     // Only update if the component's internal value doesn't match the prop
     // and the input isn't focused (to avoid overriding user typing)
     if (value !== inputValue && document.activeElement !== inputRef.current) {
       setInputValue(value || '');
     }
-  }, [value]);
+  }, [value, inputValue]);
   
   const formatTimeInput = (input: string): string => {
     // Remove any non-digit characters
@@ -82,11 +85,32 @@ const TimePicker: React.FC<TimePickerProps> = ({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target.value;
     
+    // Save current cursor position
+    cursorPositionRef.current = e.target.selectionStart;
+    
     // For direct typing, allow digits and colon
     if (/^[\d:]*$/.test(input) && input.length <= 5) {
       setInputValue(input);
+      
+      // Only notify parent of changes on valid input patterns
+      // to avoid cursor jumps from immediate reformatting
+      onChange(input);
     }
   };
+  
+  // Restore cursor position after render
+  useEffect(() => {
+    if (
+      cursorPositionRef.current !== null &&
+      inputRef.current && 
+      document.activeElement === inputRef.current
+    ) {
+      const pos = Math.min(cursorPositionRef.current, inputValue.length);
+      inputRef.current.setSelectionRange(pos, pos);
+      // Reset after applying
+      cursorPositionRef.current = null;
+    }
+  });
   
   const handleBlur = () => {
     // Format time on blur

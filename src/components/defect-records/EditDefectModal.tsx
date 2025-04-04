@@ -10,7 +10,7 @@ import { DescriptionSection } from './form-components/DescriptionSection';
 import { CheckboxGroup } from './form-components/CheckboxGroup';
 import { RecordHistory } from './form-components/RecordHistory';
 import { EditActionButtons } from './form-components/EditActionButtons';
-import { useRef } from 'react';
+import { useRef, useCallback } from 'react';
 
 interface EditDefectModalProps {
   isOpen: boolean;
@@ -37,16 +37,16 @@ export const EditDefectModal = ({
   const defectRef = useRef<HTMLInputElement>(null);
   const remarksRef = useRef<HTMLInputElement>(null);
 
-  // Create a handler with direct field updates
-  const handleFieldChange = (field: keyof DefectRecord, value: any) => {
+  // Using useCallback to prevent recreation of handler on each render
+  const handleFieldChange = useCallback((field: keyof DefectRecord, value: any) => {
     console.log(`Updating ${field} to:`, value);
-    if (!editingRecord) return;
     
-    setEditingRecord({
-      ...editingRecord,
-      [field]: value
+    // Use functional update to ensure we're working with the latest state
+    setEditingRecord((prev) => {
+      if (!prev) return null;
+      return { ...prev, [field]: value };
     });
-  };
+  }, [setEditingRecord]);
 
   const handleUpdateClick = () => {
     console.log("Update button clicked, sending record with ID:", editingRecord.id);
