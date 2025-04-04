@@ -37,12 +37,14 @@ export const EditDefectModal = ({
   const defectRef = useRef<HTMLInputElement>(null);
   const remarksRef = useRef<HTMLInputElement>(null);
 
-  // Create a simpler handler with direct field updates
+  // Create a handler with direct field updates
   const handleFieldChange = (field: keyof DefectRecord, value: any) => {
     console.log(`Updating ${field} to:`, value);
-    setEditingRecord(prev => {
-      if (!prev) return null;
-      return { ...prev, [field]: value };
+    if (!editingRecord) return;
+    
+    setEditingRecord({
+      ...editingRecord,
+      [field]: value
     });
   };
 

@@ -31,13 +31,7 @@ export const AircraftAutocomplete: React.FC<AircraftAutocompleteProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [registrations, setRegistrations] = useState<string[]>([]);
   const [filteredRegistrations, setFilteredRegistrations] = useState<string[]>([]);
-  const [inputValue, setInputValue] = useState(value);
   const containerRef = useRef<HTMLDivElement>(null);
-  
-  // Update local input value when external value changes
-  useEffect(() => {
-    setInputValue(value);
-  }, [value]);
   
   // Fetch aircraft registrations from Firestore
   useEffect(() => {
@@ -62,7 +56,7 @@ export const AircraftAutocomplete: React.FC<AircraftAutocompleteProps> = ({
   
   // Filter registrations based on input value
   useEffect(() => {
-    if (!inputValue) {
+    if (!value) {
       setFilteredRegistrations([]);
       setIsOpen(false);
       return;
@@ -70,12 +64,12 @@ export const AircraftAutocomplete: React.FC<AircraftAutocompleteProps> = ({
     
     // Filter registrations that contain the input value (case insensitive)
     const filtered = registrations.filter(reg => 
-      reg.toLowerCase().includes(inputValue.toLowerCase())
+      reg.toLowerCase().includes(value.toLowerCase())
     );
     
     setFilteredRegistrations(filtered);
     setIsOpen(filtered.length > 0);
-  }, [inputValue, registrations]);
+  }, [value, registrations]);
   
   // Click outside to close dropdown
   useEffect(() => {
@@ -96,15 +90,11 @@ export const AircraftAutocomplete: React.FC<AircraftAutocompleteProps> = ({
     // Only slice if maxLength is provided and value exceeds it
     const finalValue = maxLength ? newValue.slice(0, maxLength) : newValue;
     
-    // Update local state immediately for responsive UI
-    setInputValue(finalValue);
-    
-    // Propagate change to parent component
+    // Propagate change to parent component immediately
     onChange(finalValue);
   };
   
   const handleItemClick = (registration: string) => {
-    setInputValue(registration);
     onChange(registration);
     setIsOpen(false);
   };
@@ -113,11 +103,11 @@ export const AircraftAutocomplete: React.FC<AircraftAutocompleteProps> = ({
     <div className="relative" ref={containerRef}>
       <Input
         ref={inputRef}
-        value={inputValue}
+        value={value}
         onChange={handleInputChange}
         onKeyDown={onKeyDown}
         onFocus={() => {
-          if (inputValue && filteredRegistrations.length > 0) {
+          if (value && filteredRegistrations.length > 0) {
             setIsOpen(true);
           }
         }}
