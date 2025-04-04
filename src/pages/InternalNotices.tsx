@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { 
   Card, 
   CardContent, 
@@ -16,8 +16,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { addNotice, getNotices } from "../utils/noticeUtils";
-import { PlusCircle } from "lucide-react";
+import { addNotice, getNotices, updateNotice, deleteNotice } from "../utils/noticeUtils";
+import { PlusCircle, Edit, Trash } from "lucide-react";
 
 // Define the Notice type
 export interface Notice {
@@ -35,6 +35,8 @@ const InternalNotices = () => {
   const [notices, setNotices] = useState<Notice[]>([]);
   const [selectedNotice, setSelectedNotice] = useState<Notice | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
   
   const form = useForm<Omit<Notice, 'id' | 'date' | 'author'>>({
     defaultValues: {
@@ -44,6 +46,25 @@ const InternalNotices = () => {
       content: ""
     }
   });
+
+  // Reset form when selectedNotice changes
+  useEffect(() => {
+    if (selectedNotice && isEditing) {
+      form.reset({
+        title: selectedNotice.title,
+        category: selectedNotice.category,
+        description: selectedNotice.description,
+        content: selectedNotice.content
+      });
+    } else if (!isEditing) {
+      form.reset({
+        title: "",
+        category: "",
+        description: "",
+        content: ""
+      });
+    }
+  }, [selectedNotice, isEditing, form]);
 
   useEffect(() => {
     // Load notices on component mount
@@ -72,28 +93,76 @@ const InternalNotices = () => {
 
     setIsLoading(true);
     try {
-      const newNotice: Notice = {
-        ...values,
-        date: new Date().toISOString(),
-        author: currentUser.email
-      };
+      if (isEditing && selectedNotice?.id) {
+        // Update existing notice
+        await updateNotice(selectedNotice.id, values);
+        toast.success("Notice updated successfully");
+      } else {
+        // Add new notice
+        const newNotice: Notice = {
+          ...values,
+          date: new Date().toISOString(),
+          author: currentUser.email
+        };
+        
+        await addNotice(newNotice);
+        toast.success("Notice added successfully");
+      }
       
-      await addNotice(newNotice);
-      
-      // Reload notices after adding a new one
+      // Reload notices after adding or updating
       const updatedNotices = await getNotices();
       setNotices(updatedNotices);
       
-      // Reset form
+      // Reset form and close dialog
       form.reset();
+      setIsEditing(false);
+      setSelectedNotice(null);
+      setDialogOpen(false);
       
-      toast.success("Notice added successfully");
     } catch (error) {
-      console.error("Error adding notice:", error);
-      toast.error("Failed to add notice");
+      console.error("Error saving notice:", error);
+      toast.error(isEditing ? "Failed to update notice" : "Failed to add notice");
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleEdit = (notice: Notice) => {
+    setIsEditing(true);
+    setSelectedNotice(notice);
+    setDialogOpen(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (confirm("Are you sure you want to delete this notice?")) {
+      setIsLoading(true);
+      try {
+        await deleteNotice(id);
+        
+        // Reload notices after deletion
+        const updatedNotices = await getNotices();
+        setNotices(updatedNotices);
+        
+        toast.success("Notice deleted successfully");
+      } catch (error) {
+        console.error("Error deleting notice:", error);
+        toast.error("Failed to delete notice");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+
+  const openAddDialog = () => {
+    setIsEditing(false);
+    setSelectedNotice(null);
+    form.reset({
+      title: "",
+      category: "",
+      description: "",
+      content: ""
+    });
+    setDialogOpen(true);
   };
 
   return (
@@ -102,87 +171,10 @@ const InternalNotices = () => {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Internal Notices</h1>
           
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button className="flex items-center gap-2">
-                <PlusCircle size={18} />
-                <span>Add Notice</span>
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
-              <DialogHeader>
-                <DialogTitle>Add New Internal Notice</DialogTitle>
-              </DialogHeader>
-              
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="title"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Title</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Notice title" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="category"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Category</FormLabel>
-                        <FormControl>
-                          <Input placeholder="e.g., Maintenance, Announcement" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Brief Description</FormLabel>
-                        <FormControl>
-                          <Textarea placeholder="Short description for the notice card" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="content"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Full Content</FormLabel>
-                        <FormControl>
-                          <Textarea 
-                            placeholder="Paste the full email content here" 
-                            className="min-h-[200px]" 
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <Button type="submit" disabled={isLoading}>
-                    {isLoading ? "Adding..." : "Add Notice"}
-                  </Button>
-                </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
+          <Button className="flex items-center gap-2" onClick={openAddDialog}>
+            <PlusCircle size={18} />
+            <span>Add Notice</span>
+          </Button>
         </div>
         
         {isLoading && notices.length === 0 ? (
@@ -200,6 +192,22 @@ const InternalNotices = () => {
                       <div className="inline-block px-2 py-1 rounded-full bg-primary/10 text-primary text-xs mt-2">
                         {notice.category}
                       </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => handleEdit(notice)}
+                      >
+                        <Edit size={16} />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => notice.id && handleDelete(notice.id)}
+                      >
+                        <Trash size={16} />
+                      </Button>
                     </div>
                   </div>
                   <CardDescription className="text-gray-300">
@@ -245,6 +253,96 @@ const InternalNotices = () => {
           </div>
         )}
       </div>
+
+      {/* Add/Edit Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>{isEditing ? "Edit Notice" : "Add New Internal Notice"}</DialogTitle>
+          </DialogHeader>
+          
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Title</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Notice title" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Category</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., Maintenance, Announcement" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Brief Description</FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="Short description for the notice card" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="content"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Full Content</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Paste the full email content here" 
+                        className="min-h-[200px]" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <div className="flex justify-end gap-2">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => {
+                    setDialogOpen(false);
+                    setIsEditing(false);
+                    form.reset();
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? (isEditing ? "Updating..." : "Adding...") : (isEditing ? "Update" : "Add")}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

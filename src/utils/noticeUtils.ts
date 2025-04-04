@@ -98,8 +98,12 @@ export const getNoticeById = async (id: string): Promise<Notice | null> => {
 export const updateNotice = async (id: string, notice: Partial<Notice>): Promise<boolean> => {
   try {
     const docRef = doc(db, COLLECTION_NAME, id);
+    
+    // Don't include updatedAt in the notice object to prevent it from overriding serverTimestamp()
+    const { id: _, ...noticeData } = notice as any;
+    
     await updateDoc(docRef, {
-      ...notice,
+      ...noticeData,
       updatedAt: serverTimestamp()
     });
     
