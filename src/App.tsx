@@ -14,6 +14,7 @@ import NotFound from "./pages/NotFound";
 import ServiceOrder from "./pages/ServiceOrder";
 import AircraftAdmin from "./pages/AircraftAdmin";
 import ArchiveRecords from "./pages/ArchiveRecords";
+import InternalNotices from "./pages/InternalNotices";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +37,11 @@ const App = () => (
             <Route path="/archive-records" element={
               <ProtectedRoute>
                 <ArchiveRecords />
+              </ProtectedRoute>
+            } />
+            <Route path="/internal-notices" element={
+              <ProtectedRoute>
+                <InternalNotices />
               </ProtectedRoute>
             } />
             <Route path="/service-order" element={

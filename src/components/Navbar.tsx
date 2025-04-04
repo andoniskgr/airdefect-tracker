@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Archive, FileText, Settings } from "lucide-react";
+import { Archive, FileText, Settings, Bell } from "lucide-react";
 
 const Navbar = () => {
   const { currentUser, logout } = useAuth();
@@ -40,6 +40,13 @@ const Navbar = () => {
               >
                 <Archive className="h-4 w-4" />
                 <span>Archives</span>
+              </Link>
+              <Link 
+                to="/internal-notices"
+                className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
+              >
+                <Bell className="h-4 w-4" />
+                <span>Internal Notices</span>
               </Link>
               <a 
                 href="/service-order" 
