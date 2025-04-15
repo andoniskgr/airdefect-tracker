@@ -73,9 +73,10 @@ export const useServiceOrderForm = () => {
     
     const formattedText = generateFormattedText(formData, selectedAircraft);
     
+    // First update the form data with the prepared text
     setFormData(prev => ({ ...prev, preparedText: formattedText }));
     
-    // Copy to clipboard
+    // Then copy to clipboard (no need to await this)
     copyToClipboard(formattedText);
   };
 
