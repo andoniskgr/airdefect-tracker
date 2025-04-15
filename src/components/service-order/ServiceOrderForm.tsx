@@ -4,6 +4,7 @@ import { ServiceOrderData, DefectType } from "./types";
 import ServiceTypeHeader from "./ServiceTypeHeader";
 import ServiceOrderFields from "./ServiceOrderFields";
 import ServiceOrderActions from "./ServiceOrderActions";
+import PreparedTextField from "./fields/PreparedTextField";
 
 interface ServiceOrderFormProps {
   formData: ServiceOrderData;
@@ -48,6 +49,10 @@ const ServiceOrderForm: React.FC<ServiceOrderFormProps> = ({
         onPrepareAndCopy={handlePrepareAndCopy}
         onClear={handleClear}
       />
+      
+      {formData.preparedText && (
+        <PreparedTextField preparedText={formData.preparedText} />
+      )}
     </div>
   );
 };
