@@ -17,7 +17,6 @@ const PreparedTextField: React.FC<PreparedTextFieldProps> = ({
         value={preparedText}
         className="w-full h-96 p-2 bg-white text-black rounded-md font-mono text-sm"
         placeholder="Enter prepared text here..."
-        readOnly
       />
     </div>
   );
