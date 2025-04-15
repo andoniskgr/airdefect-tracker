@@ -28,19 +28,21 @@ const PreparedTextField: React.FC<PreparedTextFieldProps> = ({
   };
   
   return (
-    <div className="mt-4 mb-4">
+    <div className="mt-4">
       <div className="flex items-center justify-between mb-2">
-        <label className="block text-white font-medium">Prepared text</label>
-        <Button 
-          type="button" 
-          variant="secondary" 
-          size="sm" 
-          onClick={handleCopy}
-          className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white"
-        >
-          <Copy className="h-4 w-4" />
-          <span>Copy Text</span>
-        </Button>
+        <label className="block">Prepared text</label>
+        {preparedText && (
+          <Button 
+            type="button" 
+            variant="outline" 
+            size="sm" 
+            onClick={handleCopy}
+            className="flex items-center gap-2"
+          >
+            <Copy className="h-4 w-4" />
+            Copy Text
+          </Button>
+        )}
       </div>
       <Textarea 
         name="preparedText"

@@ -45,14 +45,14 @@ const ServiceOrderForm: React.FC<ServiceOrderFormProps> = ({
         handleCheckboxChange={handleCheckboxChange}
       />
       
-      {formData.preparedText && (
-        <PreparedTextField preparedText={formData.preparedText} />
-      )}
-      
       <ServiceOrderActions 
         onPrepareAndCopy={handlePrepareAndCopy}
         onClear={handleClear}
       />
+      
+      {formData.preparedText && (
+        <PreparedTextField preparedText={formData.preparedText} />
+      )}
     </div>
   );
 };
