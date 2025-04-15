@@ -52,42 +52,15 @@ Access to manuals is made by AirnavX using the link : https://extranet.aegeanair
     return formattedText;
   };
 
-  const copyToClipboard = async (text: string): Promise<void> => {
-    if (!text) {
-      toast.error("No text to copy");
-      return;
-    }
-    
-    try {
-      // Use try-catch with async/await for better error handling
-      await navigator.clipboard.writeText(text.trim());
-      toast.success("Service order copied to clipboard!");
-    } catch (err) {
-      console.error('Failed to copy text: ', err);
-      
-      // Try fallback method if the primary method fails
-      try {
-        const textArea = document.createElement('textarea');
-        textArea.value = text.trim();
-        textArea.style.position = 'fixed';
-        textArea.style.opacity = '0';
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-        
-        const successful = document.execCommand('copy');
-        if (successful) {
-          toast.success("Service order copied to clipboard!");
-        } else {
-          toast.error("Failed to copy to clipboard. Please copy manually.");
-        }
-        
-        document.body.removeChild(textArea);
-      } catch (fallbackErr) {
-        console.error('Fallback copy method failed:', fallbackErr);
+  const copyToClipboard = (text: string): Promise<void> => {
+    return navigator.clipboard.writeText(text.trim())
+      .then(() => {
+        toast.success("Service order copied to clipboard!");
+      })
+      .catch(err => {
+        console.error('Failed to copy text: ', err);
         toast.error("Failed to copy to clipboard. Please copy manually.");
-      }
-    }
+      });
   };
 
   return {
