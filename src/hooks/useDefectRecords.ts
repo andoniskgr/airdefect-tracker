@@ -11,6 +11,7 @@ export const useDefectRecords = (userEmail: string | null | undefined) => {
   // useRecordOperations now handles loading archived dates from Firebase
   const { 
     handleDeleteRecord, 
+    handleUpdateRecord,
     handleDeleteAllByDate, 
     archiveDate,
     unarchiveDate,
@@ -70,6 +71,7 @@ export const useDefectRecords = (userEmail: string | null | undefined) => {
     sortConfig,
     handleSort,
     handleDeleteRecord,
+    handleUpdateRecord,
     handleDeleteAllByDate,
     handleArchiveDate,
     unarchiveDate,

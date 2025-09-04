@@ -11,6 +11,7 @@ interface RecordsTableProps {
   handleSort: (column: string) => void;
   handleEditRecord: (record: DefectRecord) => void;
   handleDeleteRecord: (id: string) => void;
+  handleUpdateRecord: (id: string, updates: Partial<DefectRecord>) => void;
   handleDeleteAllByDate: (date: string) => void;
   handleArchiveDate: (date: string) => void;
   sortConfig: { key: string, direction: 'asc' | 'desc' };
@@ -22,6 +23,7 @@ export const RecordsTable = ({
   handleSort, 
   handleEditRecord, 
   handleDeleteRecord,
+  handleUpdateRecord,
   handleDeleteAllByDate,
   handleArchiveDate,
   sortConfig,
@@ -74,6 +76,7 @@ export const RecordsTable = ({
               group={group}
               handleEditRecord={handleEditRecord}
               handleDeleteRecord={handleDeleteRecord}
+              handleUpdateRecord={handleUpdateRecord}
               handleDeleteAllByDate={handleDeleteAllByDate}
               handleArchiveDate={handleArchiveDate}
               handleSort={handleSort}

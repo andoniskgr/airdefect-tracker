@@ -17,6 +17,7 @@ interface DateGroupAccordionProps {
   group: DateGroup;
   handleEditRecord: (record: DefectRecord) => void;
   handleDeleteRecord: (id: string) => void;
+  handleUpdateRecord: (id: string, updates: Partial<DefectRecord>) => void;
   handleDeleteAllByDate: (date: string) => void;
   handleArchiveDate: (date: string) => void;
   handleSort: (column: string) => void;
@@ -29,6 +30,7 @@ export const DateGroupAccordion = ({
   group,
   handleEditRecord,
   handleDeleteRecord,
+  handleUpdateRecord,
   handleDeleteAllByDate,
   handleArchiveDate,
   handleSort,
@@ -89,6 +91,7 @@ export const DateGroupAccordion = ({
                 record={record} 
                 handleEditRecord={handleEditRecord} 
                 handleDeleteRecord={handleDeleteRecord}
+                handleUpdateRecord={handleUpdateRecord}
                 currentTime={currentTime}
               />
             ))}

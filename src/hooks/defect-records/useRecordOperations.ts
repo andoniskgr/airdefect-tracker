@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { deleteRecord, deleteRecordsByDate, saveArchivedDate, removeArchivedDate, getUserArchivedDates } from "../../utils/firebaseDB";
+import { deleteRecord, deleteRecordsByDate, saveArchivedDate, removeArchivedDate, getUserArchivedDates, saveRecord } from "../../utils/firebaseDB";
 import { DefectRecord } from "../../components/defect-records/DefectRecord.types";
 import { Dispatch, SetStateAction, useEffect } from "react";
 
@@ -34,6 +34,24 @@ export const useRecordOperations = (
     } catch (error) {
       console.error("Error deleting record:", error);
       toast.error("Failed to delete record: " + (error instanceof Error ? error.message : "Unknown error"));
+    }
+  };
+
+  const handleUpdateRecord = async (id: string, updates: Partial<DefectRecord>) => {
+    try {
+      // Create a complete record object with the updates
+      const updatedRecord: DefectRecord = {
+        id,
+        ...updates,
+        updatedBy: userEmail || undefined,
+        updatedAt: new Date().toISOString()
+      } as DefectRecord;
+      
+      await saveRecord(updatedRecord);
+      // Toast messages are handled by the calling component
+    } catch (error) {
+      console.error("Error updating record:", error);
+      throw error; // Re-throw to let the calling component handle the error
     }
   };
   
@@ -162,6 +180,7 @@ export const useRecordOperations = (
 
   return {
     handleDeleteRecord,
+    handleUpdateRecord,
     handleDeleteAllByDate,
     archiveDate,
     unarchiveDate,

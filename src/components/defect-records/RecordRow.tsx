@@ -1,14 +1,18 @@
 
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { MessageSquare, Pencil, Trash } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { MessageSquare, Trash } from "lucide-react";
 import { DefectRecord } from "./DefectRecord.types";
 import { toast } from "sonner";
+import { useState, useRef } from "react";
 
 interface RecordRowProps {
   record: DefectRecord;
   handleEditRecord: (record: DefectRecord) => void;
   handleDeleteRecord: (id: string) => void;
+  handleUpdateRecord: (id: string, updates: Partial<DefectRecord>) => void;
   currentTime: Date;
 }
 
@@ -16,8 +20,195 @@ export const RecordRow = ({
   record, 
   handleEditRecord, 
   handleDeleteRecord, 
+  handleUpdateRecord,
   currentTime 
 }: RecordRowProps) => {
+  const [localData, setLocalData] = useState<DefectRecord>(record);
+  const [isSaving, setIsSaving] = useState(false);
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Auto-save function with debouncing
+  const autoSave = (updates: Partial<DefectRecord>) => {
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+    
+    saveTimeoutRef.current = setTimeout(async () => {
+      setIsSaving(true);
+      try {
+        await handleUpdateRecord(record.id, updates);
+        // No toast for auto-save to avoid spam
+      } catch (error) {
+        toast.error("Failed to update record");
+      } finally {
+        setIsSaving(false);
+      }
+    }, 500); // 500ms debounce
+  };
+
+  const formatTimeInput = (input: string): string => {
+    // Remove any non-digit characters
+    const digitsOnly = input.replace(/[^\d]/g, '');
+    
+    // If we have 4 or more digits, format as HH:MM
+    if (digitsOnly.length >= 4) {
+      const hours = Math.min(parseInt(digitsOnly.substring(0, 2), 10), 23);
+      const minutes = Math.min(parseInt(digitsOnly.substring(2, 4), 10), 59);
+      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+    } else if (digitsOnly.length > 0) {
+      // Handle partial input (less than 4 digits)
+      if (digitsOnly.length <= 2) {
+        // Just hours, pad with leading zero if needed
+        const hours = Math.min(parseInt(digitsOnly, 10), 23);
+        return `${hours.toString().padStart(2, '0')}:00`;
+      } else {
+        // Hours and partial minutes
+        const hours = Math.min(parseInt(digitsOnly.substring(0, 2), 10), 23);
+        const minutes = Math.min(parseInt(digitsOnly.substring(2), 10), 59);
+        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+      }
+    }
+    
+    // Return empty string if no valid input
+    return '';
+  };
+
+  const handleTextChange = (field: keyof DefectRecord, value: string) => {
+    // Only update local state, don't auto-save on every keystroke
+    setLocalData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleTextBlur = (field: keyof DefectRecord, value: string) => {
+    // Save when exiting the field
+    const updates = { [field]: value };
+    setLocalData(prev => ({ ...prev, ...updates }));
+    autoSave(updates);
+  };
+
+  const handleTimeChange = (value: string) => {
+    // Only update local state, don't auto-save on every keystroke
+    setLocalData(prev => ({ ...prev, time: value }));
+  };
+
+  const handleTimeBlur = (value: string) => {
+    if (value.trim()) {
+      const formattedTime = formatTimeInput(value);
+      const updates = { time: formattedTime };
+      setLocalData(prev => ({ ...prev, ...updates }));
+      autoSave(updates);
+    }
+  };
+
+  const handleTimeFieldChange = (field: 'eta' | 'std' | 'upd', value: string) => {
+    // Only update local state, don't auto-save on every keystroke
+    setLocalData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleTimeFieldBlur = (field: 'eta' | 'std' | 'upd', value: string) => {
+    if (value.trim()) {
+      const formattedTime = formatTimeInput(value);
+      const updates = { [field]: formattedTime };
+      setLocalData(prev => ({ ...prev, ...updates }));
+      autoSave(updates);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, field: keyof DefectRecord) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      // Trigger immediate save for the current field
+      const currentValue = e.currentTarget.value;
+      const updates = { [field]: currentValue };
+      setLocalData(prev => ({ ...prev, ...updates }));
+      
+      // Clear any pending auto-save and save immediately
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+      
+      setIsSaving(true);
+      handleUpdateRecord(record.id, updates)
+        .then(() => {
+          // No toast for auto-save to avoid spam
+        })
+        .catch((error) => {
+          toast.error("Failed to update record");
+        })
+        .finally(() => {
+          setIsSaving(false);
+        });
+      
+      // Blur the field to remove focus
+      e.currentTarget.blur();
+    }
+  };
+
+  const handleTimeKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const currentValue = e.currentTarget.value;
+      const formattedTime = currentValue.trim() ? formatTimeInput(currentValue) : '';
+      const updates = { time: formattedTime };
+      setLocalData(prev => ({ ...prev, ...updates }));
+      
+      // Clear any pending auto-save and save immediately
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+      
+      setIsSaving(true);
+      handleUpdateRecord(record.id, updates)
+        .then(() => {
+          // No toast for auto-save to avoid spam
+        })
+        .catch((error) => {
+          toast.error("Failed to update record");
+        })
+        .finally(() => {
+          setIsSaving(false);
+        });
+      
+      // Blur the field to remove focus
+      e.currentTarget.blur();
+    }
+  };
+
+  const handleTimeFieldKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, field: 'eta' | 'std' | 'upd') => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const currentValue = e.currentTarget.value;
+      const formattedTime = currentValue.trim() ? formatTimeInput(currentValue) : '';
+      const updates = { [field]: formattedTime };
+      setLocalData(prev => ({ ...prev, ...updates }));
+      
+      // Clear any pending auto-save and save immediately
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+      
+      setIsSaving(true);
+      handleUpdateRecord(record.id, updates)
+        .then(() => {
+          // No toast for auto-save to avoid spam
+        })
+        .catch((error) => {
+          toast.error("Failed to update record");
+        })
+        .finally(() => {
+          setIsSaving(false);
+        });
+      
+      // Blur the field to remove focus
+      e.currentTarget.blur();
+    }
+  };
+
+  const handleCheckboxChange = (field: 'nxs' | 'rst' | 'dly' | 'sl' | 'pln' | 'ok', checked: boolean) => {
+    const updates = { [field]: checked };
+    setLocalData(prev => ({ ...prev, ...updates }));
+    autoSave(updates);
+  };
+
   const shouldFlashUpd = (record: DefectRecord) => {
     if (!record.upd || record.ok) {
       return false;
@@ -89,53 +280,200 @@ export const RecordRow = ({
   return (
     <TableRow 
       key={record.id} 
-      className={`table-animation ${getBgColor()} hover:bg-slate-50`}
+      className={`table-animation ${getBgColor()} hover:bg-slate-50 ${isSaving ? 'opacity-75' : ''}`}
     >
-      <TableCell className="text-lg uppercase px-4 py-3 font-medium">{record.time}</TableCell>
-      <TableCell className="text-lg uppercase px-4 py-3 font-medium">{record.registration}</TableCell>
-      <TableCell className="text-lg uppercase px-4 py-3 font-medium">{record.station}</TableCell>
-      <TableCell className="text-lg uppercase px-4 py-3 font-medium">{record.defect}</TableCell>
-      <TableCell className="text-lg uppercase px-4 py-3 font-medium">{record.remarks}</TableCell>
-      <TableCell className="text-lg uppercase px-4 py-3 font-medium">{record.eta}</TableCell>
-      <TableCell className="text-lg uppercase px-4 py-3 font-medium">{record.std}</TableCell>
-      <TableCell className={`text-lg uppercase px-4 py-3 font-medium ${shouldFlashUpd(record) ? 'flash-upd' : ''}`}>
-        {record.upd}
+      {/* Time - 6 characters */}
+      <TableCell className="px-1 py-3">
+        <Input
+          value={localData.time}
+          onChange={(e) => handleTimeChange(e.target.value)}
+          onBlur={(e) => handleTimeBlur(e.target.value)}
+          onKeyDown={handleTimeKeyDown}
+          placeholder="HH:MM"
+          maxLength={6}
+          className="text-sm uppercase font-medium h-8 border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300 w-[60px]"
+        />
       </TableCell>
-      <TableCell className="text-lg uppercase text-center px-4 py-3 font-medium">{record.nxs ? "YES" : "NO"}</TableCell>
-      <TableCell className="text-lg uppercase text-center px-4 py-3 font-medium">{record.rst ? "YES" : "NO"}</TableCell>
-      <TableCell className="text-lg uppercase text-center px-4 py-3 font-medium">{record.dly ? "YES" : "NO"}</TableCell>
-      <TableCell className="text-lg uppercase text-center px-4 py-3 font-medium">{record.sl ? "YES" : "NO"}</TableCell>
-      <TableCell className="text-lg uppercase text-center px-4 py-3 font-medium">{record.pln ? "YES" : "NO"}</TableCell>
-      <TableCell className="text-lg uppercase text-center px-4 py-3 font-medium">{record.ok ? "YES" : "NO"}</TableCell>
-      <TableCell className="px-4 py-3">
-        <div className="flex space-x-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => handleEditRecord(record)}
-            className="p-2 h-8 w-8 bg-slate-100 hover:bg-slate-200 border-slate-300"
-          >
-            <Pencil className="h-4 w-4" />
-            <span className="sr-only">Edit</span>
-          </Button>
+
+      {/* Registration - 6 characters */}
+      <TableCell className="px-1 py-3">
+        <Input
+          value={localData.registration}
+          onChange={(e) => handleTextChange('registration', e.target.value)}
+          onBlur={(e) => handleTextBlur('registration', e.target.value)}
+          onKeyDown={(e) => handleKeyDown(e, 'registration')}
+          maxLength={6}
+          className="text-sm uppercase font-medium h-8 border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300 w-[60px]"
+        />
+      </TableCell>
+
+      {/* Station - 6 characters */}
+      <TableCell className="px-1 py-3">
+        <Input
+          value={localData.station}
+          onChange={(e) => handleTextChange('station', e.target.value)}
+          onBlur={(e) => handleTextBlur('station', e.target.value)}
+          onKeyDown={(e) => handleKeyDown(e, 'station')}
+          maxLength={6}
+          className="text-sm uppercase font-medium h-8 border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300 w-[60px]"
+        />
+      </TableCell>
+
+      {/* Defect - 50 characters */}
+      <TableCell className="px-1 py-3">
+        <Input
+          value={localData.defect}
+          onChange={(e) => handleTextChange('defect', e.target.value)}
+          onBlur={(e) => handleTextBlur('defect', e.target.value)}
+          onKeyDown={(e) => handleKeyDown(e, 'defect')}
+          maxLength={50}
+          className="text-sm uppercase font-medium h-8 border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300 w-[300px]"
+        />
+      </TableCell>
+
+      {/* Remarks - 40 characters */}
+      <TableCell className="px-1 py-3">
+        <Input
+          value={localData.remarks}
+          onChange={(e) => handleTextChange('remarks', e.target.value)}
+          onBlur={(e) => handleTextBlur('remarks', e.target.value)}
+          onKeyDown={(e) => handleKeyDown(e, 'remarks')}
+          maxLength={40}
+          className="text-sm uppercase font-medium h-8 border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300 w-[250px]"
+        />
+      </TableCell>
+
+      {/* ETA - 6 characters */}
+      <TableCell className="px-1 py-3">
+        <Input
+          value={localData.eta}
+          onChange={(e) => handleTimeFieldChange('eta', e.target.value)}
+          onBlur={(e) => handleTimeFieldBlur('eta', e.target.value)}
+          onKeyDown={(e) => handleTimeFieldKeyDown(e, 'eta')}
+          placeholder="HH:MM"
+          maxLength={6}
+          className="text-sm uppercase font-medium h-8 border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300 w-[60px]"
+        />
+      </TableCell>
+
+      {/* STD - 6 characters */}
+      <TableCell className="px-1 py-3">
+        <Input
+          value={localData.std}
+          onChange={(e) => handleTimeFieldChange('std', e.target.value)}
+          onBlur={(e) => handleTimeFieldBlur('std', e.target.value)}
+          onKeyDown={(e) => handleTimeFieldKeyDown(e, 'std')}
+          placeholder="HH:MM"
+          maxLength={6}
+          className="text-sm uppercase font-medium h-8 border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300 w-[60px]"
+        />
+      </TableCell>
+
+      {/* UPD - 6 characters */}
+      <TableCell className={`px-1 py-3 ${shouldFlashUpd(record) ? 'flash-upd' : ''}`}>
+        <Input
+          value={localData.upd}
+          onChange={(e) => handleTimeFieldChange('upd', e.target.value)}
+          onBlur={(e) => handleTimeFieldBlur('upd', e.target.value)}
+          onKeyDown={(e) => handleTimeFieldKeyDown(e, 'upd')}
+          placeholder="HH:MM"
+          maxLength={6}
+          className="text-sm uppercase font-medium h-8 border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300 w-[60px]"
+        />
+      </TableCell>
+
+      {/* NXS */}
+      <TableCell className="text-center px-1 py-3">
+        <div className="flex justify-center">
+          <Checkbox
+            checked={localData.nxs}
+            onCheckedChange={(checked) => handleCheckboxChange('nxs', checked as boolean)}
+            className="h-6 w-6 bg-gray-200 border-2 border-gray-400 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+          />
+        </div>
+      </TableCell>
+
+      {/* RST */}
+      <TableCell className="text-center px-1 py-3">
+        <div className="flex justify-center">
+          <Checkbox
+            checked={localData.rst}
+            onCheckedChange={(checked) => handleCheckboxChange('rst', checked as boolean)}
+            className="h-6 w-6 bg-gray-200 border-2 border-gray-400 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+          />
+        </div>
+      </TableCell>
+
+      {/* DLY */}
+      <TableCell className="text-center px-1 py-3">
+        <div className="flex justify-center">
+          <Checkbox
+            checked={localData.dly}
+            onCheckedChange={(checked) => handleCheckboxChange('dly', checked as boolean)}
+            className="h-6 w-6 bg-gray-200 border-2 border-gray-400 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+          />
+        </div>
+      </TableCell>
+
+      {/* SL */}
+      <TableCell className="text-center px-1 py-3">
+        <div className="flex justify-center">
+          <Checkbox
+            checked={localData.sl}
+            onCheckedChange={(checked) => handleCheckboxChange('sl', checked as boolean)}
+            className="h-6 w-6 bg-gray-200 border-2 border-gray-400 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+          />
+        </div>
+      </TableCell>
+
+      {/* PLN */}
+      <TableCell className="text-center px-1 py-3">
+        <div className="flex justify-center">
+          <Checkbox
+            checked={localData.pln}
+            onCheckedChange={(checked) => handleCheckboxChange('pln', checked as boolean)}
+            className="h-6 w-6 bg-gray-200 border-2 border-gray-400 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+          />
+        </div>
+      </TableCell>
+
+      {/* OK */}
+      <TableCell className="text-center px-1 py-3">
+        <div className="flex justify-center">
+          <Checkbox
+            checked={localData.ok}
+            onCheckedChange={(checked) => handleCheckboxChange('ok', checked as boolean)}
+            className="h-6 w-6 bg-gray-200 border-2 border-gray-400 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+          />
+        </div>
+      </TableCell>
+
+      {/* Actions */}
+      <TableCell className="px-1 py-3">
+        <div className="flex space-x-1">
           <Button 
             variant="destructive" 
             size="sm" 
             onClick={() => handleDeleteRecord(record.id)}
-            className="p-2 h-8 w-8"
+            className="p-1 h-6 w-6"
           >
-            <Trash className="h-4 w-4" />
+            <Trash className="h-3 w-3" />
             <span className="sr-only">Delete</span>
           </Button>
           <Button 
             variant="default" 
             size="sm" 
             onClick={copyToTeams}
-            className="p-2 h-8 w-8 bg-blue-500 hover:bg-blue-600"
+            className="p-1 h-6 w-6 bg-blue-500 hover:bg-blue-600"
           >
-            <MessageSquare className="h-4 w-4" />
+            <MessageSquare className="h-3 w-3" />
             <span className="sr-only">Copy for Teams</span>
           </Button>
+          {isSaving && (
+            <div className="flex items-center text-xs text-gray-500">
+              Saving...
+            </div>
+          )}
         </div>
       </TableCell>
     </TableRow>

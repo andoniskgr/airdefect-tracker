@@ -22,6 +22,7 @@ const Index = () => {
     sortConfig,
     handleSort,
     handleDeleteRecord,
+    handleUpdateRecord,
     handleDeleteAllByDate,
     handleArchiveDate,
     exportToExcel,
@@ -73,6 +74,7 @@ const Index = () => {
               handleSort={handleSort}
               handleEditRecord={handleEditRecord}
               handleDeleteRecord={handleDeleteRecord}
+              handleUpdateRecord={handleUpdateRecord}
               handleDeleteAllByDate={handleDeleteAllByDate}
               handleArchiveDate={handleArchiveDate}
               sortConfig={sortConfig}
