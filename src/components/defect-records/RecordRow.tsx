@@ -291,7 +291,7 @@ export const RecordRow = ({
           onKeyDown={handleTimeKeyDown}
           placeholder="HH:MM"
           maxLength={6}
-          className="text-sm uppercase font-medium h-8 border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300 w-[60px]"
+          className="text-sm uppercase font-medium h-8 border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300 w-[80px]"
         />
       </TableCell>
 
@@ -352,7 +352,7 @@ export const RecordRow = ({
           onKeyDown={(e) => handleTimeFieldKeyDown(e, 'eta')}
           placeholder="HH:MM"
           maxLength={6}
-          className="text-sm uppercase font-medium h-8 border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300 w-[60px]"
+          className="text-sm uppercase font-medium h-8 border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300 w-[80px]"
         />
       </TableCell>
 
@@ -365,7 +365,7 @@ export const RecordRow = ({
           onKeyDown={(e) => handleTimeFieldKeyDown(e, 'std')}
           placeholder="HH:MM"
           maxLength={6}
-          className="text-sm uppercase font-medium h-8 border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300 w-[60px]"
+          className="text-sm uppercase font-medium h-8 border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300 w-[80px]"
         />
       </TableCell>
 
@@ -378,7 +378,7 @@ export const RecordRow = ({
           onKeyDown={(e) => handleTimeFieldKeyDown(e, 'upd')}
           placeholder="HH:MM"
           maxLength={6}
-          className="text-sm uppercase font-medium h-8 border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300 w-[60px]"
+          className="text-sm uppercase font-medium h-8 border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300 w-[80px]"
         />
       </TableCell>
 
