@@ -144,17 +144,6 @@ export const AddDefectModal = ({
             handleKeyDown={handleKeyDown}
           />
           
-          <TimingSection 
-            eta={formData.eta}
-            std={formData.std}
-            upd={formData.upd}
-            onEtaChange={(value) => handleFieldChange('eta', value)}
-            onStdChange={(value) => handleFieldChange('std', value)}
-            onUpdChange={(value) => handleFieldChange('upd', value)}
-            onEnterPressStd={() => stationRef.current?.focus()}
-            onEnterPressUpd={() => defectRef.current?.focus()}
-          />
-          
           <DescriptionSection 
             defect={formData.defect}
             remarks={formData.remarks}
@@ -164,6 +153,18 @@ export const AddDefectModal = ({
             remarksRef={remarksRef}
             validationErrors={validationErrors}
             handleKeyDown={handleKeyDown}
+          />
+          
+          <TimingSection 
+            eta={formData.eta}
+            std={formData.std}
+            upd={formData.upd}
+            onEtaChange={(value) => handleFieldChange('eta', value)}
+            onStdChange={(value) => handleFieldChange('std', value)}
+            onUpdChange={(value) => handleFieldChange('upd', value)}
+            onEnterPressEta={() => defectRef.current?.focus()}
+            onEnterPressStd={() => remarksRef.current?.focus()}
+            onEnterPressUpd={() => defectRef.current?.focus()}
           />
           
           <CheckboxGroup 

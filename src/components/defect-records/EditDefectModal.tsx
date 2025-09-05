@@ -81,15 +81,6 @@ export const EditDefectModal = ({
             handleKeyDown={() => {}}
           />
           
-          <TimingSection 
-            eta={editingRecord.eta}
-            std={editingRecord.std}
-            upd={editingRecord.upd}
-            onEtaChange={(value) => handleFieldChange('eta', value)}
-            onStdChange={(value) => handleFieldChange('std', value)}
-            onUpdChange={(value) => handleFieldChange('upd', value)}
-          />
-          
           <DescriptionSection 
             defect={editingRecord.defect}
             remarks={editingRecord.remarks}
@@ -99,6 +90,15 @@ export const EditDefectModal = ({
             remarksRef={remarksRef}
             validationErrors={{}}
             handleKeyDown={() => {}}
+          />
+          
+          <TimingSection 
+            eta={editingRecord.eta}
+            std={editingRecord.std}
+            upd={editingRecord.upd}
+            onEtaChange={(value) => handleFieldChange('eta', value)}
+            onStdChange={(value) => handleFieldChange('std', value)}
+            onUpdChange={(value) => handleFieldChange('upd', value)}
           />
           
           <CheckboxGroup 
