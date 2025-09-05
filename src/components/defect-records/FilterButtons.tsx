@@ -94,7 +94,7 @@ export const FilterButtons = ({
               variant={filter === 'ok' ? 'default' : 'outline'}
               className={`text-sm uppercase font-semibold w-full ${filter === 'ok' ? 'bg-slate-700 text-white' : 'bg-white text-slate-800 border-slate-300'}`}
             >
-              OK Only
+              SOLVED
             </Button>
             <Button 
               onClick={() => {
@@ -104,7 +104,7 @@ export const FilterButtons = ({
               variant={filter === 'pln' ? 'default' : 'outline'}
               className={`text-sm uppercase font-semibold w-full ${filter === 'pln' ? 'bg-slate-700 text-white' : 'bg-white text-slate-800 border-slate-300'}`}
             >
-              PLN Only
+              PLN
             </Button>
             <Button 
               onClick={() => {
@@ -114,7 +114,7 @@ export const FilterButtons = ({
               variant={filter === 'nxs' ? 'default' : 'outline'}
               className={`text-sm uppercase font-semibold w-full ${filter === 'nxs' ? 'bg-slate-700 text-white' : 'bg-white text-slate-800 border-slate-300'}`}
             >
-              NXS Only
+              NXS
             </Button>
           </div>
           <DrawerFooter>
@@ -150,21 +150,21 @@ export const FilterButtons = ({
           variant={filter === 'ok' ? 'default' : 'outline'}
           className={`text-sm uppercase font-semibold ${filter === 'ok' ? 'bg-slate-700 text-white' : 'bg-white text-slate-800 border-slate-300 hover:bg-slate-100'}`}
         >
-          OK Only
+          SOLVED
         </Button>
         <Button 
           onClick={() => setFilter('pln')}
           variant={filter === 'pln' ? 'default' : 'outline'}
           className={`text-sm uppercase font-semibold ${filter === 'pln' ? 'bg-slate-700 text-white' : 'bg-white text-slate-800 border-slate-300 hover:bg-slate-100'}`}
         >
-          PLN Only
+          PLN
         </Button>
         <Button 
           onClick={() => setFilter('nxs')}
           variant={filter === 'nxs' ? 'default' : 'outline'}
           className={`text-sm uppercase font-semibold ${filter === 'nxs' ? 'bg-slate-700 text-white' : 'bg-white text-slate-800 border-slate-300 hover:bg-slate-100'}`}
         >
-          NXS Only
+          NXS
         </Button>
         <Button
           onClick={exportToExcel}
