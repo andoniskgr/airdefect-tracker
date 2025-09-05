@@ -106,6 +106,16 @@ export const FilterButtons = ({
             >
               PLN Only
             </Button>
+            <Button 
+              onClick={() => {
+                setFilter('nxs');
+                setFiltersOpen(false);
+              }}
+              variant={filter === 'nxs' ? 'default' : 'outline'}
+              className={`text-sm uppercase font-semibold w-full ${filter === 'nxs' ? 'bg-slate-700 text-white' : 'bg-white text-slate-800 border-slate-300'}`}
+            >
+              NXS Only
+            </Button>
           </div>
           <DrawerFooter>
             <DrawerClose asChild>
@@ -124,7 +134,7 @@ export const FilterButtons = ({
         <Button 
           onClick={() => setFilter('all')}
           variant={filter === 'all' ? 'default' : 'outline'}
-          className="text-sm uppercase font-semibold bg-slate-700 text-white hover:bg-slate-800"
+          className={`text-sm uppercase font-semibold ${filter === 'all' ? 'bg-slate-700 text-white' : 'bg-white text-slate-800 border-slate-300 hover:bg-slate-100'}`}
         >
           All
         </Button>
@@ -148,6 +158,13 @@ export const FilterButtons = ({
           className={`text-sm uppercase font-semibold ${filter === 'pln' ? 'bg-slate-700 text-white' : 'bg-white text-slate-800 border-slate-300 hover:bg-slate-100'}`}
         >
           PLN Only
+        </Button>
+        <Button 
+          onClick={() => setFilter('nxs')}
+          variant={filter === 'nxs' ? 'default' : 'outline'}
+          className={`text-sm uppercase font-semibold ${filter === 'nxs' ? 'bg-slate-700 text-white' : 'bg-white text-slate-800 border-slate-300 hover:bg-slate-100'}`}
+        >
+          NXS Only
         </Button>
         <Button
           onClick={exportToExcel}

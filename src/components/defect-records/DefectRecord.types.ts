@@ -23,7 +23,7 @@ export interface DefectRecord {
   updatedAt?: string;
 }
 
-export type FilterType = 'all' | 'sl' | 'ok' | 'pln';
+export type FilterType = 'all' | 'sl' | 'ok' | 'pln' | 'nxs';
 export type ExportType = 'pdf' | 'excel';
 
 // Field mapping for Excel export

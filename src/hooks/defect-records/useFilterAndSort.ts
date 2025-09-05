@@ -31,6 +31,9 @@ export const useFilterAndSort = () => {
       records = records.filter(record => record.ok === true);
     } else if (filter === 'pln') {
       records = records.filter(record => record.pln === true);
+    } else if (filter === 'nxs') {
+      // For "NXS" filter: show records with NXS = true AND OK = false
+      records = records.filter(record => record.nxs === true && record.ok === false);
     }
     
     // Sort the records based on the current sort configuration
