@@ -30,7 +30,7 @@ const Navbar = () => {
       <div className="container mx-auto flex items-center justify-between px-4">
         <div className="flex items-center gap-4">
           <Link to="/" className="text-xl font-bold">
-            Defect Records App
+            Defect Records Application
           </Link>
           {currentUser && (
             <>
