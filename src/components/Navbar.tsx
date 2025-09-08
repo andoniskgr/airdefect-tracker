@@ -33,7 +33,7 @@ const Navbar = () => {
             Defect Records Application
           </Link>
           {currentUser && (
-            <>UPD
+            <>
               <Link 
                 to="/archive-records"
                 className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
