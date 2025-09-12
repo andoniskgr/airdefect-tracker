@@ -78,18 +78,32 @@
 
 /* Update the flash-upd animation for better visibility */
 .flash-upd {
-  animation: flashUpd 2s infinite;
-  font-weight: bold;
+  animation: flashUpd 1s infinite !important;
+  font-weight: bold !important;
+  border: 4px solid #dc2626 !important;
+  box-shadow: 0 0 10px rgba(220, 38, 38, 0.5) !important;
+  border-radius: 4px !important;
+  padding: 2px 4px !important;
 }
 
 @keyframes flashUpd {
-  0%, 49% {
-    background-color: inherit;
-    color: inherit;
+  0%, 40% {
+    background-color: #fef2f2 !important;
+    color: #dc2626 !important;
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 10px rgba(220, 38, 38, 0.5) !important;
   }
-  50%, 100% {
-    background-color: rgba(239, 68, 68, 0.8); /* More visible red color */
-    color: white;
+  50%, 90% {
+    background-color: #dc2626 !important;
+    color: white !important;
+    border-color: #991b1b !important;
+    box-shadow: 0 0 15px rgba(220, 38, 38, 0.8) !important;
+  }
+  100% {
+    background-color: #fef2f2 !important;
+    color: #dc2626 !important;
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 10px rgba(220, 38, 38, 0.5) !important;
   }
 }
 
