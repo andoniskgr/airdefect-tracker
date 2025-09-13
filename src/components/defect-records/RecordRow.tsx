@@ -8,8 +8,15 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import { MessageSquare, Trash, FileText, Settings } from "lucide-react";
+import {
+  MessageSquare,
+  Trash,
+  FileText,
+  Settings,
+  History,
+} from "lucide-react";
 import { DefectRecord } from "./DefectRecord.types";
+import { HistoryModal } from "./HistoryModal";
 import { toast } from "sonner";
 import { useState, useRef } from "react";
 
@@ -30,6 +37,7 @@ export const RecordRow = ({
 }: RecordRowProps) => {
   const [localData, setLocalData] = useState<DefectRecord>(record);
   const [isSaving, setIsSaving] = useState(false);
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Auto-save function with debouncing
@@ -41,7 +49,7 @@ export const RecordRow = ({
     saveTimeoutRef.current = setTimeout(async () => {
       setIsSaving(true);
       try {
-        await handleUpdateRecord(record.id, updates);
+        await handleUpdateRecord(record.id, updates, record);
         // No toast for auto-save to avoid spam
       } catch (error) {
         toast.error("Failed to update record");
@@ -84,13 +92,17 @@ export const RecordRow = ({
 
   const handleTextChange = (field: keyof DefectRecord, value: string) => {
     // Only update local state, don't auto-save on every keystroke
-    setLocalData((prev) => ({ ...prev, [field]: value }));
+    // Convert to uppercase for remarks field
+    const processedValue = field === "remarks" ? value.toUpperCase() : value;
+    setLocalData((prev) => ({ ...prev, [field]: processedValue }));
   };
 
   const handleTextBlur = (field: keyof DefectRecord, value: string) => {
     // Only save if the value actually changed
-    if (value !== record[field]) {
-      const updates = { [field]: value };
+    // Convert to uppercase for remarks field
+    const processedValue = field === "remarks" ? value.toUpperCase() : value;
+    if (processedValue !== record[field]) {
+      const updates = { [field]: processedValue };
       setLocalData((prev) => ({ ...prev, ...updates }));
       autoSave(updates);
     }
@@ -157,7 +169,7 @@ export const RecordRow = ({
       }
 
       setIsSaving(true);
-      handleUpdateRecord(record.id, updates)
+      handleUpdateRecord(record.id, updates, record)
         .then(() => {
           // No toast for auto-save to avoid spam
         })
@@ -189,7 +201,7 @@ export const RecordRow = ({
       }
 
       setIsSaving(true);
-      handleUpdateRecord(record.id, updates)
+      handleUpdateRecord(record.id, updates, record)
         .then(() => {
           // No toast for auto-save to avoid spam
         })
@@ -224,7 +236,7 @@ export const RecordRow = ({
       }
 
       setIsSaving(true);
-      handleUpdateRecord(record.id, updates)
+      handleUpdateRecord(record.id, updates, record)
         .then(() => {
           // No toast for auto-save to avoid spam
         })
@@ -264,6 +276,10 @@ export const RecordRow = ({
     // TODO: Implement managerial functionality
     toast.info("Managerial functionality coming soon!");
     console.log("Managerial for record:", record.id);
+  };
+
+  const handleHistory = () => {
+    setIsHistoryModalOpen(true);
   };
 
   const shouldFlashUpd = (record: DefectRecord) => {
@@ -350,242 +366,257 @@ export const RecordRow = ({
   };
 
   return (
-    <TableRow
-      key={record.id}
-      className={`table-animation ${getBgColor()} hover:bg-slate-50 ${
-        isSaving ? "opacity-75" : ""
-      }`}
-    >
-      {/* Time - 6 characters */}
-      <TableCell className="px-1 py-3">
-        <Input
-          value={localData.time}
-          onChange={(e) => handleTimeChange(e.target.value)}
-          onBlur={(e) => handleTimeBlur(e.target.value)}
-          onKeyDown={handleTimeKeyDown}
-          onFocus={handleFocus}
-          placeholder="HH:MM"
-          maxLength={6}
-          className="text-sm uppercase font-medium h-8 border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300 w-[80px]"
-        />
-      </TableCell>
-
-      {/* Registration - 6 characters */}
-      <TableCell className="px-1 py-3">
-        <ContextMenu>
-          <ContextMenuTrigger asChild>
-            <Input
-              value={localData.registration}
-              onChange={(e) => handleTextChange("registration", e.target.value)}
-              onBlur={(e) => handleTextBlur("registration", e.target.value)}
-              onKeyDown={(e) => handleKeyDown(e, "registration")}
-              onFocus={handleFocus}
-              maxLength={6}
-              className="text-sm uppercase font-medium h-8 border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300 w-[60px]"
-            />
-          </ContextMenuTrigger>
-          <ContextMenuContent>
-            <ContextMenuItem onClick={handleServiceOrder}>
-              <FileText className="mr-2 h-4 w-4" />
-              Service Order
-            </ContextMenuItem>
-            <ContextMenuItem onClick={handleManagerial}>
-              <Settings className="mr-2 h-4 w-4" />
-              Managerial
-            </ContextMenuItem>
-          </ContextMenuContent>
-        </ContextMenu>
-      </TableCell>
-
-      {/* Station - 6 characters */}
-      <TableCell className="px-1 py-3">
-        <Input
-          value={localData.station}
-          onChange={(e) => handleTextChange("station", e.target.value)}
-          onBlur={(e) => handleTextBlur("station", e.target.value)}
-          onKeyDown={(e) => handleKeyDown(e, "station")}
-          onFocus={handleFocus}
-          maxLength={6}
-          className="text-sm uppercase font-medium h-8 border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300 w-[60px]"
-        />
-      </TableCell>
-
-      {/* Defect - 50 characters */}
-      <TableCell className="px-1 py-3">
-        <Input
-          value={localData.defect}
-          onChange={(e) => handleTextChange("defect", e.target.value)}
-          onBlur={(e) => handleTextBlur("defect", e.target.value)}
-          onKeyDown={(e) => handleKeyDown(e, "defect")}
-          onFocus={handleFocus}
-          maxLength={50}
-          className="text-sm uppercase font-medium h-8 border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300 w-[300px]"
-        />
-      </TableCell>
-
-      {/* Remarks - 40 characters */}
-      <TableCell className="px-1 py-3">
-        <Input
-          value={localData.remarks}
-          onChange={(e) => handleTextChange("remarks", e.target.value)}
-          onBlur={(e) => handleTextBlur("remarks", e.target.value)}
-          onKeyDown={(e) => handleKeyDown(e, "remarks")}
-          onFocus={handleFocus}
-          maxLength={40}
-          className="text-sm uppercase font-medium h-8 border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300 w-[250px]"
-        />
-      </TableCell>
-
-      {/* ETA - 6 characters */}
-      <TableCell className="px-1 py-3">
-        <Input
-          value={localData.eta}
-          onChange={(e) => handleTimeFieldChange("eta", e.target.value)}
-          onBlur={(e) => handleTimeFieldBlur("eta", e.target.value)}
-          onKeyDown={(e) => handleTimeFieldKeyDown(e, "eta")}
-          onFocus={handleFocus}
-          placeholder="HH:MM"
-          maxLength={6}
-          className="text-sm uppercase font-medium h-8 border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300 w-[80px]"
-        />
-      </TableCell>
-
-      {/* STD - 6 characters */}
-      <TableCell className="px-1 py-3">
-        <Input
-          value={localData.std}
-          onChange={(e) => handleTimeFieldChange("std", e.target.value)}
-          onBlur={(e) => handleTimeFieldBlur("std", e.target.value)}
-          onKeyDown={(e) => handleTimeFieldKeyDown(e, "std")}
-          onFocus={handleFocus}
-          placeholder="HH:MM"
-          maxLength={6}
-          className="text-sm uppercase font-medium h-8 border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300 w-[80px]"
-        />
-      </TableCell>
-
-      {/* UPD - 6 characters */}
-      <TableCell
-        className={`px-1 py-3 ${shouldFlashUpd(record) ? "flash-upd" : ""}`}
+    <>
+      <TableRow
+        key={record.id}
+        className={`table-animation ${getBgColor()} hover:bg-slate-50 ${
+          isSaving ? "opacity-75" : ""
+        }`}
       >
-        <Input
-          value={localData.upd}
-          onChange={(e) => handleTimeFieldChange("upd", e.target.value)}
-          onBlur={(e) => handleTimeFieldBlur("upd", e.target.value)}
-          onKeyDown={(e) => handleTimeFieldKeyDown(e, "upd")}
-          onFocus={handleFocus}
-          placeholder="HH:MM"
-          maxLength={6}
-          className="text-sm uppercase font-medium h-8 border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300 w-[80px]"
-        />
-      </TableCell>
-
-      {/* NXS */}
-      <TableCell className="text-center px-1 py-3">
-        <div className="flex justify-center">
-          <Checkbox
-            checked={localData.nxs}
-            onCheckedChange={(checked) =>
-              handleCheckboxChange("nxs", checked as boolean)
-            }
-            className="h-6 w-6 bg-gray-200 border-2 border-gray-400 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+        {/* Time - 6 characters */}
+        <TableCell className="px-1 py-3">
+          <Input
+            value={localData.time}
+            onChange={(e) => handleTimeChange(e.target.value)}
+            onBlur={(e) => handleTimeBlur(e.target.value)}
+            onKeyDown={handleTimeKeyDown}
+            onFocus={handleFocus}
+            placeholder="HH:MM"
+            maxLength={6}
+            className="text-sm uppercase font-medium h-8 border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300 w-[80px]"
           />
-        </div>
-      </TableCell>
+        </TableCell>
 
-      {/* RST */}
-      <TableCell className="text-center px-1 py-3">
-        <div className="flex justify-center">
-          <Checkbox
-            checked={localData.rst}
-            onCheckedChange={(checked) =>
-              handleCheckboxChange("rst", checked as boolean)
-            }
-            className="h-6 w-6 bg-gray-200 border-2 border-gray-400 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+        {/* Registration - 6 characters */}
+        <TableCell className="px-1 py-3">
+          <ContextMenu>
+            <ContextMenuTrigger asChild>
+              <Input
+                value={localData.registration}
+                onChange={(e) =>
+                  handleTextChange("registration", e.target.value)
+                }
+                onBlur={(e) => handleTextBlur("registration", e.target.value)}
+                onKeyDown={(e) => handleKeyDown(e, "registration")}
+                onFocus={handleFocus}
+                maxLength={6}
+                className="text-sm uppercase font-medium h-8 border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300 w-[60px]"
+              />
+            </ContextMenuTrigger>
+            <ContextMenuContent>
+              <ContextMenuItem onClick={handleServiceOrder}>
+                <FileText className="mr-2 h-4 w-4" />
+                Service Order
+              </ContextMenuItem>
+              <ContextMenuItem onClick={handleManagerial}>
+                <Settings className="mr-2 h-4 w-4" />
+                Managerial
+              </ContextMenuItem>
+              <ContextMenuItem onClick={handleHistory}>
+                <History className="mr-2 h-4 w-4" />
+                History
+              </ContextMenuItem>
+            </ContextMenuContent>
+          </ContextMenu>
+        </TableCell>
+
+        {/* Station - 6 characters */}
+        <TableCell className="px-1 py-3">
+          <Input
+            value={localData.station}
+            onChange={(e) => handleTextChange("station", e.target.value)}
+            onBlur={(e) => handleTextBlur("station", e.target.value)}
+            onKeyDown={(e) => handleKeyDown(e, "station")}
+            onFocus={handleFocus}
+            maxLength={6}
+            className="text-sm uppercase font-medium h-8 border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300 w-[60px]"
           />
-        </div>
-      </TableCell>
+        </TableCell>
 
-      {/* DLY */}
-      <TableCell className="text-center px-1 py-3">
-        <div className="flex justify-center">
-          <Checkbox
-            checked={localData.dly}
-            onCheckedChange={(checked) =>
-              handleCheckboxChange("dly", checked as boolean)
-            }
-            className="h-6 w-6 bg-gray-200 border-2 border-gray-400 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+        {/* Defect - 50 characters */}
+        <TableCell className="px-1 py-3">
+          <Input
+            value={localData.defect}
+            onChange={(e) => handleTextChange("defect", e.target.value)}
+            onBlur={(e) => handleTextBlur("defect", e.target.value)}
+            onKeyDown={(e) => handleKeyDown(e, "defect")}
+            onFocus={handleFocus}
+            maxLength={50}
+            className="text-sm uppercase font-medium h-8 border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300 w-[300px]"
           />
-        </div>
-      </TableCell>
+        </TableCell>
 
-      {/* SL */}
-      <TableCell className="text-center px-1 py-3">
-        <div className="flex justify-center">
-          <Checkbox
-            checked={localData.sl}
-            onCheckedChange={(checked) =>
-              handleCheckboxChange("sl", checked as boolean)
-            }
-            className="h-6 w-6 bg-gray-200 border-2 border-gray-400 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+        {/* Remarks - 40 characters */}
+        <TableCell className="px-1 py-3">
+          <Input
+            value={localData.remarks}
+            onChange={(e) => handleTextChange("remarks", e.target.value)}
+            onBlur={(e) => handleTextBlur("remarks", e.target.value)}
+            onKeyDown={(e) => handleKeyDown(e, "remarks")}
+            onFocus={handleFocus}
+            maxLength={40}
+            className="text-sm uppercase font-medium h-8 border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300 w-[250px]"
           />
-        </div>
-      </TableCell>
+        </TableCell>
 
-      {/* PLN */}
-      <TableCell className="text-center px-1 py-3">
-        <div className="flex justify-center">
-          <Checkbox
-            checked={localData.pln}
-            onCheckedChange={(checked) =>
-              handleCheckboxChange("pln", checked as boolean)
-            }
-            className="h-6 w-6 bg-gray-200 border-2 border-gray-400 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+        {/* ETA - 6 characters */}
+        <TableCell className="px-1 py-3">
+          <Input
+            value={localData.eta}
+            onChange={(e) => handleTimeFieldChange("eta", e.target.value)}
+            onBlur={(e) => handleTimeFieldBlur("eta", e.target.value)}
+            onKeyDown={(e) => handleTimeFieldKeyDown(e, "eta")}
+            onFocus={handleFocus}
+            placeholder="HH:MM"
+            maxLength={6}
+            className="text-sm uppercase font-medium h-8 border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300 w-[80px]"
           />
-        </div>
-      </TableCell>
+        </TableCell>
 
-      {/* OK */}
-      <TableCell className="text-center px-1 py-3">
-        <div className="flex justify-center">
-          <Checkbox
-            checked={localData.ok}
-            onCheckedChange={(checked) =>
-              handleCheckboxChange("ok", checked as boolean)
-            }
-            className="h-6 w-6 bg-gray-200 border-2 border-gray-400 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+        {/* STD - 6 characters */}
+        <TableCell className="px-1 py-3">
+          <Input
+            value={localData.std}
+            onChange={(e) => handleTimeFieldChange("std", e.target.value)}
+            onBlur={(e) => handleTimeFieldBlur("std", e.target.value)}
+            onKeyDown={(e) => handleTimeFieldKeyDown(e, "std")}
+            onFocus={handleFocus}
+            placeholder="HH:MM"
+            maxLength={6}
+            className="text-sm uppercase font-medium h-8 border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300 w-[80px]"
           />
-        </div>
-      </TableCell>
+        </TableCell>
 
-      {/* Actions */}
-      <TableCell className="px-1 py-3">
-        <div className="flex space-x-1">
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() => handleDeleteRecord(record.id)}
-            className="p-1 h-6 w-6"
-          >
-            <Trash className="h-3 w-3" />
-            <span className="sr-only">Delete</span>
-          </Button>
-          <Button
-            variant="default"
-            size="sm"
-            onClick={copyToTeams}
-            className="p-1 h-6 w-6 bg-blue-500 hover:bg-blue-600"
-          >
-            <MessageSquare className="h-3 w-3" />
-            <span className="sr-only">Copy for Teams</span>
-          </Button>
-          {isSaving && (
-            <div className="flex items-center text-xs text-gray-500">
-              Saving...
-            </div>
-          )}
-        </div>
-      </TableCell>
-    </TableRow>
+        {/* UPD - 6 characters */}
+        <TableCell
+          className={`px-1 py-3 ${shouldFlashUpd(record) ? "flash-upd" : ""}`}
+        >
+          <Input
+            value={localData.upd}
+            onChange={(e) => handleTimeFieldChange("upd", e.target.value)}
+            onBlur={(e) => handleTimeFieldBlur("upd", e.target.value)}
+            onKeyDown={(e) => handleTimeFieldKeyDown(e, "upd")}
+            onFocus={handleFocus}
+            placeholder="HH:MM"
+            maxLength={6}
+            className="text-sm uppercase font-medium h-8 border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300 w-[80px]"
+          />
+        </TableCell>
+
+        {/* NXS */}
+        <TableCell className="text-center px-1 py-3">
+          <div className="flex justify-center">
+            <Checkbox
+              checked={localData.nxs}
+              onCheckedChange={(checked) =>
+                handleCheckboxChange("nxs", checked as boolean)
+              }
+              className="h-6 w-6 bg-gray-200 border-2 border-gray-400 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+            />
+          </div>
+        </TableCell>
+
+        {/* RST */}
+        <TableCell className="text-center px-1 py-3">
+          <div className="flex justify-center">
+            <Checkbox
+              checked={localData.rst}
+              onCheckedChange={(checked) =>
+                handleCheckboxChange("rst", checked as boolean)
+              }
+              className="h-6 w-6 bg-gray-200 border-2 border-gray-400 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+            />
+          </div>
+        </TableCell>
+
+        {/* DLY */}
+        <TableCell className="text-center px-1 py-3">
+          <div className="flex justify-center">
+            <Checkbox
+              checked={localData.dly}
+              onCheckedChange={(checked) =>
+                handleCheckboxChange("dly", checked as boolean)
+              }
+              className="h-6 w-6 bg-gray-200 border-2 border-gray-400 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+            />
+          </div>
+        </TableCell>
+
+        {/* SL */}
+        <TableCell className="text-center px-1 py-3">
+          <div className="flex justify-center">
+            <Checkbox
+              checked={localData.sl}
+              onCheckedChange={(checked) =>
+                handleCheckboxChange("sl", checked as boolean)
+              }
+              className="h-6 w-6 bg-gray-200 border-2 border-gray-400 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+            />
+          </div>
+        </TableCell>
+
+        {/* PLN */}
+        <TableCell className="text-center px-1 py-3">
+          <div className="flex justify-center">
+            <Checkbox
+              checked={localData.pln}
+              onCheckedChange={(checked) =>
+                handleCheckboxChange("pln", checked as boolean)
+              }
+              className="h-6 w-6 bg-gray-200 border-2 border-gray-400 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+            />
+          </div>
+        </TableCell>
+
+        {/* OK */}
+        <TableCell className="text-center px-1 py-3">
+          <div className="flex justify-center">
+            <Checkbox
+              checked={localData.ok}
+              onCheckedChange={(checked) =>
+                handleCheckboxChange("ok", checked as boolean)
+              }
+              className="h-6 w-6 bg-gray-200 border-2 border-gray-400 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+            />
+          </div>
+        </TableCell>
+
+        {/* Actions */}
+        <TableCell className="px-1 py-3">
+          <div className="flex space-x-1">
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => handleDeleteRecord(record.id)}
+              className="p-1 h-6 w-6"
+            >
+              <Trash className="h-3 w-3" />
+              <span className="sr-only">Delete</span>
+            </Button>
+            <Button
+              variant="default"
+              size="sm"
+              onClick={copyToTeams}
+              className="p-1 h-6 w-6 bg-blue-500 hover:bg-blue-600"
+            >
+              <MessageSquare className="h-3 w-3" />
+              <span className="sr-only">Copy for Teams</span>
+            </Button>
+            {isSaving && (
+              <div className="flex items-center text-xs text-gray-500">
+                Saving...
+              </div>
+            )}
+          </div>
+        </TableCell>
+      </TableRow>
+
+      {/* History Modal */}
+      <HistoryModal
+        isOpen={isHistoryModalOpen}
+        onOpenChange={setIsHistoryModalOpen}
+        record={record}
+      />
+    </>
   );
 };

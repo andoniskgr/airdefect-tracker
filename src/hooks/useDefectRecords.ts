@@ -12,7 +12,9 @@ export const useDefectRecords = (userEmail: string | null | undefined) => {
   const { 
     handleDeleteRecord, 
     handleUpdateRecord,
-    handleDeleteAllByDate, 
+    handleDeleteAllByDate,
+    handleDeleteMultipleDates,
+    handleDeleteAllRecords, 
     archiveDate,
     unarchiveDate,
     exportToExcel 
@@ -73,6 +75,8 @@ export const useDefectRecords = (userEmail: string | null | undefined) => {
     handleDeleteRecord,
     handleUpdateRecord,
     handleDeleteAllByDate,
+    handleDeleteMultipleDates,
+    handleDeleteAllRecords,
     handleArchiveDate,
     unarchiveDate,
     exportToExcel: exportToExcelWrapper,

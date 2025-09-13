@@ -53,14 +53,55 @@ Access to manuals is made by AirnavX using the link : https://extranet.aegeanair
   };
 
   const copyToClipboard = (text: string): Promise<void> => {
-    return navigator.clipboard.writeText(text.trim())
-      .then(() => {
-        toast.success("Service order copied to clipboard!");
-      })
-      .catch(err => {
-        console.error('Failed to copy text: ', err);
+    const trimmedText = text.trim();
+    
+    // Try modern clipboard API first
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(trimmedText)
+        .then(() => {
+          toast.success("Service order copied to clipboard!");
+        })
+        .catch(err => {
+          console.error('Clipboard API failed, trying fallback: ', err);
+          // Fallback to legacy method
+          return fallbackCopyToClipboard(trimmedText);
+        });
+    } else {
+      // Use fallback method
+      return fallbackCopyToClipboard(trimmedText);
+    }
+  };
+
+  const fallbackCopyToClipboard = (text: string): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      try {
+        // Create a temporary textarea element
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        textArea.style.top = "-999999px";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        // Execute the copy command
+        const successful = document.execCommand('copy');
+        document.body.removeChild(textArea);
+        
+        if (successful) {
+          toast.success("Service order copied to clipboard!");
+          resolve();
+        } else {
+          toast.error("Failed to copy to clipboard. Please copy manually.");
+          reject(new Error('Copy command failed'));
+        }
+      } catch (err) {
+        console.error('Fallback copy failed: ', err);
         toast.error("Failed to copy to clipboard. Please copy manually.");
-      });
+        reject(err);
+      }
+    });
   };
 
   return {

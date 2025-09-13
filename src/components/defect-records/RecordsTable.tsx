@@ -1,7 +1,6 @@
-
 import { Accordion } from "@/components/ui/accordion";
 import { Toaster } from "sonner";
-import { format } from 'date-fns';
+import { format } from "date-fns";
 import { DefectRecord } from "./DefectRecord.types";
 import { useState, useEffect } from "react";
 import { DateGroupAccordion } from "./DateGroupAccordion";
@@ -14,20 +13,20 @@ interface RecordsTableProps {
   handleUpdateRecord: (id: string, updates: Partial<DefectRecord>) => void;
   handleDeleteAllByDate: (date: string) => void;
   handleArchiveDate: (date: string) => void;
-  sortConfig: { key: string, direction: 'asc' | 'desc' };
+  sortConfig: { key: string; direction: "asc" | "desc" };
   isArchiveView?: boolean; // Add optional isArchiveView prop
 }
 
-export const RecordsTable = ({ 
-  records, 
-  handleSort, 
-  handleEditRecord, 
+export const RecordsTable = ({
+  records,
+  handleSort,
+  handleEditRecord,
   handleDeleteRecord,
   handleUpdateRecord,
   handleDeleteAllByDate,
   handleArchiveDate,
   sortConfig,
-  isArchiveView = false // Default to false
+  isArchiveView = false, // Default to false
 }: RecordsTableProps) => {
   const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -35,27 +34,27 @@ export const RecordsTable = ({
     const interval = setInterval(() => {
       setCurrentTime(new Date());
     }, 60000);
-    
+
     return () => clearInterval(interval);
   }, []);
 
   const groupRecordsByDate = () => {
     const groups: { [key: string]: DefectRecord[] } = {};
-    
-    records.forEach(record => {
-      const dateKey = format(new Date(record.date), 'yyyy-MM-dd');
+
+    records.forEach((record) => {
+      const dateKey = format(new Date(record.date), "yyyy-MM-dd");
       if (!groups[dateKey]) {
         groups[dateKey] = [];
       }
       groups[dateKey].push(record);
     });
-    
+
     return Object.keys(groups)
       .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
-      .map(dateKey => ({
+      .map((dateKey) => ({
         date: dateKey,
-        formattedDate: format(new Date(dateKey), 'dd/MM/yyyy'),
-        records: groups[dateKey]
+        formattedDate: format(new Date(dateKey), "dd/MM/yyyy"),
+        records: groups[dateKey],
       }));
   };
 
@@ -69,8 +68,12 @@ export const RecordsTable = ({
           No records found
         </div>
       ) : (
-        <Accordion type="multiple" defaultValue={[groupedRecords[0]?.date]} className="bg-white">
-          {groupedRecords.map(group => (
+        <Accordion
+          type="multiple"
+          defaultValue={[groupedRecords[0]?.date]}
+          className="bg-white"
+        >
+          {groupedRecords.map((group) => (
             <DateGroupAccordion
               key={group.date}
               group={group}

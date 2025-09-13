@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { collection, getDocs } from "firebase/firestore";
@@ -26,23 +25,26 @@ export const AircraftAutocomplete: React.FC<AircraftAutocompleteProps> = ({
   maxLength = 6,
   autoFocus = false,
   inputRef,
-  validationError = false
+  validationError = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [registrations, setRegistrations] = useState<string[]>([]);
-  const [filteredRegistrations, setFilteredRegistrations] = useState<string[]>([]);
+  const [filteredRegistrations, setFilteredRegistrations] = useState<string[]>(
+    []
+  );
   const containerRef = useRef<HTMLDivElement>(null);
-  
+  const blurTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   // Fetch aircraft registrations from Firestore
   useEffect(() => {
     const fetchAircraftData = async () => {
       try {
-        const aircraftCollection = collection(db, 'aircraft');
+        const aircraftCollection = collection(db, "aircraft");
         const aircraftSnapshot = await getDocs(aircraftCollection);
-        const aircraftRegs = aircraftSnapshot.docs.map(doc => 
-          doc.data().registration as string
-        ).filter(Boolean);
-        
+        const aircraftRegs = aircraftSnapshot.docs
+          .map((doc) => doc.data().registration as string)
+          .filter(Boolean);
+
         // Remove duplicates
         const uniqueRegs = [...new Set(aircraftRegs)];
         setRegistrations(uniqueRegs);
@@ -50,10 +52,10 @@ export const AircraftAutocomplete: React.FC<AircraftAutocompleteProps> = ({
         console.error("Error fetching aircraft data:", error);
       }
     };
-    
+
     fetchAircraftData();
   }, []);
-  
+
   // Filter registrations based on input value
   useEffect(() => {
     if (!value) {
@@ -61,44 +63,62 @@ export const AircraftAutocomplete: React.FC<AircraftAutocompleteProps> = ({
       setIsOpen(false);
       return;
     }
-    
+
     // Filter registrations that contain the input value (case insensitive)
-    const filtered = registrations.filter(reg => 
+    const filtered = registrations.filter((reg) =>
       reg.toLowerCase().includes(value.toLowerCase())
     );
-    
+
     setFilteredRegistrations(filtered);
     setIsOpen(filtered.length > 0);
   }, [value, registrations]);
-  
+
   // Click outside to close dropdown
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     };
-    
-    document.addEventListener('mousedown', handleClickOutside);
+
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-  
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (blurTimeoutRef.current) {
+        clearTimeout(blurTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value.toUpperCase();
     // Only slice if maxLength is provided and value exceeds it
     const finalValue = maxLength ? newValue.slice(0, maxLength) : newValue;
-    
+
     // Propagate change to parent component immediately
     onChange(finalValue);
   };
-  
+
   const handleItemClick = (registration: string) => {
+    // Clear any pending blur timeout
+    if (blurTimeoutRef.current) {
+      clearTimeout(blurTimeoutRef.current);
+      blurTimeoutRef.current = null;
+    }
+
     onChange(registration);
     setIsOpen(false);
   };
-  
+
   return (
     <div className="relative" ref={containerRef}>
       <Input
@@ -111,16 +131,24 @@ export const AircraftAutocomplete: React.FC<AircraftAutocompleteProps> = ({
             setIsOpen(true);
           }
         }}
+        onBlur={() => {
+          // Close suggestions when field loses focus with a small delay
+          // to allow click events on suggestions to be processed first
+          blurTimeoutRef.current = setTimeout(() => {
+            setIsOpen(false);
+          }, 150);
+        }}
         placeholder={placeholder}
         className={cn(
           "text-lg uppercase w-[120px]",
-          validationError && "bg-red-50 border-red-200 focus-visible:ring-red-300",
+          validationError &&
+            "bg-red-50 border-red-200 focus-visible:ring-red-300",
           className
         )}
         maxLength={maxLength}
         autoFocus={autoFocus}
       />
-      
+
       {isOpen && filteredRegistrations.length > 0 && (
         <div className="absolute z-50 mt-1 w-40 rounded-md bg-white shadow-lg">
           <ul className="max-h-60 overflow-auto py-1 text-base">

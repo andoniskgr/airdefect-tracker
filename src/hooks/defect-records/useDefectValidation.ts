@@ -5,7 +5,7 @@ export const useDefectValidation = () => {
   const [validationErrors, setValidationErrors] = useState<Record<string, boolean>>({});
 
   const validateField = (field: string, value: string): boolean => {
-    if (['registration', 'station', 'defect'].includes(field) && !value) {
+    if (['registration', 'station', 'defect', 'time'].includes(field) && !value) {
       return false;
     }
     if (['registration', 'station'].includes(field) && value.length > 6) {
@@ -15,7 +15,7 @@ export const useDefectValidation = () => {
   };
 
   const validateForm = (formData: Record<string, any>) => {
-    const requiredFields = ['registration', 'station', 'defect'];
+    const requiredFields = ['registration', 'station', 'defect', 'time'];
     const errors: Record<string, boolean> = {};
     let hasErrors = false;
 

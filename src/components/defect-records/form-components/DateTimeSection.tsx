@@ -1,10 +1,13 @@
-
-import { useState } from 'react';
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { TimePicker } from '@/components/ui/time-picker';
-import { format } from 'date-fns';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { TimePicker } from "@/components/ui/time-picker";
+import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
 interface DateTimeSectionProps {
@@ -12,15 +15,24 @@ interface DateTimeSectionProps {
   time: string;
   onDateChange: (date: string) => void;
   onTimeChange: (time: string) => void;
+  validationErrors?: Record<string, boolean>;
 }
 
-export const DateTimeSection = ({ date, time, onDateChange, onTimeChange }: DateTimeSectionProps) => {
+export const DateTimeSection = ({
+  date,
+  time,
+  onDateChange,
+  onTimeChange,
+  validationErrors,
+}: DateTimeSectionProps) => {
   const [calendarOpen, setCalendarOpen] = useState(false);
-  
+
   return (
     <div className="grid grid-cols-2 gap-4">
       <div>
-        <label className="text-lg font-medium mb-1 block uppercase">Date</label>
+        <label className="text-lg font-medium mb-1 block uppercase">
+          Date *
+        </label>
         <div className="relative">
           <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
             <PopoverTrigger asChild>
@@ -40,7 +52,7 @@ export const DateTimeSection = ({ date, time, onDateChange, onTimeChange }: Date
                 selected={date ? new Date(date) : undefined}
                 onSelect={(selectedDate) => {
                   if (selectedDate) {
-                    onDateChange(format(selectedDate, 'yyyy-MM-dd'));
+                    onDateChange(format(selectedDate, "yyyy-MM-dd"));
                     setCalendarOpen(false);
                   }
                 }}
@@ -52,11 +64,17 @@ export const DateTimeSection = ({ date, time, onDateChange, onTimeChange }: Date
         </div>
       </div>
       <div>
-        <label className="text-lg font-medium mb-1 block uppercase">Time</label>
+        <label className="text-lg font-medium mb-1 block uppercase">
+          Time *
+        </label>
         <TimePicker
           value={time}
           onChange={onTimeChange}
+          isError={validationErrors?.time}
         />
+        {validationErrors?.time && (
+          <p className="text-red-500 text-sm mt-1">Time is required</p>
+        )}
       </div>
     </div>
   );

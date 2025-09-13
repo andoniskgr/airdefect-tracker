@@ -1,4 +1,15 @@
 
+export interface RecordHistoryEntry {
+  id: string;
+  recordId: string;
+  field: string;
+  oldValue: any;
+  newValue: any;
+  changedBy: string;
+  changedAt: string;
+  changeType: 'create' | 'update' | 'delete';
+}
+
 export interface DefectRecord {
   id: string;
   date: string;
@@ -21,6 +32,7 @@ export interface DefectRecord {
   createdAt?: string;
   updatedBy?: string;
   updatedAt?: string;
+  history?: RecordHistoryEntry[];
 }
 
 export type FilterType = 'all' | 'sl' | 'ok' | 'pln' | 'nxs';

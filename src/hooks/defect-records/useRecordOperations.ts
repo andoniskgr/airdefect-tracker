@@ -1,7 +1,8 @@
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { deleteRecord, deleteRecordsByDate, saveArchivedDate, removeArchivedDate, getUserArchivedDates, saveRecord } from "../../utils/firebaseDB";
+import { deleteRecord, deleteRecordsByDate, deleteRecordsByDates, deleteAllRecords, saveArchivedDate, removeArchivedDate, getUserArchivedDates, saveRecord } from "../../utils/firebaseDB";
 import { DefectRecord } from "../../components/defect-records/DefectRecord.types";
+import { trackFieldChanges, createInitialHistory } from "../../utils/historyUtils";
 import { Dispatch, SetStateAction, useEffect } from "react";
 
 export const useRecordOperations = (
@@ -37,15 +38,24 @@ export const useRecordOperations = (
     }
   };
 
-  const handleUpdateRecord = async (id: string, updates: Partial<DefectRecord>) => {
+  const handleUpdateRecord = async (id: string, updates: Partial<DefectRecord>, oldRecord?: DefectRecord) => {
     try {
-      // Create a complete record object with the updates
+      // Create a complete record object by merging old record with updates
       const updatedRecord: DefectRecord = {
-        id,
-        ...updates,
+        ...oldRecord, // Start with the old record to ensure all fields are present
+        ...updates,   // Apply the updates
+        id,           // Ensure ID is correct
         updatedBy: userEmail || undefined,
         updatedAt: new Date().toISOString()
       } as DefectRecord;
+
+      // Track changes if old record is provided
+      if (oldRecord) {
+        const changes = trackFieldChanges(oldRecord, updatedRecord, userEmail || 'unknown');
+        if (changes.length > 0) {
+          updatedRecord.history = [...(oldRecord.history || []), ...changes];
+        }
+      }
       
       await saveRecord(updatedRecord);
       // Toast messages are handled by the calling component
@@ -178,10 +188,32 @@ export const useRecordOperations = (
     }
   };
 
+  const handleDeleteMultipleDates = async (dates: string[]) => {
+    try {
+      await deleteRecordsByDates(dates, userEmail);
+      toast.success(`Successfully deleted records from ${dates.length} date(s)!`);
+    } catch (error) {
+      console.error("Error deleting records:", error);
+      toast.error("Failed to delete records: " + (error instanceof Error ? error.message : "Unknown error"));
+    }
+  };
+
+  const handleDeleteAllRecords = async () => {
+    try {
+      await deleteAllRecords(userEmail);
+      toast.success("All records deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting all records:", error);
+      toast.error("Failed to delete all records: " + (error instanceof Error ? error.message : "Unknown error"));
+    }
+  };
+
   return {
     handleDeleteRecord,
     handleUpdateRecord,
     handleDeleteAllByDate,
+    handleDeleteMultipleDates,
+    handleDeleteAllRecords,
     archiveDate,
     unarchiveDate,
     exportToExcel

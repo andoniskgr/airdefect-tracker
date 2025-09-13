@@ -2,6 +2,7 @@
 import { useState, useCallback } from "react";
 import { DefectRecord } from "../components/defect-records/DefectRecord.types";
 import { saveRecord } from "../utils/firebaseDB";
+import { createInitialHistory } from "../utils/historyUtils";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
@@ -51,7 +52,10 @@ export const useDefectForm = (currentUserEmail: string | null | undefined) => {
         createdAt: timestamp,
         updatedBy: userEmail,
         updatedAt: timestamp
-      };
+      } as DefectRecord;
+
+      // Create initial history for the new record
+      newRecord.history = createInitialHistory(newRecord, userEmail);
       
       console.log("Saving new record with audit data:", newRecord);
       await saveRecord(newRecord);

@@ -227,6 +227,102 @@ export const deleteRecordsByDate = async (date: string, userEmail?: string | nul
   }
 };
 
+// Delete multiple records by multiple dates
+export const deleteRecordsByDates = async (dates: string[], userEmail?: string | null): Promise<void> => {
+  try {
+    const batch = writeBatch(db);
+    let totalDeleted = 0;
+    
+    for (const date of dates) {
+      // Get all records for this user and date
+      const recordsCollection = collection(db, COLLECTION_NAME);
+      let recordsQuery;
+      
+      if (userEmail) {
+        recordsQuery = query(recordsCollection, 
+          where("createdBy", "==", userEmail),
+          where("date", "==", date)
+        );
+      } else {
+        recordsQuery = query(recordsCollection, where("date", "==", date));
+      }
+      
+      const snapshot = await getDocs(recordsQuery);
+      
+      // Add to batch for deletion
+      snapshot.docs.forEach(document => {
+        batch.delete(doc(db, COLLECTION_NAME, document.id));
+        totalDeleted++;
+      });
+    }
+    
+    // Also remove the dates from archived dates if userEmail is provided
+    if (userEmail) {
+      for (const date of dates) {
+        await removeArchivedDate(userEmail, date);
+      }
+    }
+    
+    // Commit the batch
+    await batch.commit();
+    console.log(`Deleted ${totalDeleted} records across ${dates.length} dates`);
+  } catch (error) {
+    console.error('Firestore error:', error);
+    
+    // Check if error is a Firebase permission error
+    if (error instanceof Error && error.message.includes('permission')) {
+      console.error('This appears to be a Firebase security rules issue. Please update your Firestore security rules to allow read/write access.');
+      throw new Error('Firebase permission denied. Please update your Firestore security rules.');
+    }
+    
+    throw error;
+  }
+};
+
+// Delete all records for a user
+export const deleteAllRecords = async (userEmail?: string | null): Promise<void> => {
+  try {
+    // Get all records for this user
+    const recordsCollection = collection(db, COLLECTION_NAME);
+    let recordsQuery;
+    
+    if (userEmail) {
+      recordsQuery = query(recordsCollection, where("createdBy", "==", userEmail));
+    } else {
+      recordsQuery = recordsCollection;
+    }
+    
+    const snapshot = await getDocs(recordsQuery);
+    const batch = writeBatch(db);
+    
+    // Delete all records
+    snapshot.docs.forEach(document => {
+      batch.delete(doc(db, COLLECTION_NAME, document.id));
+    });
+    
+    // Commit the batch
+    await batch.commit();
+    
+    // Also clear all archived dates for this user
+    if (userEmail) {
+      const archivedDatesRef = doc(db, "archivedDates", userEmail);
+      await setDoc(archivedDatesRef, { dates: [] });
+    }
+    
+    console.log(`Deleted ${snapshot.docs.length} records`);
+  } catch (error) {
+    console.error('Firestore error:', error);
+    
+    // Check if error is a Firebase permission error
+    if (error instanceof Error && error.message.includes('permission')) {
+      console.error('This appears to be a Firebase security rules issue. Please update your Firestore security rules to allow read/write access.');
+      throw new Error('Firebase permission denied. Please update your Firestore security rules.');
+    }
+    
+    throw error;
+  }
+};
+
 // New functions for archived dates
 export const saveArchivedDate = async (userEmail: string, date: string) => {
   if (!userEmail) throw new Error("User email is required");
