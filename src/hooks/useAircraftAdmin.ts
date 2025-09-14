@@ -64,9 +64,13 @@ export const useAircraftAdmin = () => {
   // Handle the form input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    // Convert to uppercase for text fields
+    const processedValue = ['registration', 'type', 'engine', 'msn'].includes(name) 
+      ? value.toUpperCase() 
+      : value;
     setAircraftForm(prev => ({
       ...prev,
-      [name]: value,
+      [name]: processedValue,
     }));
   };
 
@@ -76,6 +80,29 @@ export const useAircraftAdmin = () => {
       ...prev,
       [name]: checked,
     }));
+  };
+
+  // Handle select changes
+  const handleSelectChange = (name: string, value: string) => {
+    // Convert to uppercase for text fields
+    const processedValue = ['type', 'engine'].includes(name) 
+      ? value.toUpperCase() 
+      : value;
+    setAircraftForm(prev => ({
+      ...prev,
+      [name]: processedValue,
+    }));
+  };
+
+  // Get unique existing types and engines from current aircraft data
+  const getExistingTypes = () => {
+    const types = aircraftData.map(aircraft => aircraft.type).filter(Boolean);
+    return [...new Set(types)].sort();
+  };
+
+  const getExistingEngines = () => {
+    const engines = aircraftData.map(aircraft => aircraft.engine).filter(Boolean);
+    return [...new Set(engines)].sort();
   };
 
   // Open add modal with empty form
@@ -319,6 +346,9 @@ export const useAircraftAdmin = () => {
     aircraftForm,
     handleInputChange,
     handleCheckboxChange,
+    handleSelectChange,
+    existingTypes: getExistingTypes(),
+    existingEngines: getExistingEngines(),
     openAddModal,
     openEditModal,
     handleAddSubmit,

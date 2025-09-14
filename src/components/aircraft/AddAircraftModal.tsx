@@ -1,5 +1,10 @@
-
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { AircraftForm } from "./AircraftForm";
 import { Aircraft } from "@/types/aircraft";
@@ -7,9 +12,12 @@ import { Aircraft } from "@/types/aircraft";
 interface AddAircraftModalProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  aircraftForm: Omit<Aircraft, 'id'>;
+  aircraftForm: Omit<Aircraft, "id">;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleCheckboxChange: (name: string, checked: boolean) => void;
+  handleSelectChange: (name: string, value: string) => void;
+  existingTypes: string[];
+  existingEngines: string[];
   handleAddSubmit: () => void;
 }
 
@@ -19,7 +27,10 @@ export const AddAircraftModal = ({
   aircraftForm,
   handleInputChange,
   handleCheckboxChange,
-  handleAddSubmit
+  handleSelectChange,
+  existingTypes,
+  existingEngines,
+  handleAddSubmit,
 }: AddAircraftModalProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -27,10 +38,13 @@ export const AddAircraftModal = ({
         <DialogHeader>
           <DialogTitle>Add New Aircraft</DialogTitle>
         </DialogHeader>
-        <AircraftForm 
+        <AircraftForm
           aircraftForm={aircraftForm}
           handleInputChange={handleInputChange}
           handleCheckboxChange={handleCheckboxChange}
+          handleSelectChange={handleSelectChange}
+          existingTypes={existingTypes}
+          existingEngines={existingEngines}
           formType="add"
         />
         <DialogFooter>

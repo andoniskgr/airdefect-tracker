@@ -1,24 +1,42 @@
-
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Aircraft } from "@/types/aircraft";
 
 interface AircraftFormProps {
-  aircraftForm: Omit<Aircraft, 'id'>;
+  aircraftForm: Omit<Aircraft, "id">;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleCheckboxChange: (name: string, checked: boolean) => void;
-  formType: 'add' | 'edit';
+  handleSelectChange: (name: string, value: string) => void;
+  existingTypes: string[];
+  existingEngines: string[];
+  formType: "add" | "edit";
 }
 
-export const AircraftForm = ({ 
-  aircraftForm, 
-  handleInputChange, 
+export const AircraftForm = ({
+  aircraftForm,
+  handleInputChange,
   handleCheckboxChange,
-  formType
+  handleSelectChange,
+  existingTypes,
+  existingEngines,
+  formType,
 }: AircraftFormProps) => {
-  const idPrefix = formType === 'edit' ? 'edit-' : '';
-  
+  const idPrefix = formType === "edit" ? "edit-" : "";
+
+  const isCustomType =
+    !existingTypes.includes(aircraftForm.type) && aircraftForm.type !== "";
+  const isCustomEngine =
+    !existingEngines.includes(aircraftForm.engine) &&
+    aircraftForm.engine !== "";
+
   return (
     <div className="grid gap-4 py-4">
       <div className="grid grid-cols-4 items-center gap-4">
@@ -38,27 +56,95 @@ export const AircraftForm = ({
         <Label htmlFor={`${idPrefix}type`} className="text-right">
           Type
         </Label>
-        <Input
-          id={`${idPrefix}type`}
-          name="type"
-          value={aircraftForm.type}
-          onChange={handleInputChange}
-          className="col-span-3"
-          placeholder="e.g. A320-232"
-        />
+        <div className="col-span-3">
+          {isCustomType ? (
+            <div>
+              <Input
+                placeholder="Enter custom aircraft type"
+                value={aircraftForm.type}
+                onChange={(e) => handleSelectChange("type", e.target.value)}
+                autoFocus
+              />
+              <button
+                type="button"
+                onClick={() => handleSelectChange("type", "")}
+                className="text-sm text-blue-600 hover:underline mt-1"
+              >
+                ← Back to list
+              </button>
+            </div>
+          ) : (
+            <Select
+              value={aircraftForm.type}
+              onValueChange={(value) => {
+                if (value === "custom") {
+                  handleSelectChange("type", "");
+                } else {
+                  handleSelectChange("type", value);
+                }
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select aircraft type or add custom" />
+              </SelectTrigger>
+              <SelectContent>
+                {existingTypes.map((type) => (
+                  <SelectItem key={type} value={type}>
+                    {type}
+                  </SelectItem>
+                ))}
+                <SelectItem value="custom">+ Add Custom Type</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+        </div>
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor={`${idPrefix}engine`} className="text-right">
           Engine
         </Label>
-        <Input
-          id={`${idPrefix}engine`}
-          name="engine"
-          value={aircraftForm.engine}
-          onChange={handleInputChange}
-          className="col-span-3"
-          placeholder="e.g. IAE V2527-A5"
-        />
+        <div className="col-span-3">
+          {isCustomEngine ? (
+            <div>
+              <Input
+                placeholder="Enter custom engine type"
+                value={aircraftForm.engine}
+                onChange={(e) => handleSelectChange("engine", e.target.value)}
+                autoFocus
+              />
+              <button
+                type="button"
+                onClick={() => handleSelectChange("engine", "")}
+                className="text-sm text-blue-600 hover:underline mt-1"
+              >
+                ← Back to list
+              </button>
+            </div>
+          ) : (
+            <Select
+              value={aircraftForm.engine}
+              onValueChange={(value) => {
+                if (value === "custom") {
+                  handleSelectChange("engine", "");
+                } else {
+                  handleSelectChange("engine", value);
+                }
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select engine type or add custom" />
+              </SelectTrigger>
+              <SelectContent>
+                {existingEngines.map((engine) => (
+                  <SelectItem key={engine} value={engine}>
+                    {engine}
+                  </SelectItem>
+                ))}
+                <SelectItem value="custom">+ Add Custom Engine</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+        </div>
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor={`${idPrefix}msn`} className="text-right">
@@ -81,7 +167,7 @@ export const AircraftForm = ({
           <Checkbox
             id={`${idPrefix}cls`}
             checked={aircraftForm.cls}
-            onCheckedChange={(checked) => 
+            onCheckedChange={(checked) =>
               handleCheckboxChange("cls", checked === true)
             }
           />
@@ -95,7 +181,7 @@ export const AircraftForm = ({
           <Checkbox
             id={`${idPrefix}wifi`}
             checked={aircraftForm.wifi}
-            onCheckedChange={(checked) => 
+            onCheckedChange={(checked) =>
               handleCheckboxChange("wifi", checked === true)
             }
           />
