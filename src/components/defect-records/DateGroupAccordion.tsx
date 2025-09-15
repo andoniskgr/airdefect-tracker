@@ -27,6 +27,7 @@ interface DateGroupAccordionProps {
   handleSort: (column: string) => void;
   sortConfig: { key: string; direction: "asc" | "desc" };
   currentTime: Date;
+  currentUserEmail?: string | null;
   isArchiveView?: boolean; // Add optional isArchiveView prop
 }
 
@@ -41,6 +42,7 @@ export const DateGroupAccordion = ({
   handleSort,
   sortConfig,
   currentTime,
+  currentUserEmail,
   isArchiveView = false, // Default to false
 }: DateGroupAccordionProps) => {
   return (
@@ -114,6 +116,7 @@ export const DateGroupAccordion = ({
                 handleUpdateRecord={handleUpdateRecord}
                 handleToggleVisibility={handleToggleVisibility}
                 currentTime={currentTime}
+                currentUserEmail={currentUserEmail}
               />
             ))}
           </TableBody>

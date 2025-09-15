@@ -40,6 +40,13 @@ export const useRecordOperations = (
 
   const handleToggleVisibility = async (record: DefectRecord) => {
     try {
+      // Security check: Only allow the record creator to toggle visibility
+      if (record.createdBy !== userEmail) {
+        console.warn(`User ${userEmail} attempted to toggle visibility for record ${record.id} created by ${record.createdBy}`);
+        toast.error("You can only change visibility of records you created");
+        return;
+      }
+
       // Handle existing records that might not have isPublic field (default to false)
       const currentVisibility = record.isPublic ?? false;
       const newVisibility = !currentVisibility;
@@ -66,6 +73,7 @@ export const useRecordOperations = (
       await saveRecord(updatedRecord);
       
       const visibilityText = newVisibility ? 'public' : 'private';
+      console.log(`Record ${record.id} is now ${visibilityText}. Created by: ${record.createdBy}, User: ${userEmail}`);
       toast.success(`Record is now ${visibilityText}!`);
     } catch (error) {
       console.error("Error toggling visibility:", error);

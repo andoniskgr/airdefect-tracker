@@ -15,6 +15,7 @@ interface RecordsTableProps {
   handleDeleteAllByDate: (date: string) => void;
   handleArchiveDate: (date: string) => void;
   sortConfig: { key: string; direction: "asc" | "desc" };
+  currentUserEmail?: string | null;
   isArchiveView?: boolean; // Add optional isArchiveView prop
 }
 
@@ -28,6 +29,7 @@ export const RecordsTable = ({
   handleDeleteAllByDate,
   handleArchiveDate,
   sortConfig,
+  currentUserEmail,
   isArchiveView = false, // Default to false
 }: RecordsTableProps) => {
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -88,6 +90,7 @@ export const RecordsTable = ({
               handleSort={handleSort}
               sortConfig={sortConfig}
               currentTime={currentTime}
+              currentUserEmail={currentUserEmail}
               isArchiveView={isArchiveView} // Pass the isArchiveView prop
             />
           ))}

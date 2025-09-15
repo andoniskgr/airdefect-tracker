@@ -85,6 +85,7 @@ const Index = () => {
               handleDeleteAllByDate={handleDeleteAllByDate}
               handleArchiveDate={handleArchiveDate}
               sortConfig={sortConfig}
+              currentUserEmail={currentUser?.email}
             />
           </div>
         )}

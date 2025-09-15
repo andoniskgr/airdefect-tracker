@@ -52,14 +52,13 @@ export const getAllRecords = async (userEmail?: string | null): Promise<DefectRe
         };
       });
 
-      // Get all public records from other users
+      // Get all public records (we'll filter out user's own records in the client)
       const publicRecordsQuery = query(
         recordsCollection, 
-        where("isPublic", "==", true),
-        where("createdBy", "!=", userEmail)
+        where("isPublic", "==", true)
       );
       const publicSnapshot = await getDocs(publicRecordsQuery);
-      const publicRecords = publicSnapshot.docs.map(doc => {
+      const allPublicRecords = publicSnapshot.docs.map(doc => {
         const data = doc.data() as Omit<DefectRecord, 'id'>;
         return { 
           id: doc.id,
@@ -68,8 +67,11 @@ export const getAllRecords = async (userEmail?: string | null): Promise<DefectRe
         };
       });
 
+      // Filter out user's own records from public records to avoid duplicates
+      const otherUsersPublicRecords = allPublicRecords.filter(record => record.createdBy !== userEmail);
+
       // Combine and return both sets
-      return [...userRecords, ...publicRecords];
+      return [...userRecords, ...otherUsersPublicRecords];
     } else {
       // If no user email, get all records (for admin or testing)
       const snapshot = await getDocs(recordsCollection);

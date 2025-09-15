@@ -35,11 +35,10 @@ export const useFetchRecords = (userEmail: string | null | undefined) => {
       const unsubscribeUser = onSnapshot(userRecordsQuery, async (userSnapshot) => {
         console.log(`User records snapshot received, docs count: ${userSnapshot.docs.length} for user ${userEmail}`);
         
-        // Get public records from other users
+        // Get all public records (we'll filter out user's own records in the client)
         const publicRecordsQuery = query(
           recordsCollection, 
-          where("isPublic", "==", true),
-          where("createdBy", "!=", userEmail)
+          where("isPublic", "==", true)
         );
         
         try {
@@ -55,7 +54,7 @@ export const useFetchRecords = (userEmail: string | null | undefined) => {
             } as DefectRecord;
           });
           
-          const publicRecords = publicSnapshot.docs.map((doc) => {
+          const allPublicRecords = publicSnapshot.docs.map((doc) => {
             const data = doc.data();
             return {
               id: doc.id,
@@ -64,8 +63,23 @@ export const useFetchRecords = (userEmail: string | null | undefined) => {
             } as DefectRecord;
           });
           
+          // Filter out user's own records from public records to avoid duplicates
+          const otherUsersPublicRecords = allPublicRecords.filter(record => record.createdBy !== userEmail);
+          
+          console.log(`User records: ${userRecords.length}, Other users' public records: ${otherUsersPublicRecords.length}`);
+          
+          // Log some details about public records for debugging
+          if (otherUsersPublicRecords.length > 0) {
+            console.log('Public records from other users:', otherUsersPublicRecords.map(r => ({
+              id: r.id,
+              createdBy: r.createdBy,
+              isPublic: r.isPublic,
+              registration: r.registration
+            })));
+          }
+          
           // Combine both sets
-          const allRecords = [...userRecords, ...publicRecords];
+          const allRecords = [...userRecords, ...otherUsersPublicRecords];
           setDefectRecords(allRecords);
           setLoading(false);
         } catch (error) {

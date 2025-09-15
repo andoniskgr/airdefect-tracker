@@ -374,6 +374,7 @@ const ArchiveRecords = () => {
                   handleDeleteAllByDate={handleDeleteAllByDate}
                   handleArchiveDate={handleArchiveDate}
                   sortConfig={sortConfig}
+                  currentUserEmail={currentUser?.email}
                   isArchiveView={true}
                 />
               </div>

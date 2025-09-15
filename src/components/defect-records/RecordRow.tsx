@@ -30,6 +30,7 @@ interface RecordRowProps {
   handleUpdateRecord: (id: string, updates: Partial<DefectRecord>) => void;
   handleToggleVisibility: (record: DefectRecord) => void;
   currentTime: Date;
+  currentUserEmail?: string | null;
 }
 
 export const RecordRow = ({
@@ -39,6 +40,7 @@ export const RecordRow = ({
   handleUpdateRecord,
   handleToggleVisibility,
   currentTime,
+  currentUserEmail,
 }: RecordRowProps) => {
   const [localData, setLocalData] = useState<DefectRecord>(record);
   const [isSaving, setIsSaving] = useState(false);
@@ -363,7 +365,7 @@ export const RecordRow = ({
 
   const shouldFlashUpd = (record: DefectRecord) => {
     // Check if UPD field is empty or record is marked as OK
-    if (!record.upd || record.upd.trim() === "" || record.ok) {
+    if (!record.upd || record.upd.trim() === "" || localData.ok) {
       return false;
     }
 
@@ -387,8 +389,8 @@ export const RecordRow = ({
   };
 
   const getBgColor = () => {
-    if (record.ok) return "bg-green-200 text-slate-800";
-    if (record.sl) return "bg-yellow-200 text-slate-800";
+    if (localData.ok) return "bg-green-200 text-slate-800";
+    if (localData.sl) return "bg-yellow-200 text-slate-800";
     return "bg-white text-slate-800";
   };
 
@@ -683,18 +685,33 @@ export const RecordRow = ({
         {/* Actions */}
         <TableCell className="px-0 py-3" style={{ width: "3%" }}>
           <div className="flex space-x-1 items-center">
-            {/* Public/Private indicator - Clickable */}
-            <button
-              onClick={() => handleToggleVisibility(record)}
-              className="flex items-center hover:opacity-70 transition-opacity"
-              title={record.isPublic ? "Click to make private - Currently visible to other users" : "Click to make public - Currently only visible to you"}
-            >
-              {record.isPublic ? (
-                <Globe className="h-4 w-4 text-green-500" />
-              ) : (
-                <Lock className="h-4 w-4 text-gray-400" />
-              )}
-            </button>
+            {/* Public/Private indicator */}
+            {record.createdBy === currentUserEmail ? (
+              // Clickable for record creator
+              <button
+                onClick={() => handleToggleVisibility(record)}
+                className="flex items-center hover:opacity-70 transition-opacity"
+                title={record.isPublic ? "Click to make private - Currently visible to other users" : "Click to make public - Currently only visible to you"}
+              >
+                {record.isPublic ? (
+                  <Globe className="h-4 w-4 text-green-500" />
+                ) : (
+                  <Lock className="h-4 w-4 text-gray-400" />
+                )}
+              </button>
+            ) : (
+              // Read-only for other users
+              <div
+                className="flex items-center"
+                title={record.isPublic ? "Public record - Visible to all users" : "Private record - Only visible to creator"}
+              >
+                {record.isPublic ? (
+                  <Globe className="h-4 w-4 text-green-500" />
+                ) : (
+                  <Lock className="h-4 w-4 text-gray-400" />
+                )}
+              </div>
+            )}
             <Button
               variant="destructive"
               size="sm"
