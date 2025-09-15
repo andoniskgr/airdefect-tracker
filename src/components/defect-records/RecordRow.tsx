@@ -55,6 +55,17 @@ export const RecordRow = ({
     textarea.style.height = Math.max(textarea.scrollHeight, 32) + "px";
   };
 
+  // Sync localData with record prop when record changes from external sources
+  useEffect(() => {
+    console.log(`Record ${record.id} updated from external source:`, {
+      registration: record.registration,
+      defect: record.defect,
+      isPublic: record.isPublic,
+      updatedAt: record.updatedAt
+    });
+    setLocalData(record);
+  }, [record]);
+
   // Auto-adjust textarea heights on mount and when data changes
   useEffect(() => {
     if (defectTextareaRef.current) {

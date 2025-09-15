@@ -48,7 +48,12 @@ export const useFetchRecords = (userEmail: string | null | undefined) => {
         setDefectRecords(prevRecords => {
           // Keep other users' public records and update user's own records
           const otherUsersRecords = prevRecords.filter(record => record.createdBy !== userEmail);
-          return [...userRecords, ...otherUsersRecords];
+          const newRecords = [...userRecords, ...otherUsersRecords];
+          
+          // Log changes for debugging
+          console.log(`Updated user records. Total records: ${newRecords.length}`);
+          
+          return newRecords;
         });
         setLoading(false);
       }, (error) => {
@@ -79,23 +84,13 @@ export const useFetchRecords = (userEmail: string | null | undefined) => {
         
         console.log(`Other users' public records: ${otherUsersPublicRecords.length}`);
         
-        // Log some details about public records for debugging
-        if (otherUsersPublicRecords.length > 0) {
-          console.log('Public records from other users:', otherUsersPublicRecords.map(r => ({
-            id: r.id,
-            createdBy: r.createdBy,
-            isPublic: r.isPublic,
-            registration: r.registration
-          })));
-        }
-        
         // Update the records state with public records
         setDefectRecords(prevRecords => {
           // Keep user's own records and update public records from other users
           const userOwnRecords = prevRecords.filter(record => record.createdBy === userEmail);
           const newRecords = [...userOwnRecords, ...otherUsersPublicRecords];
           
-          // Log visibility changes for debugging
+          // Log changes for debugging
           const prevPublicCount = prevRecords.filter(r => r.createdBy !== userEmail && r.isPublic).length;
           const newPublicCount = otherUsersPublicRecords.length;
           if (newPublicCount !== prevPublicCount) {
