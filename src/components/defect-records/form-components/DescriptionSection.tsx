@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
 interface DescriptionSectionProps {
@@ -8,11 +7,11 @@ interface DescriptionSectionProps {
   remarks: string;
   onDefectChange: (value: string) => void;
   onRemarksChange: (value: string) => void;
-  defectRef: React.RefObject<HTMLTextAreaElement>;
-  remarksRef: React.RefObject<HTMLTextAreaElement>;
+  defectRef: React.RefObject<HTMLInputElement>;
+  remarksRef: React.RefObject<HTMLInputElement>;
   validationErrors: Record<string, boolean>;
   handleKeyDown: (
-    e: React.KeyboardEvent<HTMLTextAreaElement>,
+    e: React.KeyboardEvent<HTMLInputElement>,
     fieldName: string
   ) => void;
 }
@@ -75,14 +74,14 @@ export const DescriptionSection = ({
     }
   });
 
-  const handleDefectChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleDefectChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value.toUpperCase();
     defectCursorPosition.current = e.target.selectionStart;
     setDefectValue(newValue);
     onDefectChange(newValue);
   };
 
-  const handleRemarksChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleRemarksChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value.toUpperCase();
     remarksCursorPosition.current = e.target.selectionStart;
     setRemarksValue(newValue);
@@ -95,44 +94,30 @@ export const DescriptionSection = ({
         <label className="text-lg font-medium mb-1 block uppercase">
           Defect Description *
         </label>
-        <Textarea
+        <Input
           ref={defectRef}
           value={defectValue}
           onChange={handleDefectChange}
           onKeyDown={(e) => handleKeyDown(e, "defect")}
           placeholder="DESCRIPTION"
           className={cn(
-            "text-lg uppercase min-h-[40px] resize-none overflow-hidden",
+            "text-lg uppercase",
             validationErrors.defect &&
               "bg-red-50 border-red-200 focus-visible:ring-red-300"
           )}
-          rows={2}
-          style={{ height: 'auto' }}
-          onInput={(e) => {
-            const target = e.target as HTMLTextAreaElement;
-            target.style.height = 'auto';
-            target.style.height = target.scrollHeight + 'px';
-          }}
         />
       </div>
       <div>
         <label className="text-lg font-medium mb-1 block uppercase">
           Remarks
         </label>
-        <Textarea
+        <Input
           ref={remarksRef}
           value={remarksValue}
           onChange={handleRemarksChange}
           onKeyDown={(e) => handleKeyDown(e, "remarks")}
           placeholder="REMARKS"
-          className="text-lg uppercase min-h-[40px] resize-none overflow-hidden"
-          rows={2}
-          style={{ height: 'auto' }}
-          onInput={(e) => {
-            const target = e.target as HTMLTextAreaElement;
-            target.style.height = 'auto';
-            target.style.height = target.scrollHeight + 'px';
-          }}
+          className="text-lg uppercase"
         />
       </div>
     </>

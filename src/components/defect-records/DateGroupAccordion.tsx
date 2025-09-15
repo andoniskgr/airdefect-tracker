@@ -79,13 +79,7 @@ export const DateGroupAccordion = ({
         </div>
       </div>
       <AccordionContent className="bg-white">
-        <Table 
-          className="w-full table-fixed" 
-          style={{
-            tableLayout: 'fixed',
-            width: '100%'
-          }}
-        >
+        <Table>
           <DefectTableHeader 
             handleSort={handleSort} 
             sortConfig={sortConfig} 
