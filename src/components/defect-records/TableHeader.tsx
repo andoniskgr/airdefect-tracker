@@ -1,6 +1,5 @@
 
 import { TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowUpDown } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface TableHeaderProps {
@@ -22,18 +21,18 @@ export const DefectTableHeader = ({ handleSort, sortConfig }: TableHeaderProps) 
     return null;
   };
 
-  const renderSortableHeader = (label: string, column: string, abbreviation?: string) => {
+  const renderSortableHeader = (label: string, column: string, abbreviation?: string, centerAlign = false) => {
     // Use abbreviations on mobile, full labels on desktop
     const displayText = isMobile ? (abbreviation || label) : (abbreviation || label);
     
     return (
       <TableHead 
-        className={`${isMobile ? 'text-xs px-1 py-2' : 'text-lg px-4 py-3'} uppercase cursor-pointer text-white font-bold`}
+        className={`${isMobile ? 'text-xs px-0.5 py-2' : 'text-lg px-0.5 py-3'} uppercase cursor-pointer text-white font-bold ${centerAlign ? 'text-center' : ''}`}
         onClick={() => handleSort(column)}
+        style={{ textAlign: centerAlign ? 'center' : 'left' }}
       >
-        <div className="flex items-center">
+        <div className={`flex items-center ${centerAlign ? 'justify-center' : ''}`}>
           {displayText} 
-          <ArrowUpDown className={`inline ${isMobile ? 'h-3 w-3 ml-1' : 'h-4 w-4 ml-2'}`} /> 
           {getSortIndicator(column)}
         </div>
       </TableHead>
@@ -49,10 +48,10 @@ export const DefectTableHeader = ({ handleSort, sortConfig }: TableHeaderProps) 
           {renderSortableHeader("REG", "registration", "REG")}
           {renderSortableHeader("STA", "station", "STA")}
           {renderSortableHeader("Defect", "defect")}
-          {renderSortableHeader("DLY", "dly")}
-          {renderSortableHeader("SL", "sl")}
-          {renderSortableHeader("OK", "ok")}
-          <TableHead className="text-xs uppercase px-1 py-2 text-white font-bold">Actions</TableHead>
+          {renderSortableHeader("DLY", "dly", undefined, true)}
+          {renderSortableHeader("SL", "sl", undefined, true)}
+          {renderSortableHeader("OK", "ok", undefined, true)}
+          <TableHead className="text-xs uppercase px-0.5 py-2 text-white font-bold text-center" style={{ textAlign: 'center' }}>Actions</TableHead>
         </TableRow>
       </TableHeader>
     );
@@ -70,13 +69,13 @@ export const DefectTableHeader = ({ handleSort, sortConfig }: TableHeaderProps) 
         {renderSortableHeader("ETA", "eta")}
         {renderSortableHeader("STD", "std")}
         {renderSortableHeader("UPD", "upd")}
-        {renderSortableHeader("NXS", "nxs")}
-        {renderSortableHeader("RST", "rst")}
-        {renderSortableHeader("DLY", "dly")}
-        {renderSortableHeader("SL", "sl")}
-        {renderSortableHeader("PLN", "pln")}
-        {renderSortableHeader("OK", "ok")}
-        <TableHead className="text-lg uppercase px-4 py-3 text-white font-bold">Actions</TableHead>
+        {renderSortableHeader("NXS", "nxs", undefined, true)}
+        {renderSortableHeader("RST", "rst", undefined, true)}
+        {renderSortableHeader("DLY", "dly", undefined, true)}
+        {renderSortableHeader("SL", "sl", undefined, true)}
+        {renderSortableHeader("PLN", "pln", undefined, true)}
+        {renderSortableHeader("OK", "ok", undefined, true)}
+        <TableHead className="text-lg uppercase px-0.5 py-3 text-white font-bold text-center" style={{ textAlign: 'center' }}>Actions</TableHead>
       </TableRow>
     </TableHeader>
   );

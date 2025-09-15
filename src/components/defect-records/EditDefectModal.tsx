@@ -34,8 +34,8 @@ export const EditDefectModal = ({
 
   const registrationRef = useRef<HTMLInputElement>(null);
   const stationRef = useRef<HTMLInputElement>(null);
-  const defectRef = useRef<HTMLInputElement>(null);
-  const remarksRef = useRef<HTMLInputElement>(null);
+  const defectRef = useRef<HTMLTextAreaElement>(null);
+  const remarksRef = useRef<HTMLTextAreaElement>(null);
 
   // Using useCallback to prevent recreation of handler on each render
   const handleFieldChange = useCallback((field: keyof DefectRecord, value: any) => {

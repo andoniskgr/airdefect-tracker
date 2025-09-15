@@ -35,8 +35,8 @@ export const AddDefectModal = ({
 }: AddDefectModalProps) => {
   const registrationRef = useRef<HTMLInputElement>(null);
   const stationRef = useRef<HTMLInputElement>(null);
-  const defectRef = useRef<HTMLInputElement>(null);
-  const remarksRef = useRef<HTMLInputElement>(null);
+  const defectRef = useRef<HTMLTextAreaElement>(null);
+  const remarksRef = useRef<HTMLTextAreaElement>(null);
   const timeRef = useRef<HTMLInputElement>(null);
 
   const { validationErrors, setValidationErrors, validateField, validateForm } =

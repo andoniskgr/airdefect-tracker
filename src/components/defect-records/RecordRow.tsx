@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   ContextMenu,
@@ -18,7 +19,7 @@ import {
 import { DefectRecord } from "./DefectRecord.types";
 import { HistoryModal } from "./HistoryModal";
 import { toast } from "sonner";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
 interface RecordRowProps {
   record: DefectRecord;
@@ -39,6 +40,24 @@ export const RecordRow = ({
   const [isSaving, setIsSaving] = useState(false);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const defectTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const remarksTextareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Function to adjust textarea height
+  const adjustTextareaHeight = (textarea: HTMLTextAreaElement) => {
+    textarea.style.height = 'auto';
+    textarea.style.height = Math.max(textarea.scrollHeight, 32) + 'px';
+  };
+
+  // Auto-adjust textarea heights on mount and when data changes
+  useEffect(() => {
+    if (defectTextareaRef.current) {
+      adjustTextareaHeight(defectTextareaRef.current);
+    }
+    if (remarksTextareaRef.current) {
+      adjustTextareaHeight(remarksTextareaRef.current);
+    }
+  }, [localData.defect, localData.remarks]);
 
   // Auto-save function with debouncing
   const autoSave = (updates: Partial<DefectRecord>) => {
@@ -372,9 +391,10 @@ export const RecordRow = ({
         className={`table-animation ${getBgColor()} hover:bg-slate-50 ${
           isSaving ? "opacity-75" : ""
         }`}
+        style={{ height: 'auto' }}
       >
         {/* Time - 6 characters */}
-        <TableCell className="px-1 py-3">
+        <TableCell className="px-0.5 py-3" style={{ width: '3%' }}>
           <Input
             value={localData.time}
             onChange={(e) => handleTimeChange(e.target.value)}
@@ -388,7 +408,7 @@ export const RecordRow = ({
         </TableCell>
 
         {/* Registration - 6 characters */}
-        <TableCell className="px-1 py-3">
+        <TableCell className="px-0.5 py-3" style={{ width: '4%' }}>
           <ContextMenu>
             <ContextMenuTrigger asChild>
               <Input
@@ -421,7 +441,7 @@ export const RecordRow = ({
         </TableCell>
 
         {/* Station - 6 characters */}
-        <TableCell className="px-1 py-3">
+        <TableCell className="px-0.5 py-3" style={{ width: '4%' }}>
           <Input
             value={localData.station}
             onChange={(e) => handleTextChange("station", e.target.value)}
@@ -434,33 +454,45 @@ export const RecordRow = ({
         </TableCell>
 
         {/* Defect - 50 characters */}
-        <TableCell className="px-1 py-3">
-          <Input
+        <TableCell className="px-0.5 py-3 align-top" style={{ verticalAlign: 'top', height: 'auto', width: '30%' }}>
+          <Textarea
+            ref={defectTextareaRef}
             value={localData.defect}
             onChange={(e) => handleTextChange("defect", e.target.value)}
             onBlur={(e) => handleTextBlur("defect", e.target.value)}
             onKeyDown={(e) => handleKeyDown(e, "defect")}
             onFocus={handleFocus}
             maxLength={50}
-            className="text-sm uppercase font-medium h-8 border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300 w-[300px]"
+            className="text-sm uppercase font-medium min-h-[32px] border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300 w-full resize-none overflow-hidden leading-tight"
+            rows={1}
+            style={{ height: 'auto', minHeight: '32px' }}
+            onInput={(e) => {
+              adjustTextareaHeight(e.target as HTMLTextAreaElement);
+            }}
           />
         </TableCell>
 
         {/* Remarks - 40 characters */}
-        <TableCell className="px-1 py-3">
-          <Input
+        <TableCell className="px-0.5 py-3 align-top" style={{ verticalAlign: 'top', height: 'auto', width: '30%' }}>
+          <Textarea
+            ref={remarksTextareaRef}
             value={localData.remarks}
             onChange={(e) => handleTextChange("remarks", e.target.value)}
             onBlur={(e) => handleTextBlur("remarks", e.target.value)}
             onKeyDown={(e) => handleKeyDown(e, "remarks")}
             onFocus={handleFocus}
             maxLength={40}
-            className="text-sm uppercase font-medium h-8 border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300 w-[250px]"
+            className="text-sm uppercase font-medium min-h-[32px] border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300 w-full resize-none overflow-hidden leading-tight"
+            rows={1}
+            style={{ height: 'auto', minHeight: '32px' }}
+            onInput={(e) => {
+              adjustTextareaHeight(e.target as HTMLTextAreaElement);
+            }}
           />
         </TableCell>
 
         {/* ETA - 6 characters */}
-        <TableCell className="px-1 py-3">
+        <TableCell className="px-0.5 py-3" style={{ width: '3%' }}>
           <Input
             value={localData.eta}
             onChange={(e) => handleTimeFieldChange("eta", e.target.value)}
@@ -474,7 +506,7 @@ export const RecordRow = ({
         </TableCell>
 
         {/* STD - 6 characters */}
-        <TableCell className="px-1 py-3">
+        <TableCell className="px-0.5 py-3" style={{ width: '3%' }}>
           <Input
             value={localData.std}
             onChange={(e) => handleTimeFieldChange("std", e.target.value)}
@@ -489,7 +521,8 @@ export const RecordRow = ({
 
         {/* UPD - 6 characters */}
         <TableCell
-          className={`px-1 py-3 ${shouldFlashUpd(record) ? "flash-upd" : ""}`}
+          className={`px-0.5 py-3 ${shouldFlashUpd(record) ? "flash-upd" : ""}`}
+          style={{ width: '3%' }}
         >
           <Input
             value={localData.upd}
@@ -504,8 +537,8 @@ export const RecordRow = ({
         </TableCell>
 
         {/* NXS */}
-        <TableCell className="text-center px-1 py-3">
-          <div className="flex justify-center">
+        <TableCell className="text-center px-0.5 py-3" style={{ width: '2%', textAlign: 'center' }}>
+          <div className="flex justify-center items-center w-full">
             <Checkbox
               checked={localData.nxs}
               onCheckedChange={(checked) =>
@@ -517,8 +550,8 @@ export const RecordRow = ({
         </TableCell>
 
         {/* RST */}
-        <TableCell className="text-center px-1 py-3">
-          <div className="flex justify-center">
+        <TableCell className="text-center px-0.5 py-3" style={{ width: '2%', textAlign: 'center' }}>
+          <div className="flex justify-center items-center w-full">
             <Checkbox
               checked={localData.rst}
               onCheckedChange={(checked) =>
@@ -530,8 +563,8 @@ export const RecordRow = ({
         </TableCell>
 
         {/* DLY */}
-        <TableCell className="text-center px-1 py-3">
-          <div className="flex justify-center">
+        <TableCell className="text-center px-0.5 py-3" style={{ width: '2%', textAlign: 'center' }}>
+          <div className="flex justify-center items-center w-full">
             <Checkbox
               checked={localData.dly}
               onCheckedChange={(checked) =>
@@ -543,8 +576,8 @@ export const RecordRow = ({
         </TableCell>
 
         {/* SL */}
-        <TableCell className="text-center px-1 py-3">
-          <div className="flex justify-center">
+        <TableCell className="text-center px-0.5 py-3" style={{ width: '2%', textAlign: 'center' }}>
+          <div className="flex justify-center items-center w-full">
             <Checkbox
               checked={localData.sl}
               onCheckedChange={(checked) =>
@@ -556,8 +589,8 @@ export const RecordRow = ({
         </TableCell>
 
         {/* PLN */}
-        <TableCell className="text-center px-1 py-3">
-          <div className="flex justify-center">
+        <TableCell className="text-center px-0.5 py-3" style={{ width: '2%', textAlign: 'center' }}>
+          <div className="flex justify-center items-center w-full">
             <Checkbox
               checked={localData.pln}
               onCheckedChange={(checked) =>
@@ -569,8 +602,8 @@ export const RecordRow = ({
         </TableCell>
 
         {/* OK */}
-        <TableCell className="text-center px-1 py-3">
-          <div className="flex justify-center">
+        <TableCell className="text-center px-0.5 py-3" style={{ width: '2%', textAlign: 'center' }}>
+          <div className="flex justify-center items-center w-full">
             <Checkbox
               checked={localData.ok}
               onCheckedChange={(checked) =>
@@ -582,7 +615,7 @@ export const RecordRow = ({
         </TableCell>
 
         {/* Actions */}
-        <TableCell className="px-1 py-3">
+        <TableCell className="px-0.5 py-3" style={{ width: '4%' }}>
           <div className="flex space-x-1">
             <Button
               variant="destructive"
