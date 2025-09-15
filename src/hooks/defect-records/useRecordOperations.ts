@@ -38,6 +38,41 @@ export const useRecordOperations = (
     }
   };
 
+  const handleToggleVisibility = async (record: DefectRecord) => {
+    try {
+      // Handle existing records that might not have isPublic field (default to false)
+      const currentVisibility = record.isPublic ?? false;
+      const newVisibility = !currentVisibility;
+      
+      // Create a clean updates object with only the fields we want to update
+      const updates = { 
+        isPublic: newVisibility,
+        updatedBy: userEmail || 'unknown',
+        updatedAt: new Date().toISOString()
+      };
+      
+      // Create a complete record object by merging old record with updates
+      const updatedRecord: DefectRecord = {
+        ...record,
+        ...updates
+      } as DefectRecord;
+
+      // Track the field change for history
+      const changes = trackFieldChanges(record, updatedRecord, userEmail || 'unknown');
+      if (changes.length > 0) {
+        updatedRecord.history = [...(record.history || []), ...changes];
+      }
+
+      await saveRecord(updatedRecord);
+      
+      const visibilityText = newVisibility ? 'public' : 'private';
+      toast.success(`Record is now ${visibilityText}!`);
+    } catch (error) {
+      console.error("Error toggling visibility:", error);
+      toast.error("Failed to update visibility: " + (error instanceof Error ? error.message : "Unknown error"));
+    }
+  };
+
   const handleUpdateRecord = async (id: string, updates: Partial<DefectRecord>, oldRecord?: DefectRecord) => {
     try {
       // Create a complete record object by merging old record with updates
@@ -211,6 +246,7 @@ export const useRecordOperations = (
   return {
     handleDeleteRecord,
     handleUpdateRecord,
+    handleToggleVisibility,
     handleDeleteAllByDate,
     handleDeleteMultipleDates,
     handleDeleteAllRecords,

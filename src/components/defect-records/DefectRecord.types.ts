@@ -27,6 +27,7 @@ export interface DefectRecord {
   sl: boolean;
   ok: boolean;
   pln: boolean;
+  isPublic: boolean;  // New field for public/private visibility
   status?: string;
   createdBy?: string;
   createdAt?: string;

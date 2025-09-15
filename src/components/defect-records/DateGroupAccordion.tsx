@@ -21,6 +21,7 @@ interface DateGroupAccordionProps {
   handleEditRecord: (record: DefectRecord) => void;
   handleDeleteRecord: (id: string) => void;
   handleUpdateRecord: (id: string, updates: Partial<DefectRecord>) => void;
+  handleToggleVisibility: (record: DefectRecord) => void;
   handleDeleteAllByDate: (date: string) => void;
   handleArchiveDate: (date: string) => void;
   handleSort: (column: string) => void;
@@ -34,6 +35,7 @@ export const DateGroupAccordion = ({
   handleEditRecord,
   handleDeleteRecord,
   handleUpdateRecord,
+  handleToggleVisibility,
   handleDeleteAllByDate,
   handleArchiveDate,
   handleSort,
@@ -110,6 +112,7 @@ export const DateGroupAccordion = ({
                 handleEditRecord={handleEditRecord}
                 handleDeleteRecord={handleDeleteRecord}
                 handleUpdateRecord={handleUpdateRecord}
+                handleToggleVisibility={handleToggleVisibility}
                 currentTime={currentTime}
               />
             ))}

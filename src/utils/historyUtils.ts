@@ -28,7 +28,7 @@ export const trackFieldChanges = (
   const changes: RecordHistoryEntry[] = [];
   const fieldsToTrack: (keyof DefectRecord)[] = [
     'date', 'time', 'registration', 'station', 'defect', 'remarks',
-    'eta', 'std', 'upd', 'nxs', 'rst', 'dly', 'sl', 'ok', 'pln', 'status'
+    'eta', 'std', 'upd', 'nxs', 'rst', 'dly', 'sl', 'ok', 'pln', 'isPublic', 'status'
   ];
 
   fieldsToTrack.forEach(field => {
@@ -56,7 +56,7 @@ export const createInitialHistory = (
 ): RecordHistoryEntry[] => {
   const fieldsToTrack: (keyof DefectRecord)[] = [
     'date', 'time', 'registration', 'station', 'defect', 'remarks',
-    'eta', 'std', 'upd', 'nxs', 'rst', 'dly', 'sl', 'ok', 'pln', 'status'
+    'eta', 'std', 'upd', 'nxs', 'rst', 'dly', 'sl', 'ok', 'pln', 'isPublic', 'status'
   ];
 
   return fieldsToTrack

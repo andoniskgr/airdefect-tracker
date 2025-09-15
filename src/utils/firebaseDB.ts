@@ -39,22 +39,49 @@ export const getAllRecords = async (userEmail?: string | null): Promise<DefectRe
   try {
     const recordsCollection = collection(db, COLLECTION_NAME);
     
-    // If userEmail is provided, filter by creator
-    let recordsQuery;
     if (userEmail) {
-      recordsQuery = query(recordsCollection, where("createdBy", "==", userEmail));
+      // Get user's own records (both private and public)
+      const userRecordsQuery = query(recordsCollection, where("createdBy", "==", userEmail));
+      const userSnapshot = await getDocs(userRecordsQuery);
+      const userRecords = userSnapshot.docs.map(doc => {
+        const data = doc.data() as Omit<DefectRecord, 'id'>;
+        return { 
+          id: doc.id,
+          ...data,
+          isPublic: data.isPublic ?? false, // Ensure isPublic has a default value
+        };
+      });
+
+      // Get all public records from other users
+      const publicRecordsQuery = query(
+        recordsCollection, 
+        where("isPublic", "==", true),
+        where("createdBy", "!=", userEmail)
+      );
+      const publicSnapshot = await getDocs(publicRecordsQuery);
+      const publicRecords = publicSnapshot.docs.map(doc => {
+        const data = doc.data() as Omit<DefectRecord, 'id'>;
+        return { 
+          id: doc.id,
+          ...data,
+          isPublic: data.isPublic ?? false, // Ensure isPublic has a default value
+        };
+      });
+
+      // Combine and return both sets
+      return [...userRecords, ...publicRecords];
     } else {
-      recordsQuery = recordsCollection;
+      // If no user email, get all records (for admin or testing)
+      const snapshot = await getDocs(recordsCollection);
+      return snapshot.docs.map(doc => {
+        const data = doc.data() as Omit<DefectRecord, 'id'>;
+        return { 
+          id: doc.id,
+          ...data,
+          isPublic: data.isPublic ?? false, // Ensure isPublic has a default value
+        };
+      });
     }
-    
-    const snapshot = await getDocs(recordsQuery);
-    return snapshot.docs.map(doc => {
-      const data = doc.data() as Omit<DefectRecord, 'id'>;
-      return { 
-        id: doc.id, // Use Firestore document ID
-        ...data 
-      };
-    });
   } catch (error) {
     console.error('Firestore error:', error);
     

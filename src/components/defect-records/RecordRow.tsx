@@ -15,6 +15,8 @@ import {
   FileText,
   Settings,
   History,
+  Globe,
+  Lock,
 } from "lucide-react";
 import { DefectRecord } from "./DefectRecord.types";
 import { HistoryModal } from "./HistoryModal";
@@ -26,6 +28,7 @@ interface RecordRowProps {
   handleEditRecord: (record: DefectRecord) => void;
   handleDeleteRecord: (id: string) => void;
   handleUpdateRecord: (id: string, updates: Partial<DefectRecord>) => void;
+  handleToggleVisibility: (record: DefectRecord) => void;
   currentTime: Date;
 }
 
@@ -34,6 +37,7 @@ export const RecordRow = ({
   handleEditRecord,
   handleDeleteRecord,
   handleUpdateRecord,
+  handleToggleVisibility,
   currentTime,
 }: RecordRowProps) => {
   const [localData, setLocalData] = useState<DefectRecord>(record);
@@ -678,7 +682,19 @@ export const RecordRow = ({
 
         {/* Actions */}
         <TableCell className="px-0 py-3" style={{ width: "3%" }}>
-          <div className="flex space-x-1">
+          <div className="flex space-x-1 items-center">
+            {/* Public/Private indicator - Clickable */}
+            <button
+              onClick={() => handleToggleVisibility(record)}
+              className="flex items-center hover:opacity-70 transition-opacity"
+              title={record.isPublic ? "Click to make private - Currently visible to other users" : "Click to make public - Currently only visible to you"}
+            >
+              {record.isPublic ? (
+                <Globe className="h-4 w-4 text-green-500" />
+              ) : (
+                <Lock className="h-4 w-4 text-gray-400" />
+              )}
+            </button>
             <Button
               variant="destructive"
               size="sm"

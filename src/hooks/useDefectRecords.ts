@@ -12,6 +12,7 @@ export const useDefectRecords = (userEmail: string | null | undefined) => {
   const { 
     handleDeleteRecord, 
     handleUpdateRecord,
+    handleToggleVisibility,
     handleDeleteAllByDate,
     handleDeleteMultipleDates,
     handleDeleteAllRecords, 
@@ -74,6 +75,7 @@ export const useDefectRecords = (userEmail: string | null | undefined) => {
     handleSort,
     handleDeleteRecord,
     handleUpdateRecord,
+    handleToggleVisibility,
     handleDeleteAllByDate,
     handleDeleteMultipleDates,
     handleDeleteAllRecords,

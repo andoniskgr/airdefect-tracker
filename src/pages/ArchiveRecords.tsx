@@ -45,6 +45,7 @@ const ArchiveRecords = () => {
     handleSort,
     handleDeleteRecord,
     handleUpdateRecord,
+    handleToggleVisibility,
     handleDeleteAllByDate,
     handleDeleteMultipleDates,
     handleDeleteAllRecords,
@@ -369,6 +370,7 @@ const ArchiveRecords = () => {
                   handleEditRecord={handleEditRecord}
                   handleDeleteRecord={handleDeleteRecord}
                   handleUpdateRecord={handleUpdateRecord}
+                  handleToggleVisibility={handleToggleVisibility}
                   handleDeleteAllByDate={handleDeleteAllByDate}
                   handleArchiveDate={handleArchiveDate}
                   sortConfig={sortConfig}

@@ -108,7 +108,8 @@ export const EditDefectModal = ({
               dly: editingRecord.dly,
               pln: editingRecord.pln,
               sl: editingRecord.sl,
-              ok: editingRecord.ok
+              ok: editingRecord.ok,
+              isPublic: editingRecord.isPublic
             }}
             onCheckedChange={(field, checked) => handleFieldChange(field, checked)}
           />

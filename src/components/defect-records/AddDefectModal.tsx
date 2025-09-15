@@ -196,6 +196,7 @@ export const AddDefectModal = ({
               pln: formData.pln,
               sl: formData.sl,
               ok: formData.ok,
+              isPublic: formData.isPublic,
             }}
             onCheckedChange={(field, checked) =>
               handleFieldChange(field, checked)

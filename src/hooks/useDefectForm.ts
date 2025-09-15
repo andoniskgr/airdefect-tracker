@@ -23,6 +23,7 @@ export const useDefectForm = (currentUserEmail: string | null | undefined) => {
     sl: false,
     ok: false,
     pln: false,
+    isPublic: false,  // Added isPublic field with default false (private)
     status: 'active'
   };
 
