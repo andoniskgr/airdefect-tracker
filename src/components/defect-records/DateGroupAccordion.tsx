@@ -1,7 +1,10 @@
-
 import { Button } from "@/components/ui/button";
 import { Table, TableBody } from "@/components/ui/table";
-import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import {
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Archive, Trash2 } from "lucide-react";
 import { DefectRecord } from "./DefectRecord.types";
 import { RecordRow } from "./RecordRow";
@@ -21,7 +24,7 @@ interface DateGroupAccordionProps {
   handleDeleteAllByDate: (date: string) => void;
   handleArchiveDate: (date: string) => void;
   handleSort: (column: string) => void;
-  sortConfig: { key: string, direction: 'asc' | 'desc' };
+  sortConfig: { key: string; direction: "asc" | "desc" };
   currentTime: Date;
   isArchiveView?: boolean; // Add optional isArchiveView prop
 }
@@ -36,10 +39,14 @@ export const DateGroupAccordion = ({
   handleSort,
   sortConfig,
   currentTime,
-  isArchiveView = false // Default to false
+  isArchiveView = false, // Default to false
 }: DateGroupAccordionProps) => {
   return (
-    <AccordionItem key={group.date} value={group.date} className="border-b border-slate-300">
+    <AccordionItem
+      key={group.date}
+      value={group.date}
+      className="border-b border-slate-300"
+    >
       <div className="flex items-center justify-between px-4 py-3 bg-slate-200">
         <AccordionTrigger className="text-xl font-semibold py-0 text-slate-800 hover:text-slate-900">
           {group.formattedDate} ({group.records.length} Records)
@@ -47,12 +54,16 @@ export const DateGroupAccordion = ({
         <div className="flex space-x-2">
           {/* Only render the Archive button if not in archive view */}
           {!isArchiveView && (
-            <Button 
-              variant="secondary" 
+            <Button
+              variant="secondary"
               size="sm"
               onClick={(e) => {
                 e.stopPropagation();
-                if (window.confirm(`Archive all records for ${group.formattedDate}? They will be hidden from view.`)) {
+                if (
+                  window.confirm(
+                    `Archive all records for ${group.formattedDate}? They will be hidden from view.`
+                  )
+                ) {
                   handleArchiveDate(group.date);
                 }
               }}
@@ -62,12 +73,14 @@ export const DateGroupAccordion = ({
               <span>Archive</span>
             </Button>
           )}
-          <Button 
-            variant="destructive" 
+          <Button
+            variant="destructive"
             size="sm"
             onClick={(e) => {
               e.stopPropagation();
-              if (window.confirm(`Delete all records for ${group.formattedDate}?`)) {
+              if (
+                window.confirm(`Delete all records for ${group.formattedDate}?`)
+              ) {
                 handleDeleteAllByDate(group.date);
               }
             }}
@@ -79,23 +92,22 @@ export const DateGroupAccordion = ({
         </div>
       </div>
       <AccordionContent className="bg-white">
-        <Table 
-          className="w-full table-fixed" 
+        <Table
+          className="w-full defect-records-table"
           style={{
-            tableLayout: 'fixed',
-            width: '100%'
+            tableLayout: "fixed",
+            width: "100%",
+            borderCollapse: "collapse",
+            borderSpacing: 0,
           }}
         >
-          <DefectTableHeader 
-            handleSort={handleSort} 
-            sortConfig={sortConfig} 
-          />
+          <DefectTableHeader handleSort={handleSort} sortConfig={sortConfig} />
           <TableBody>
             {group.records.map((record) => (
-              <RecordRow 
+              <RecordRow
                 key={record.id}
-                record={record} 
-                handleEditRecord={handleEditRecord} 
+                record={record}
+                handleEditRecord={handleEditRecord}
                 handleDeleteRecord={handleDeleteRecord}
                 handleUpdateRecord={handleUpdateRecord}
                 currentTime={currentTime}

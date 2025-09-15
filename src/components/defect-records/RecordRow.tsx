@@ -45,8 +45,8 @@ export const RecordRow = ({
 
   // Function to adjust textarea height
   const adjustTextareaHeight = (textarea: HTMLTextAreaElement) => {
-    textarea.style.height = 'auto';
-    textarea.style.height = Math.max(textarea.scrollHeight, 32) + 'px';
+    textarea.style.height = "auto";
+    textarea.style.height = Math.max(textarea.scrollHeight, 32) + "px";
   };
 
   // Auto-adjust textarea heights on mount and when data changes
@@ -68,7 +68,7 @@ export const RecordRow = ({
     saveTimeoutRef.current = setTimeout(async () => {
       setIsSaving(true);
       try {
-        await handleUpdateRecord(record.id, updates, record);
+        await handleUpdateRecord(record.id, updates);
         // No toast for auto-save to avoid spam
       } catch (error) {
         toast.error("Failed to update record");
@@ -111,15 +111,39 @@ export const RecordRow = ({
 
   const handleTextChange = (field: keyof DefectRecord, value: string) => {
     // Only update local state, don't auto-save on every keystroke
-    // Convert to uppercase for remarks field
-    const processedValue = field === "remarks" ? value.toUpperCase() : value;
+    // Convert to uppercase for remarks and defect fields
+    const processedValue =
+      field === "remarks" || field === "defect" ? value.toUpperCase() : value;
+    setLocalData((prev) => ({ ...prev, [field]: processedValue }));
+  };
+
+  // Handle textarea field changes
+  const handleTextareaChange = (field: keyof DefectRecord, value: string) => {
+    // Only update local state, don't auto-save on every keystroke
+    // Convert to uppercase for remarks and defect fields
+    const processedValue =
+      field === "remarks" || field === "defect" ? value.toUpperCase() : value;
     setLocalData((prev) => ({ ...prev, [field]: processedValue }));
   };
 
   const handleTextBlur = (field: keyof DefectRecord, value: string) => {
     // Only save if the value actually changed
-    // Convert to uppercase for remarks field
-    const processedValue = field === "remarks" ? value.toUpperCase() : value;
+    // Convert to uppercase for remarks and defect fields
+    const processedValue =
+      field === "remarks" || field === "defect" ? value.toUpperCase() : value;
+    if (processedValue !== record[field]) {
+      const updates = { [field]: processedValue };
+      setLocalData((prev) => ({ ...prev, ...updates }));
+      autoSave(updates);
+    }
+  };
+
+  // Handle textarea field blur
+  const handleTextareaBlur = (field: keyof DefectRecord, value: string) => {
+    // Only save if the value actually changed
+    // Convert to uppercase for remarks and defect fields
+    const processedValue =
+      field === "remarks" || field === "defect" ? value.toUpperCase() : value;
     if (processedValue !== record[field]) {
       const updates = { [field]: processedValue };
       setLocalData((prev) => ({ ...prev, ...updates }));
@@ -188,16 +212,46 @@ export const RecordRow = ({
       }
 
       setIsSaving(true);
-      handleUpdateRecord(record.id, updates, record)
-        .then(() => {
-          // No toast for auto-save to avoid spam
-        })
-        .catch((error) => {
-          toast.error("Failed to update record");
-        })
-        .finally(() => {
-          setIsSaving(false);
-        });
+      try {
+        handleUpdateRecord(record.id, updates);
+        // No toast for auto-save to avoid spam
+      } catch (error) {
+        toast.error("Failed to update record");
+      } finally {
+        setIsSaving(false);
+      }
+
+      // Blur the field to remove focus
+      e.currentTarget.blur();
+    }
+  };
+
+  // Handle textarea keydown
+  const handleTextareaKeyDown = (
+    e: React.KeyboardEvent<HTMLTextAreaElement>,
+    field: keyof DefectRecord
+  ) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      // Trigger immediate save for the current field
+      const currentValue = e.currentTarget.value;
+      const updates = { [field]: currentValue };
+      setLocalData((prev) => ({ ...prev, ...updates }));
+
+      // Clear any pending auto-save and save immediately
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+
+      setIsSaving(true);
+      try {
+        handleUpdateRecord(record.id, updates);
+        // No toast for auto-save to avoid spam
+      } catch (error) {
+        toast.error("Failed to update record");
+      } finally {
+        setIsSaving(false);
+      }
 
       // Blur the field to remove focus
       e.currentTarget.blur();
@@ -220,16 +274,14 @@ export const RecordRow = ({
       }
 
       setIsSaving(true);
-      handleUpdateRecord(record.id, updates, record)
-        .then(() => {
-          // No toast for auto-save to avoid spam
-        })
-        .catch((error) => {
-          toast.error("Failed to update record");
-        })
-        .finally(() => {
-          setIsSaving(false);
-        });
+      try {
+        handleUpdateRecord(record.id, updates);
+        // No toast for auto-save to avoid spam
+      } catch (error) {
+        toast.error("Failed to update record");
+      } finally {
+        setIsSaving(false);
+      }
 
       // Blur the field to remove focus
       e.currentTarget.blur();
@@ -255,16 +307,14 @@ export const RecordRow = ({
       }
 
       setIsSaving(true);
-      handleUpdateRecord(record.id, updates, record)
-        .then(() => {
-          // No toast for auto-save to avoid spam
-        })
-        .catch((error) => {
-          toast.error("Failed to update record");
-        })
-        .finally(() => {
-          setIsSaving(false);
-        });
+      try {
+        handleUpdateRecord(record.id, updates);
+        // No toast for auto-save to avoid spam
+      } catch (error) {
+        toast.error("Failed to update record");
+      } finally {
+        setIsSaving(false);
+      }
 
       // Blur the field to remove focus
       e.currentTarget.blur();
@@ -282,6 +332,12 @@ export const RecordRow = ({
 
   const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
     // Select all text when focusing on input fields
+    e.target.select();
+  };
+
+  // Function to select all text on focus for textarea
+  const handleTextareaFocus = (e: React.FocusEvent<HTMLTextAreaElement>) => {
+    // Select all text when focusing on textarea fields
     e.target.select();
   };
 
@@ -391,10 +447,10 @@ export const RecordRow = ({
         className={`table-animation ${getBgColor()} hover:bg-slate-50 ${
           isSaving ? "opacity-75" : ""
         }`}
-        style={{ height: 'auto' }}
+        style={{ height: "auto" }}
       >
         {/* Time - 6 characters */}
-        <TableCell className="px-0.5 py-3" style={{ width: '3%' }}>
+        <TableCell className="py-3" style={{ width: "1.5%" }}>
           <Input
             value={localData.time}
             onChange={(e) => handleTimeChange(e.target.value)}
@@ -408,7 +464,7 @@ export const RecordRow = ({
         </TableCell>
 
         {/* Registration - 6 characters */}
-        <TableCell className="px-0.5 py-3" style={{ width: '4%' }}>
+        <TableCell className="py-3" style={{ width: "1.5%" }}>
           <ContextMenu>
             <ContextMenuTrigger asChild>
               <Input
@@ -441,7 +497,7 @@ export const RecordRow = ({
         </TableCell>
 
         {/* Station - 6 characters */}
-        <TableCell className="px-0.5 py-3" style={{ width: '4%' }}>
+        <TableCell className="py-3" style={{ width: "1.5%" }}>
           <Input
             value={localData.station}
             onChange={(e) => handleTextChange("station", e.target.value)}
@@ -454,18 +510,21 @@ export const RecordRow = ({
         </TableCell>
 
         {/* Defect - 50 characters */}
-        <TableCell className="px-0.5 py-3 align-top" style={{ verticalAlign: 'top', height: 'auto', width: '30%' }}>
+        <TableCell
+          className="px-0 py-3 align-top"
+          style={{ verticalAlign: "top", height: "auto", width: "20%" }}
+        >
           <Textarea
             ref={defectTextareaRef}
             value={localData.defect}
-            onChange={(e) => handleTextChange("defect", e.target.value)}
-            onBlur={(e) => handleTextBlur("defect", e.target.value)}
-            onKeyDown={(e) => handleKeyDown(e, "defect")}
-            onFocus={handleFocus}
+            onChange={(e) => handleTextareaChange("defect", e.target.value)}
+            onBlur={(e) => handleTextareaBlur("defect", e.target.value)}
+            onKeyDown={(e) => handleTextareaKeyDown(e, "defect")}
+            onFocus={handleTextareaFocus}
             maxLength={50}
             className="text-sm uppercase font-medium min-h-[32px] border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300 w-full resize-none overflow-hidden leading-tight"
             rows={1}
-            style={{ height: 'auto', minHeight: '32px' }}
+            style={{ height: "auto", minHeight: "32px" }}
             onInput={(e) => {
               adjustTextareaHeight(e.target as HTMLTextAreaElement);
             }}
@@ -473,18 +532,21 @@ export const RecordRow = ({
         </TableCell>
 
         {/* Remarks - 40 characters */}
-        <TableCell className="px-0.5 py-3 align-top" style={{ verticalAlign: 'top', height: 'auto', width: '30%' }}>
+        <TableCell
+          className="px-0 py-3 align-top"
+          style={{ verticalAlign: "top", height: "auto", width: "20%" }}
+        >
           <Textarea
             ref={remarksTextareaRef}
             value={localData.remarks}
-            onChange={(e) => handleTextChange("remarks", e.target.value)}
-            onBlur={(e) => handleTextBlur("remarks", e.target.value)}
-            onKeyDown={(e) => handleKeyDown(e, "remarks")}
-            onFocus={handleFocus}
+            onChange={(e) => handleTextareaChange("remarks", e.target.value)}
+            onBlur={(e) => handleTextareaBlur("remarks", e.target.value)}
+            onKeyDown={(e) => handleTextareaKeyDown(e, "remarks")}
+            onFocus={handleTextareaFocus}
             maxLength={40}
             className="text-sm uppercase font-medium min-h-[32px] border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300 w-full resize-none overflow-hidden leading-tight"
             rows={1}
-            style={{ height: 'auto', minHeight: '32px' }}
+            style={{ height: "auto", minHeight: "32px" }}
             onInput={(e) => {
               adjustTextareaHeight(e.target as HTMLTextAreaElement);
             }}
@@ -492,7 +554,7 @@ export const RecordRow = ({
         </TableCell>
 
         {/* ETA - 6 characters */}
-        <TableCell className="px-0.5 py-3" style={{ width: '3%' }}>
+        <TableCell className="px-0 py-3" style={{ width: "1.5%" }}>
           <Input
             value={localData.eta}
             onChange={(e) => handleTimeFieldChange("eta", e.target.value)}
@@ -506,7 +568,7 @@ export const RecordRow = ({
         </TableCell>
 
         {/* STD - 6 characters */}
-        <TableCell className="px-0.5 py-3" style={{ width: '3%' }}>
+        <TableCell className="px-0 py-3" style={{ width: "1.5%" }}>
           <Input
             value={localData.std}
             onChange={(e) => handleTimeFieldChange("std", e.target.value)}
@@ -521,8 +583,8 @@ export const RecordRow = ({
 
         {/* UPD - 6 characters */}
         <TableCell
-          className={`px-0.5 py-3 ${shouldFlashUpd(record) ? "flash-upd" : ""}`}
-          style={{ width: '3%' }}
+          className={`px-0 py-3 ${shouldFlashUpd(record) ? "flash-upd" : ""}`}
+          style={{ width: "1.5%" }}
         >
           <Input
             value={localData.upd}
@@ -537,7 +599,7 @@ export const RecordRow = ({
         </TableCell>
 
         {/* NXS */}
-        <TableCell className="text-center px-0.5 py-3" style={{ width: '2%', textAlign: 'center' }}>
+        <TableCell className="checkbox-column">
           <div className="flex justify-center items-center w-full">
             <Checkbox
               checked={localData.nxs}
@@ -550,7 +612,7 @@ export const RecordRow = ({
         </TableCell>
 
         {/* RST */}
-        <TableCell className="text-center px-0.5 py-3" style={{ width: '2%', textAlign: 'center' }}>
+        <TableCell className="checkbox-column">
           <div className="flex justify-center items-center w-full">
             <Checkbox
               checked={localData.rst}
@@ -563,7 +625,7 @@ export const RecordRow = ({
         </TableCell>
 
         {/* DLY */}
-        <TableCell className="text-center px-0.5 py-3" style={{ width: '2%', textAlign: 'center' }}>
+        <TableCell className="checkbox-column">
           <div className="flex justify-center items-center w-full">
             <Checkbox
               checked={localData.dly}
@@ -576,7 +638,7 @@ export const RecordRow = ({
         </TableCell>
 
         {/* SL */}
-        <TableCell className="text-center px-0.5 py-3" style={{ width: '2%', textAlign: 'center' }}>
+        <TableCell className="checkbox-column">
           <div className="flex justify-center items-center w-full">
             <Checkbox
               checked={localData.sl}
@@ -589,7 +651,7 @@ export const RecordRow = ({
         </TableCell>
 
         {/* PLN */}
-        <TableCell className="text-center px-0.5 py-3" style={{ width: '2%', textAlign: 'center' }}>
+        <TableCell className="checkbox-column">
           <div className="flex justify-center items-center w-full">
             <Checkbox
               checked={localData.pln}
@@ -602,7 +664,7 @@ export const RecordRow = ({
         </TableCell>
 
         {/* OK */}
-        <TableCell className="text-center px-0.5 py-3" style={{ width: '2%', textAlign: 'center' }}>
+        <TableCell className="checkbox-column">
           <div className="flex justify-center items-center w-full">
             <Checkbox
               checked={localData.ok}
@@ -615,7 +677,7 @@ export const RecordRow = ({
         </TableCell>
 
         {/* Actions */}
-        <TableCell className="px-0.5 py-3" style={{ width: '4%' }}>
+        <TableCell className="px-0 py-3" style={{ width: "3%" }}>
           <div className="flex space-x-1">
             <Button
               variant="destructive"

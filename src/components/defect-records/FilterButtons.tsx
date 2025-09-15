@@ -279,7 +279,36 @@ export const FilterButtons = ({
     printWindow.document.write(printContent);
     printWindow.document.close();
     printWindow.focus();
+
+    // Auto-close the tab when print dialog is cancelled or completed
+    const handlePrintComplete = () => {
+      // Close the tab after a short delay to allow for print dialog interaction
+      setTimeout(() => {
+        if (printWindow && !printWindow.closed) {
+          printWindow.close();
+        }
+      }, 1000);
+    };
+
+    // Listen for print dialog events
+    printWindow.addEventListener("afterprint", handlePrintComplete);
+
+    // Also close if user navigates away or closes the tab
+    printWindow.addEventListener("beforeunload", () => {
+      if (printWindow && !printWindow.closed) {
+        printWindow.close();
+      }
+    });
+
+    // Start the print process
     printWindow.print();
+
+    // Fallback: close after 30 seconds if still open
+    setTimeout(() => {
+      if (printWindow && !printWindow.closed) {
+        printWindow.close();
+      }
+    }, 30000);
   };
 
   // Mobile filter buttons in drawer
