@@ -64,7 +64,6 @@ export const DefectTableHeader = ({
           {renderSortableHeader("REG", "registration", "REG")}
           {renderSortableHeader("STA", "station", "STA")}
           {renderSortableHeader("Defect", "defect")}
-<<<<<<< HEAD
           {renderSortableHeader("DLY", "dly", undefined, true)}
           {renderSortableHeader("SL", "sl", undefined, true)}
           {renderSortableHeader("OK", "ok", undefined, true)}
@@ -74,12 +73,6 @@ export const DefectTableHeader = ({
           >
             Actions
           </TableHead>
-=======
-          {renderSortableHeader("DLY", "dly")}
-          {renderSortableHeader("SL", "sl")}
-          {renderSortableHeader("OK", "ok")}
-          <TableHead className="text-xs uppercase px-1 py-2 text-white font-bold">Actions</TableHead>
->>>>>>> f7cccedc1f5eb566a3c5cf3be863d7f806200241
         </TableRow>
       </TableHeader>
     );
@@ -97,7 +90,6 @@ export const DefectTableHeader = ({
         {renderSortableHeader("ETA", "eta")}
         {renderSortableHeader("STD", "std")}
         {renderSortableHeader("UPD", "upd")}
-<<<<<<< HEAD
         {renderSortableHeader("NXS", "nxs", undefined, true)}
         {renderSortableHeader("RST", "rst", undefined, true)}
         {renderSortableHeader("DLY", "dly", undefined, true)}
@@ -110,15 +102,6 @@ export const DefectTableHeader = ({
         >
           Actions
         </TableHead>
-=======
-        {renderSortableHeader("NXS", "nxs")}
-        {renderSortableHeader("RST", "rst")}
-        {renderSortableHeader("DLY", "dly")}
-        {renderSortableHeader("SL", "sl")}
-        {renderSortableHeader("PLN", "pln")}
-        {renderSortableHeader("OK", "ok")}
-        <TableHead className="text-lg uppercase px-4 py-3 text-white font-bold">Actions</TableHead>
->>>>>>> f7cccedc1f5eb566a3c5cf3be863d7f806200241
       </TableRow>
     </TableHeader>
   );
