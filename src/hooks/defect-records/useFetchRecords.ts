@@ -32,77 +32,89 @@ export const useFetchRecords = (userEmail: string | null | undefined) => {
     if (userEmail) {
       // Listen to user's own records
       const userRecordsQuery = query(recordsCollection, where("createdBy", "==", userEmail));
-      const unsubscribeUser = onSnapshot(userRecordsQuery, async (userSnapshot) => {
+      const unsubscribeUser = onSnapshot(userRecordsQuery, (userSnapshot) => {
         console.log(`User records snapshot received, docs count: ${userSnapshot.docs.length} for user ${userEmail}`);
         
-        // Get all public records (we'll filter out user's own records in the client)
-        const publicRecordsQuery = query(
-          recordsCollection, 
-          where("isPublic", "==", true)
-        );
+        const userRecords = userSnapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            ...data,
+            isPublic: data.isPublic ?? false, // Ensure isPublic has a default value
+          } as DefectRecord;
+        });
         
-        try {
-          const publicSnapshot = await getDocs(publicRecordsQuery);
-          console.log(`Public records snapshot received, docs count: ${publicSnapshot.docs.length}`);
-          
-          const userRecords = userSnapshot.docs.map((doc) => {
-            const data = doc.data();
-            return {
-              id: doc.id,
-              ...data,
-              isPublic: data.isPublic ?? false, // Ensure isPublic has a default value
-            } as DefectRecord;
-          });
-          
-          const allPublicRecords = publicSnapshot.docs.map((doc) => {
-            const data = doc.data();
-            return {
-              id: doc.id,
-              ...data,
-              isPublic: data.isPublic ?? false, // Ensure isPublic has a default value
-            } as DefectRecord;
-          });
-          
-          // Filter out user's own records from public records to avoid duplicates
-          const otherUsersPublicRecords = allPublicRecords.filter(record => record.createdBy !== userEmail);
-          
-          console.log(`User records: ${userRecords.length}, Other users' public records: ${otherUsersPublicRecords.length}`);
-          
-          // Log some details about public records for debugging
-          if (otherUsersPublicRecords.length > 0) {
-            console.log('Public records from other users:', otherUsersPublicRecords.map(r => ({
-              id: r.id,
-              createdBy: r.createdBy,
-              isPublic: r.isPublic,
-              registration: r.registration
-            })));
-          }
-          
-          // Combine both sets
-          const allRecords = [...userRecords, ...otherUsersPublicRecords];
-          setDefectRecords(allRecords);
-          setLoading(false);
-        } catch (error) {
-          console.error("Error fetching public records:", error);
-          // Fallback to just user records
-          const userRecords = userSnapshot.docs.map((doc) => {
-            const data = doc.data();
-            return {
-              id: doc.id,
-              ...data,
-              isPublic: data.isPublic ?? false, // Ensure isPublic has a default value
-            } as DefectRecord;
-          });
-          setDefectRecords(userRecords);
-          setLoading(false);
-        }
+        // Update the records state with user's records
+        setDefectRecords(prevRecords => {
+          // Keep other users' public records and update user's own records
+          const otherUsersRecords = prevRecords.filter(record => record.createdBy !== userEmail);
+          return [...userRecords, ...otherUsersRecords];
+        });
+        setLoading(false);
       }, (error) => {
         console.error("Firestore error:", error);
         toast.error("Failed to load records: " + error.message);
         setLoading(false);
       });
       
-      unsubscribe = unsubscribeUser;
+      // Listen to all public records for real-time updates
+      const publicRecordsQuery = query(
+        recordsCollection, 
+        where("isPublic", "==", true)
+      );
+      const unsubscribePublic = onSnapshot(publicRecordsQuery, (publicSnapshot) => {
+        console.log(`Public records snapshot received, docs count: ${publicSnapshot.docs.length}`);
+        
+        const allPublicRecords = publicSnapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            ...data,
+            isPublic: data.isPublic ?? false, // Ensure isPublic has a default value
+          } as DefectRecord;
+        });
+        
+        // Filter out user's own records from public records to avoid duplicates
+        const otherUsersPublicRecords = allPublicRecords.filter(record => record.createdBy !== userEmail);
+        
+        console.log(`Other users' public records: ${otherUsersPublicRecords.length}`);
+        
+        // Log some details about public records for debugging
+        if (otherUsersPublicRecords.length > 0) {
+          console.log('Public records from other users:', otherUsersPublicRecords.map(r => ({
+            id: r.id,
+            createdBy: r.createdBy,
+            isPublic: r.isPublic,
+            registration: r.registration
+          })));
+        }
+        
+        // Update the records state with public records
+        setDefectRecords(prevRecords => {
+          // Keep user's own records and update public records from other users
+          const userOwnRecords = prevRecords.filter(record => record.createdBy === userEmail);
+          const newRecords = [...userOwnRecords, ...otherUsersPublicRecords];
+          
+          // Log visibility changes for debugging
+          const prevPublicCount = prevRecords.filter(r => r.createdBy !== userEmail && r.isPublic).length;
+          const newPublicCount = otherUsersPublicRecords.length;
+          if (newPublicCount !== prevPublicCount) {
+            console.log(`Public records count changed: ${prevPublicCount} -> ${newPublicCount}`);
+          }
+          
+          return newRecords;
+        });
+        setLoading(false);
+      }, (error) => {
+        console.error("Error fetching public records:", error);
+        setLoading(false);
+      });
+      
+      // Return a function that unsubscribes from both listeners
+      unsubscribe = () => {
+        unsubscribeUser();
+        unsubscribePublic();
+      };
     } else {
       // Listen to all records if no user email
       const allRecordsQuery = query(recordsCollection);
