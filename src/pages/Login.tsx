@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
 const Login = () => {
-  const [email, setEmail] = useState("");
+  const [emailOrCode, setEmailOrCode] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
@@ -18,7 +18,7 @@ const Login = () => {
     
     try {
       setLoading(true);
-      await login(email, password);
+      await login(emailOrCode, password);
       toast.success("Logged in successfully!");
       navigate("/");
     } catch (error) {
@@ -42,18 +42,22 @@ const Login = () => {
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
           <div className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium">
-                Email address
+              <label htmlFor="email-or-code" className="block text-sm font-medium">
+                Email address or User Code
               </label>
               <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                id="email-or-code"
+                type="text"
+                value={emailOrCode}
+                onChange={(e) => setEmailOrCode(e.target.value.toUpperCase())}
                 required
                 className="mt-1"
-                placeholder="Email address"
+                placeholder="Email address or ABCD"
+                style={{ textTransform: 'uppercase' }}
               />
+              <p className="mt-1 text-xs text-muted-foreground">
+                Enter your email address or 4-character user code
+              </p>
             </div>
             <div>
               <label htmlFor="password" className="block text-sm font-medium">

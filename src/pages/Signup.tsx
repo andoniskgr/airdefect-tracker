@@ -10,6 +10,7 @@ const Signup = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [userCode, setUserCode] = useState("");
   const [loading, setLoading] = useState(false);
   const { signup } = useAuth();
   const navigate = useNavigate();
@@ -21,9 +22,17 @@ const Signup = () => {
       return toast.error("Passwords do not match");
     }
     
+    if (!userCode || userCode.length !== 4) {
+      return toast.error("User code must be exactly 4 characters");
+    }
+    
+    if (!/^[A-Z0-9]{4}$/.test(userCode)) {
+      return toast.error("User code must be 4 uppercase letters or numbers");
+    }
+    
     try {
       setLoading(true);
-      await signup(email, password);
+      await signup(email, password, userCode);
       toast.success("Account created successfully!");
       navigate("/");
     } catch (error: any) {
@@ -59,6 +68,25 @@ const Signup = () => {
                 className="mt-1"
                 placeholder="Email address"
               />
+            </div>
+            <div>
+              <label htmlFor="user-code" className="block text-sm font-medium">
+                User Code (4 characters)
+              </label>
+              <Input
+                id="user-code"
+                type="text"
+                value={userCode}
+                onChange={(e) => setUserCode(e.target.value.toUpperCase())}
+                required
+                className="mt-1"
+                placeholder="ABCD"
+                maxLength={4}
+                style={{ textTransform: 'uppercase' }}
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                4 uppercase letters or numbers (e.g., ABCD, 1234)
+              </p>
             </div>
             <div>
               <label htmlFor="password" className="block text-sm font-medium">

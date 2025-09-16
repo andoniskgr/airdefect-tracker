@@ -15,6 +15,7 @@ import ServiceOrder from "./pages/ServiceOrder";
 import AircraftAdmin from "./pages/AircraftAdmin";
 import ArchiveRecords from "./pages/ArchiveRecords";
 import InternalNotices from "./pages/InternalNotices";
+import UserProfile from "./pages/UserProfile";
 
 const queryClient = new QueryClient();
 
@@ -53,6 +54,11 @@ const App = () => (
             <Route path="/aircraft-admin" element={
               <ProtectedRoute>
                 <AircraftAdmin />
+              </ProtectedRoute>
+            } />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <UserProfile />
               </ProtectedRoute>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

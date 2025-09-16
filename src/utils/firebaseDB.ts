@@ -435,5 +435,93 @@ export const getUserArchivedDates = async (userEmail: string): Promise<string[]>
   }
 };
 
+// User management functions
+export const checkUserCodeExists = async (userCode: string): Promise<boolean> => {
+  try {
+    const usersCollection = collection(db, 'users');
+    const codeQuery = query(usersCollection, where('userCode', '==', userCode));
+    const codeSnapshot = await getDocs(codeQuery);
+    return !codeSnapshot.empty;
+  } catch (error) {
+    console.error('Error checking user code existence:', error);
+    return false;
+  }
+};
+
+export const getUserByCode = async (userCode: string) => {
+  try {
+    const usersCollection = collection(db, 'users');
+    const codeQuery = query(usersCollection, where('userCode', '==', userCode));
+    const codeSnapshot = await getDocs(codeQuery);
+    
+    if (codeSnapshot.empty) {
+      return null;
+    }
+    
+    const userDoc = codeSnapshot.docs[0];
+    return {
+      id: userDoc.id,
+      ...userDoc.data()
+    };
+  } catch (error) {
+    console.error('Error getting user by code:', error);
+    return null;
+  }
+};
+
+export const updateUserCode = async (userId: string, newUserCode: string, userEmail?: string): Promise<void> => {
+  try {
+    // Check if new code already exists
+    const codeExists = await checkUserCodeExists(newUserCode);
+    
+    if (codeExists) {
+      throw new Error('User code already exists. Please choose a different code.');
+    }
+    
+    const userRef = doc(db, 'users', userId);
+    
+    // Check if user document exists
+    const userSnap = await getDoc(userRef);
+    
+    if (userSnap.exists()) {
+      // Update existing user document
+      await updateDoc(userRef, {
+        userCode: newUserCode,
+        updatedAt: new Date(),
+      });
+    } else {
+      // Create new user document for existing Firebase Auth user
+      await setDoc(userRef, {
+        email: userEmail || '',
+        userCode: newUserCode,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+    }
+  } catch (error) {
+    console.error('Error updating user code:', error);
+    throw error;
+  }
+};
+
+export const getUserById = async (userId: string) => {
+  try {
+    const userRef = doc(db, 'users', userId);
+    const userSnap = await getDoc(userRef);
+    
+    if (userSnap.exists()) {
+      return {
+        id: userSnap.id,
+        ...userSnap.data()
+      };
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Error getting user by ID:', error);
+    return null;
+  }
+};
+
 // Export db and auth
 export { db, auth };

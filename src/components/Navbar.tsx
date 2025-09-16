@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Archive, FileText, Settings, Bell } from "lucide-react";
+import { Archive, FileText, Settings, Bell, User } from "lucide-react";
 
 const Navbar = () => {
   const { currentUser, logout } = useAuth();
@@ -73,6 +73,13 @@ const Navbar = () => {
         <div className="flex items-center gap-4">
           {currentUser ? (
             <div className="flex items-center gap-4">
+              <Link 
+                to="/profile"
+                className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
+              >
+                <User className="h-4 w-4" />
+                <span>Profile</span>
+              </Link>
               <span className="text-sm text-muted-foreground">
                 {currentUser.email}
               </span>
