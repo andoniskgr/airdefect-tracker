@@ -126,6 +126,11 @@ const Navbar = () => {
               </Button>
             </div>
           )}
+          
+          {/* Version number at the end */}
+          <span className="text-xs text-muted-foreground font-mono bg-muted px-2 py-1 rounded">
+            v1.0.0
+          </span>
         </div>
       </div>
     </nav>
