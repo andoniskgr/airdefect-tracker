@@ -523,5 +523,26 @@ export const getUserById = async (userId: string) => {
   }
 };
 
+export const getUserByEmail = async (email: string) => {
+  try {
+    const usersCollection = collection(db, 'users');
+    const emailQuery = query(usersCollection, where('email', '==', email));
+    const emailSnapshot = await getDocs(emailQuery);
+    
+    if (emailSnapshot.empty) {
+      return null;
+    }
+    
+    const userDoc = emailSnapshot.docs[0];
+    return {
+      id: userDoc.id,
+      ...userDoc.data()
+    };
+  } catch (error) {
+    console.error('Error getting user by email:', error);
+    return null;
+  }
+};
+
 // Export db and auth
 export { db, auth };

@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { FileSpreadsheet, Plus, Filter, Printer } from "lucide-react";
-import { FilterType, DefectRecord } from "./DefectRecord.types";
+import { FilterType, DefectRecord, VisibilityFilterType } from "./DefectRecord.types";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useState } from "react";
 import { format } from "date-fns";
@@ -17,6 +17,8 @@ import {
 interface FilterButtonsProps {
   filter: FilterType;
   setFilter: (filter: FilterType) => void;
+  visibilityFilter: VisibilityFilterType;
+  setVisibilityFilter: (visibilityFilter: VisibilityFilterType) => void;
   exportToExcel: () => void;
   onAddRecord: () => void;
   records: DefectRecord[];
@@ -25,6 +27,8 @@ interface FilterButtonsProps {
 export const FilterButtons = ({
   filter,
   setFilter,
+  visibilityFilter,
+  setVisibilityFilter,
   exportToExcel,
   onAddRecord,
   records,
@@ -432,6 +436,53 @@ export const FilterButtons = ({
               NXS
             </Button>
           </div>
+          <div className="border-t pt-4">
+            <h3 className="text-sm font-semibold mb-3 text-slate-700">Visibility</h3>
+            <div className="grid gap-2">
+              <Button
+                onClick={() => {
+                  setVisibilityFilter("both");
+                  setFiltersOpen(false);
+                }}
+                variant={visibilityFilter === "both" ? "default" : "outline"}
+                className={`text-sm uppercase font-semibold w-full ${
+                  visibilityFilter === "both"
+                    ? "bg-slate-700 text-white"
+                    : "bg-white text-slate-800 border-slate-300"
+                }`}
+              >
+                BOTH
+              </Button>
+              <Button
+                onClick={() => {
+                  setVisibilityFilter("public");
+                  setFiltersOpen(false);
+                }}
+                variant={visibilityFilter === "public" ? "default" : "outline"}
+                className={`text-sm uppercase font-semibold w-full ${
+                  visibilityFilter === "public"
+                    ? "bg-slate-700 text-white"
+                    : "bg-white text-slate-800 border-slate-300"
+                }`}
+              >
+                PUBLIC
+              </Button>
+              <Button
+                onClick={() => {
+                  setVisibilityFilter("private");
+                  setFiltersOpen(false);
+                }}
+                variant={visibilityFilter === "private" ? "default" : "outline"}
+                className={`text-sm uppercase font-semibold w-full ${
+                  visibilityFilter === "private"
+                    ? "bg-slate-700 text-white"
+                    : "bg-white text-slate-800 border-slate-300"
+                }`}
+              >
+                PRIVATE
+              </Button>
+            </div>
+          </div>
           <DrawerFooter>
             <DrawerClose asChild>
               <Button variant="outline">Close</Button>
@@ -501,6 +552,45 @@ export const FilterButtons = ({
         >
           NXS
         </Button>
+        <div className="border-l border-slate-300 pl-3 ml-3">
+          <span className="text-xs text-slate-600 mr-2">Visibility:</span>
+          <Button
+            onClick={() => setVisibilityFilter("both")}
+            variant={visibilityFilter === "both" ? "default" : "outline"}
+            size="sm"
+            className={`text-xs uppercase font-semibold ${
+              visibilityFilter === "both"
+                ? "bg-slate-700 text-white"
+                : "bg-white text-slate-800 border-slate-300 hover:bg-slate-100"
+            }`}
+          >
+            BOTH
+          </Button>
+          <Button
+            onClick={() => setVisibilityFilter("public")}
+            variant={visibilityFilter === "public" ? "default" : "outline"}
+            size="sm"
+            className={`text-xs uppercase font-semibold ml-1 ${
+              visibilityFilter === "public"
+                ? "bg-slate-700 text-white"
+                : "bg-white text-slate-800 border-slate-300 hover:bg-slate-100"
+            }`}
+          >
+            PUBLIC
+          </Button>
+          <Button
+            onClick={() => setVisibilityFilter("private")}
+            variant={visibilityFilter === "private" ? "default" : "outline"}
+            size="sm"
+            className={`text-xs uppercase font-semibold ml-1 ${
+              visibilityFilter === "private"
+                ? "bg-slate-700 text-white"
+                : "bg-white text-slate-800 border-slate-300 hover:bg-slate-100"
+            }`}
+          >
+            PRIVATE
+          </Button>
+        </div>
         <Button
           onClick={exportToExcel}
           variant="outline"

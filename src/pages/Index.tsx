@@ -18,6 +18,8 @@ const Index = () => {
     loading,
     filter,
     setFilter,
+    visibilityFilter,
+    setVisibilityFilter,
     sortConfig,
     handleSort,
     handleDeleteRecord,
@@ -63,6 +65,8 @@ const Index = () => {
           <FilterButtons
             filter={filter}
             setFilter={setFilter}
+            visibilityFilter={visibilityFilter}
+            setVisibilityFilter={setVisibilityFilter}
             exportToExcel={exportToExcel}
             onAddRecord={() => setIsAddModalOpen(true)}
             records={filteredRecords}

@@ -37,6 +37,7 @@ export interface DefectRecord {
 }
 
 export type FilterType = 'all' | 'sl' | 'ok' | 'pln' | 'nxs';
+export type VisibilityFilterType = 'both' | 'public' | 'private';
 export type ExportType = 'pdf' | 'excel';
 
 // Field mapping for Excel export

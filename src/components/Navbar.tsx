@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -7,9 +7,33 @@ import { toast } from "sonner";
 import { Archive, FileText, Settings, Bell, User } from "lucide-react";
 
 const Navbar = () => {
-  const { currentUser, logout } = useAuth();
+  const { currentUser, logout, getUserData } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [userCode, setUserCode] = useState<string>("");
   const navigate = useNavigate();
+
+  // Fetch user data to get user code
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (currentUser && getUserData) {
+        try {
+          const userData = await getUserData();
+          if (userData && userData.userCode) {
+            setUserCode(userData.userCode);
+          } else {
+            setUserCode(""); // Clear user code if not found
+          }
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+          setUserCode(""); // Clear user code on error
+        }
+      } else {
+        setUserCode(""); // Clear user code when not logged in
+      }
+    };
+
+    fetchUserData();
+  }, [currentUser, getUserData]);
 
   const handleLogout = async () => {
     try {
@@ -80,8 +104,8 @@ const Navbar = () => {
                 <User className="h-4 w-4" />
                 <span>Profile</span>
               </Link>
-              <span className="text-sm text-muted-foreground">
-                {currentUser.email}
+              <span className="text-sm text-muted-foreground font-mono">
+                {userCode || currentUser.email}
               </span>
               <Button 
                 variant="outline" 

@@ -1,9 +1,10 @@
 
 import { useState } from "react";
-import { DefectRecord, FilterType } from "../../components/defect-records/DefectRecord.types";
+import { DefectRecord, FilterType, VisibilityFilterType } from "../../components/defect-records/DefectRecord.types";
 
 export const useFilterAndSort = () => {
   const [filter, setFilter] = useState<FilterType>('all');
+  const [visibilityFilter, setVisibilityFilter] = useState<VisibilityFilterType>('both');
   const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' }>({
     key: 'time',
     direction: 'desc'
@@ -35,6 +36,14 @@ export const useFilterAndSort = () => {
       // For "NXS" filter: show records with NXS = true AND OK = false
       records = records.filter(record => record.nxs === true && record.ok === false);
     }
+    
+    // Apply visibility filter
+    if (visibilityFilter === 'public') {
+      records = records.filter(record => record.isPublic === true);
+    } else if (visibilityFilter === 'private') {
+      records = records.filter(record => record.isPublic === false);
+    }
+    // If visibilityFilter === 'both', no additional filtering needed
     
     // Sort the records based on the current sort configuration
     if (sortConfig.key) {
@@ -70,6 +79,8 @@ export const useFilterAndSort = () => {
   return {
     filter,
     setFilter,
+    visibilityFilter,
+    setVisibilityFilter,
     sortConfig,
     handleSort,
     getFilteredRecords

@@ -45,6 +45,10 @@ export const DateGroupAccordion = ({
   currentUserEmail,
   isArchiveView = false, // Default to false
 }: DateGroupAccordionProps) => {
+  // Check if there are any records created by the current user in this date group
+  const hasUserRecords = currentUserEmail ? 
+    group.records.some(record => record.createdBy === currentUserEmail) : 
+    false;
   return (
     <AccordionItem
       key={group.date}
@@ -77,22 +81,25 @@ export const DateGroupAccordion = ({
               <span>Archive</span>
             </Button>
           )}
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              if (
-                window.confirm(`Delete all records for ${group.formattedDate}?`)
-              ) {
-                handleDeleteAllByDate(group.date);
-              }
-            }}
-            className="h-8 flex items-center gap-1"
-          >
-            <Trash2 className="h-4 w-4" />
-            <span>Delete All</span>
-          </Button>
+          {/* Only show Delete All button if there are records created by current user */}
+          {hasUserRecords && (
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (
+                  window.confirm(`Delete all records for ${group.formattedDate}?`)
+                ) {
+                  handleDeleteAllByDate(group.date);
+                }
+              }}
+              className="h-8 flex items-center gap-1"
+            >
+              <Trash2 className="h-4 w-4" />
+              <span>Delete All</span>
+            </Button>
+          )}
         </div>
       </div>
       <AccordionContent className="bg-white">

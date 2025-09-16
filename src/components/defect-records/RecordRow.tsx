@@ -9,6 +9,7 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   MessageSquare,
   Trash,
@@ -22,6 +23,7 @@ import { DefectRecord } from "./DefectRecord.types";
 import { HistoryModal } from "./HistoryModal";
 import { toast } from "sonner";
 import { useState, useRef, useEffect } from "react";
+import { getUserByEmail } from "@/utils/firebaseDB";
 
 interface RecordRowProps {
   record: DefectRecord;
@@ -45,6 +47,7 @@ export const RecordRow = ({
   const [localData, setLocalData] = useState<DefectRecord>(record);
   const [isSaving, setIsSaving] = useState(false);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [creatorInfo, setCreatorInfo] = useState<string>("");
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const defectTextareaRef = useRef<HTMLTextAreaElement>(null);
   const remarksTextareaRef = useRef<HTMLTextAreaElement>(null);
@@ -54,6 +57,27 @@ export const RecordRow = ({
     textarea.style.height = "auto";
     textarea.style.height = Math.max(textarea.scrollHeight, 32) + "px";
   };
+
+  // Function to get creator information
+  const getCreatorInfo = async (createdBy: string) => {
+    try {
+      const userData = await getUserByEmail(createdBy);
+      if (userData && userData.userCode) {
+        return userData.userCode;
+      }
+      return createdBy; // Fallback to email if no user code
+    } catch (error) {
+      console.error("Error getting creator info:", error);
+      return createdBy; // Fallback to email on error
+    }
+  };
+
+  // Load creator information on mount
+  useEffect(() => {
+    if (record.createdBy) {
+      getCreatorInfo(record.createdBy).then(setCreatorInfo);
+    }
+  }, [record.createdBy]);
 
   // Sync localData with record prop when record changes from external sources
   useEffect(() => {
@@ -468,16 +492,25 @@ export const RecordRow = ({
       >
         {/* Time - 6 characters */}
         <TableCell className="py-3" style={{ width: "1.5%" }}>
-          <Input
-            value={localData.time}
-            onChange={(e) => handleTimeChange(e.target.value)}
-            onBlur={(e) => handleTimeBlur(e.target.value)}
-            onKeyDown={handleTimeKeyDown}
-            onFocus={handleFocus}
-            placeholder="HH:MM"
-            maxLength={6}
-            className="text-sm uppercase font-medium h-8 border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300 w-[80px]"
-          />
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Input
+                  value={localData.time}
+                  onChange={(e) => handleTimeChange(e.target.value)}
+                  onBlur={(e) => handleTimeBlur(e.target.value)}
+                  onKeyDown={handleTimeKeyDown}
+                  onFocus={handleFocus}
+                  placeholder="HH:MM"
+                  maxLength={6}
+                  className="text-sm uppercase font-medium h-8 border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300 w-[80px]"
+                />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Created by: {creatorInfo || record.createdBy || "Unknown"}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </TableCell>
 
         {/* Registration - 6 characters */}
@@ -723,15 +756,18 @@ export const RecordRow = ({
                 )}
               </div>
             )}
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={() => handleDeleteRecord(record.id)}
-              className="p-1 h-6 w-6"
-            >
-              <Trash className="h-3 w-3" />
-              <span className="sr-only">Delete</span>
-            </Button>
+            {/* Only show delete button for records created by current user */}
+            {record.createdBy === currentUserEmail && (
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => handleDeleteRecord(record.id)}
+                className="p-1 h-6 w-6"
+              >
+                <Trash className="h-3 w-3" />
+                <span className="sr-only">Delete</span>
+              </Button>
+            )}
             <Button
               variant="default"
               size="sm"
