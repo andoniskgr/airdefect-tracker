@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { format } from 'date-fns';
+import React, { useState, useRef, useEffect } from "react";
+import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -11,6 +11,7 @@ interface TimePickerProps {
   isError?: boolean;
   onEnterPress?: () => void;
   disabled?: boolean;
+  hideCurrentTimeButton?: boolean;
 }
 
 // Clock icon component
@@ -31,78 +32,83 @@ const Clock = () => (
   </svg>
 );
 
-const TimePicker: React.FC<TimePickerProps> = ({ 
-  value, 
-  onChange, 
-  className, 
+const TimePicker: React.FC<TimePickerProps> = ({
+  value,
+  onChange,
+  className,
   isError = false,
   onEnterPress,
-  disabled = false
+  disabled = false,
+  hideCurrentTimeButton = false,
 }) => {
   // Keep internal state for input value to prevent cursor jumping
-  const [inputValue, setInputValue] = useState(value || '');
+  const [inputValue, setInputValue] = useState(value || "");
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Store cursor position
   const cursorPositionRef = useRef<number | null>(null);
-  
+
   // Update local state only when value prop changes from external sources
   useEffect(() => {
     // Only update if the component's internal value doesn't match the prop
     // and the input isn't focused (to avoid overriding user typing)
     if (value !== inputValue && document.activeElement !== inputRef.current) {
-      setInputValue(value || '');
+      setInputValue(value || "");
     }
   }, [value, inputValue]);
-  
+
   const formatTimeInput = (input: string): string => {
     // Remove any non-digit characters
-    const digitsOnly = input.replace(/[^\d]/g, '');
-    
+    const digitsOnly = input.replace(/[^\d]/g, "");
+
     // If we have 4 or more digits, format as HH:MM
     if (digitsOnly.length >= 4) {
       const hours = Math.min(parseInt(digitsOnly.substring(0, 2), 10), 23);
       const minutes = Math.min(parseInt(digitsOnly.substring(2, 4), 10), 59);
-      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+      return `${hours.toString().padStart(2, "0")}:${minutes
+        .toString()
+        .padStart(2, "0")}`;
     } else if (digitsOnly.length > 0) {
       // Handle partial input (less than 4 digits)
       if (digitsOnly.length <= 2) {
         // Just hours, pad with leading zero if needed
         const hours = Math.min(parseInt(digitsOnly, 10), 23);
-        return `${hours.toString().padStart(2, '0')}:00`;
+        return `${hours.toString().padStart(2, "0")}:00`;
       } else {
         // Hours and partial minutes
         const hours = Math.min(parseInt(digitsOnly.substring(0, 2), 10), 23);
         const minutes = Math.min(parseInt(digitsOnly.substring(2), 10), 59);
-        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+        return `${hours.toString().padStart(2, "0")}:${minutes
+          .toString()
+          .padStart(2, "0")}`;
       }
     }
-    
+
     // Return empty string if no valid input
-    return '';
+    return "";
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target.value;
-    
+
     // Save current cursor position
     cursorPositionRef.current = e.target.selectionStart;
-    
+
     // For direct typing, allow digits and colon
     if (/^[\d:]*$/.test(input) && input.length <= 5) {
       setInputValue(input);
-      
+
       // Only notify parent of changes on valid input patterns
       // to avoid cursor jumps from immediate reformatting
       onChange(input);
     }
   };
-  
+
   // Restore cursor position after render
   useEffect(() => {
     if (
       cursorPositionRef.current !== null &&
-      inputRef.current && 
+      inputRef.current &&
       document.activeElement === inputRef.current
     ) {
       const pos = Math.min(cursorPositionRef.current, inputValue.length);
@@ -111,7 +117,7 @@ const TimePicker: React.FC<TimePickerProps> = ({
       cursorPositionRef.current = null;
     }
   });
-  
+
   const handleBlur = () => {
     // Format time on blur
     if (inputValue.trim()) {
@@ -119,12 +125,12 @@ const TimePicker: React.FC<TimePickerProps> = ({
       setInputValue(formattedTime);
       onChange(formattedTime);
     } else {
-      onChange('');
+      onChange("");
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       handleBlur();
       if (onEnterPress) {
         onEnterPress();
@@ -134,7 +140,7 @@ const TimePicker: React.FC<TimePickerProps> = ({
 
   const setCurrentTime = () => {
     const now = new Date();
-    const timeStr = format(now, 'HH:mm');
+    const timeStr = format(now, "HH:mm");
     setInputValue(timeStr);
     onChange(timeStr);
   };
@@ -155,16 +161,18 @@ const TimePicker: React.FC<TimePickerProps> = ({
         )}
         disabled={disabled}
       />
-      <Button
-        type="button"
-        variant="outline"
-        className="px-3 text-black bg-white hover:bg-white/90"
-        onClick={setCurrentTime}
-        disabled={disabled}
-      >
-        <span className="sr-only">Set current time</span>
-        <Clock />
-      </Button>
+      {!hideCurrentTimeButton && (
+        <Button
+          type="button"
+          variant="outline"
+          className="px-3 text-black bg-white hover:bg-white/90"
+          onClick={setCurrentTime}
+          disabled={disabled}
+        >
+          <span className="sr-only">Set current time</span>
+          <Clock />
+        </Button>
+      )}
     </div>
   );
 };

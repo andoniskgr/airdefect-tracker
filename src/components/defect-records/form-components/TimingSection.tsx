@@ -1,6 +1,6 @@
-
-import React from 'react';
-import { TimePicker } from '@/components/ui/time-picker';
+import React from "react";
+import { TimePicker } from "@/components/ui/time-picker";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface TimingSectionProps {
   eta: string;
@@ -23,8 +23,10 @@ export const TimingSection = ({
   onUpdChange,
   onEnterPressEta,
   onEnterPressStd,
-  onEnterPressUpd
+  onEnterPressUpd,
 }: TimingSectionProps) => {
+  const isMobile = useIsMobile();
+
   return (
     <div className="grid grid-cols-3 gap-4">
       <div>
@@ -33,6 +35,7 @@ export const TimingSection = ({
           value={eta}
           onChange={onEtaChange}
           onEnterPress={onEnterPressEta}
+          hideCurrentTimeButton={isMobile}
         />
       </div>
       <div>
@@ -41,6 +44,7 @@ export const TimingSection = ({
           value={std}
           onChange={onStdChange}
           onEnterPress={onEnterPressStd}
+          hideCurrentTimeButton={isMobile}
         />
       </div>
       <div>
@@ -49,6 +53,7 @@ export const TimingSection = ({
           value={upd}
           onChange={onUpdChange}
           onEnterPress={onEnterPressUpd}
+          hideCurrentTimeButton={isMobile}
         />
       </div>
     </div>
