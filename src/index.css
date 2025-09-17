@@ -208,8 +208,8 @@
   max-height: 80vh;
 }
 
-/* Mobile-specific improvements */
-@media (max-width: 768px) {
+/* Mobile and tablet-specific improvements */
+@media (max-width: 1023px) {
   /* Improve touch targets */
   button, input, select, textarea {
     min-height: 44px;
@@ -245,7 +245,7 @@
     margin-top: 0.75rem;
   }
   
-  /* Mobile table improvements */
+  /* Mobile and tablet table improvements */
   .line-clamp-1 {
     overflow: hidden;
     display: -webkit-box;
