@@ -33,8 +33,10 @@ const Signup = () => {
     try {
       setLoading(true);
       await signup(email, password, userCode);
-      toast.success("Account created successfully!");
-      navigate("/");
+      toast.success(
+        "Account created successfully! Your account is pending approval. You will receive an email once approved."
+      );
+      navigate("/login");
     } catch (error: any) {
       console.error("Signup error:", error);
       toast.error(error.message || "Failed to create account.");

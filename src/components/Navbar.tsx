@@ -3,13 +3,13 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { User, Menu, X } from "lucide-react";
+import { User, Menu, X, Settings, Users } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { getVersionString } from "@/utils/version";
 
 const Navbar = () => {
-  const { currentUser, logout, getUserData } = useAuth();
+  const { currentUser, userData, logout, getUserData } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [userCode, setUserCode] = useState<string>("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -88,6 +88,26 @@ const Navbar = () => {
           {/* Desktop User Actions */}
           {currentUser && !isMobile ? (
             <div className="flex items-center gap-4">
+              {/* Admin Links */}
+              {userData?.role === "admin" && (
+                <>
+                  <Link
+                    to="/user-management"
+                    className="flex items-center gap-2 text-purple-600 hover:text-purple-800 transition-colors"
+                  >
+                    <Users className="h-4 w-4" />
+                    <span>Users</span>
+                  </Link>
+                  <Link
+                    to="/aircraft-admin"
+                    className="flex items-center gap-2 text-orange-600 hover:text-orange-800 transition-colors"
+                  >
+                    <Settings className="h-4 w-4" />
+                    <span>Aircraft</span>
+                  </Link>
+                </>
+              )}
+
               <Link
                 to="/profile"
                 className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
@@ -129,6 +149,28 @@ const Navbar = () => {
       {isMobile && currentUser && isMobileMenuOpen && (
         <div className="border-t border-border bg-card">
           <div className="container mx-auto px-4 py-4 space-y-3">
+            {/* Admin Links */}
+            {userData?.role === "admin" && (
+              <>
+                <Link
+                  to="/user-management"
+                  className="flex items-center gap-3 text-purple-600 hover:text-purple-800 transition-colors py-2"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <Users className="h-5 w-5" />
+                  <span className="text-base">User Management</span>
+                </Link>
+                <Link
+                  to="/aircraft-admin"
+                  className="flex items-center gap-3 text-orange-600 hover:text-orange-800 transition-colors py-2"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <Settings className="h-5 w-5" />
+                  <span className="text-base">Aircraft Admin</span>
+                </Link>
+              </>
+            )}
+
             <Link
               to="/profile"
               className="flex items-center gap-3 text-blue-600 hover:text-blue-800 transition-colors py-2"
