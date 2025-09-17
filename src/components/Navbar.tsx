@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Archive, FileText, Settings, Bell, User, Menu, X } from "lucide-react";
+import { Archive, User, Menu, X } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { getVersionString } from "@/utils/version";
@@ -74,31 +74,6 @@ const Navbar = () => {
                 <Archive className="h-4 w-4" />
                 <span>Archives</span>
               </Link>
-              <Link
-                to="/internal-notices"
-                className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
-              >
-                <Bell className="h-4 w-4" />
-                <span>Internal Notices</span>
-              </Link>
-              <a
-                href="/service-order"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
-              >
-                <FileText className="h-4 w-4" />
-                <span>Service Order</span>
-              </a>
-              <a
-                href="/aircraft-admin"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
-              >
-                <Settings className="h-4 w-4" />
-                <span>A/C ADMIN</span>
-              </a>
             </>
           )}
         </div>
@@ -172,34 +147,6 @@ const Navbar = () => {
               <Archive className="h-5 w-5" />
               <span className="text-base">Archives</span>
             </Link>
-            <Link
-              to="/internal-notices"
-              className="flex items-center gap-3 text-blue-600 hover:text-blue-800 transition-colors py-2"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              <Bell className="h-5 w-5" />
-              <span className="text-base">Internal Notices</span>
-            </Link>
-            <a
-              href="/service-order"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-3 text-blue-600 hover:text-blue-800 transition-colors py-2"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              <FileText className="h-5 w-5" />
-              <span className="text-base">Service Order</span>
-            </a>
-            <a
-              href="/aircraft-admin"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-3 text-blue-600 hover:text-blue-800 transition-colors py-2"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              <Settings className="h-5 w-5" />
-              <span className="text-base">A/C ADMIN</span>
-            </a>
             <Link
               to="/profile"
               className="flex items-center gap-3 text-blue-600 hover:text-blue-800 transition-colors py-2"
