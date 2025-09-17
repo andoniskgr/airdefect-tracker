@@ -1,5 +1,5 @@
 // Email service utility for sending notifications
-// This is a placeholder implementation - you'll need to integrate with a real email service
+import emailjs from '@emailjs/browser';
 
 export interface EmailData {
   to: string;
@@ -136,19 +136,34 @@ export class EmailService {
       const emailData = emailTemplates.adminSignupNotification(userData, this.adminEmail);
       console.log('Sending admin notification:', emailData);
       
-      // TODO: Replace with actual email service integration
-      // For now, we'll just log the email data
-      // In production, integrate with services like:
-      // - EmailJS
-      // - SendGrid
-      // - AWS SES
-      // - Nodemailer with SMTP
-      
-      // Simulate email sending
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      console.log('Admin notification sent successfully');
-      return true;
+      // Use EmailJS to send the email
+      if (EMAIL_CONFIG.SERVICE_ID && EMAIL_CONFIG.PUBLIC_KEY) {
+        const templateParams = {
+          to_email: emailData.to,
+          subject: emailData.subject,
+          message: emailData.html,
+          user_email: userData.email,
+          user_code: userData.userCode,
+          signup_date: userData.createdAt.toLocaleDateString(),
+          admin_email: this.adminEmail,
+        };
+
+        const result = await emailjs.send(
+          EMAIL_CONFIG.SERVICE_ID,
+          EMAIL_CONFIG.TEMPLATE_ADMIN_SIGNUP,
+          templateParams,
+          EMAIL_CONFIG.PUBLIC_KEY
+        );
+
+        console.log('Admin notification sent successfully:', result);
+        return true;
+      } else {
+        console.warn('EmailJS not configured, falling back to console logging');
+        // Fallback to console logging if EmailJS is not configured
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        console.log('Admin notification sent successfully (simulated)');
+        return true;
+      }
     } catch (error) {
       console.error('Failed to send admin notification:', error);
       return false;
@@ -161,11 +176,32 @@ export class EmailService {
       const emailData = emailTemplates.userApprovalNotification(userEmail, userCode);
       console.log('Sending user approval notification:', emailData);
       
-      // TODO: Replace with actual email service integration
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      console.log('User approval notification sent successfully');
-      return true;
+      // Use EmailJS to send the email
+      if (EMAIL_CONFIG.SERVICE_ID && EMAIL_CONFIG.PUBLIC_KEY) {
+        const templateParams = {
+          to_email: emailData.to,
+          subject: emailData.subject,
+          message: emailData.html,
+          user_email: userEmail,
+          user_code: userCode,
+        };
+
+        const result = await emailjs.send(
+          EMAIL_CONFIG.SERVICE_ID,
+          EMAIL_CONFIG.TEMPLATE_USER_APPROVAL,
+          templateParams,
+          EMAIL_CONFIG.PUBLIC_KEY
+        );
+
+        console.log('User approval notification sent successfully:', result);
+        return true;
+      } else {
+        console.warn('EmailJS not configured, falling back to console logging');
+        // Fallback to console logging if EmailJS is not configured
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        console.log('User approval notification sent successfully (simulated)');
+        return true;
+      }
     } catch (error) {
       console.error('Failed to send user approval notification:', error);
       return false;
@@ -178,11 +214,33 @@ export class EmailService {
       const emailData = emailTemplates.userRejectionNotification(userEmail, userCode, reason);
       console.log('Sending user rejection notification:', emailData);
       
-      // TODO: Replace with actual email service integration
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      console.log('User rejection notification sent successfully');
-      return true;
+      // Use EmailJS to send the email
+      if (EMAIL_CONFIG.SERVICE_ID && EMAIL_CONFIG.PUBLIC_KEY) {
+        const templateParams = {
+          to_email: emailData.to,
+          subject: emailData.subject,
+          message: emailData.html,
+          user_email: userEmail,
+          user_code: userCode,
+          rejection_reason: reason || 'No reason provided',
+        };
+
+        const result = await emailjs.send(
+          EMAIL_CONFIG.SERVICE_ID,
+          EMAIL_CONFIG.TEMPLATE_USER_REJECTION,
+          templateParams,
+          EMAIL_CONFIG.PUBLIC_KEY
+        );
+
+        console.log('User rejection notification sent successfully:', result);
+        return true;
+      } else {
+        console.warn('EmailJS not configured, falling back to console logging');
+        // Fallback to console logging if EmailJS is not configured
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        console.log('User rejection notification sent successfully (simulated)');
+        return true;
+      }
     } catch (error) {
       console.error('Failed to send user rejection notification:', error);
       return false;
@@ -194,11 +252,30 @@ export class EmailService {
     try {
       console.log('Sending email:', emailData);
       
-      // TODO: Replace with actual email service integration
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      console.log('Email sent successfully');
-      return true;
+      // Use EmailJS to send the email
+      if (EMAIL_CONFIG.SERVICE_ID && EMAIL_CONFIG.PUBLIC_KEY) {
+        const templateParams = {
+          to_email: emailData.to,
+          subject: emailData.subject,
+          message: emailData.html,
+        };
+
+        const result = await emailjs.send(
+          EMAIL_CONFIG.SERVICE_ID,
+          EMAIL_CONFIG.TEMPLATE_GENERIC,
+          templateParams,
+          EMAIL_CONFIG.PUBLIC_KEY
+        );
+
+        console.log('Email sent successfully:', result);
+        return true;
+      } else {
+        console.warn('EmailJS not configured, falling back to console logging');
+        // Fallback to console logging if EmailJS is not configured
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        console.log('Email sent successfully (simulated)');
+        return true;
+      }
     } catch (error) {
       console.error('Failed to send email:', error);
       return false;
@@ -211,10 +288,15 @@ export const EMAIL_CONFIG = {
   // Set your admin email here
   ADMIN_EMAIL: import.meta.env.VITE_ADMIN_EMAIL || 'admin@mcc-application.com',
   
-  // Email service settings (to be configured with actual service)
+  // EmailJS service settings
   SERVICE_ID: import.meta.env.VITE_EMAILJS_SERVICE_ID || '',
-  TEMPLATE_ID: import.meta.env.VITE_EMAILJS_TEMPLATE_ID || '',
   PUBLIC_KEY: import.meta.env.VITE_EMAILJS_PUBLIC_KEY || '',
+  
+  // EmailJS template IDs
+  TEMPLATE_ADMIN_SIGNUP: import.meta.env.VITE_EMAILJS_TEMPLATE_ADMIN_SIGNUP || 'template_admin_signup',
+  TEMPLATE_USER_APPROVAL: import.meta.env.VITE_EMAILJS_TEMPLATE_USER_APPROVAL || 'template_user_approval',
+  TEMPLATE_USER_REJECTION: import.meta.env.VITE_EMAILJS_TEMPLATE_USER_REJECTION || 'template_user_rejection',
+  TEMPLATE_GENERIC: import.meta.env.VITE_EMAILJS_TEMPLATE_GENERIC || 'template_generic',
 };
 
 // Initialize email service

@@ -72,10 +72,13 @@ EmailJS is a popular choice for sending emails directly from the frontend.
 7. **Set environment variables:**
    ```bash
    # In your .env file
-   VITE_EMAILJS_SERVICE_ID=your_service_id
-   VITE_EMAILJS_TEMPLATE_ID=your_template_id
+   VITE_ADMIN_EMAIL=andoniskgr@gmail.com
+   VITE_EMAILJS_SERVICE_ID=service_apl6r78
    VITE_EMAILJS_PUBLIC_KEY=your_public_key
-   VITE_ADMIN_EMAIL=admin@yourdomain.com
+   VITE_EMAILJS_TEMPLATE_ADMIN_SIGNUP=Contact Us
+   VITE_EMAILJS_TEMPLATE_USER_APPROVAL=Contact Us
+   VITE_EMAILJS_TEMPLATE_USER_REJECTION=Contact Us
+   VITE_EMAILJS_TEMPLATE_GENERIC=Contact Us
    ```
 
 ### Option 2: Backend Email Service
@@ -170,8 +173,11 @@ Create a `.env` file in your project root:
 # Email Configuration
 VITE_ADMIN_EMAIL=admin@yourdomain.com
 VITE_EMAILJS_SERVICE_ID=your_service_id
-VITE_EMAILJS_TEMPLATE_ID=your_template_id
 VITE_EMAILJS_PUBLIC_KEY=your_public_key
+VITE_EMAILJS_TEMPLATE_ADMIN_SIGNUP=template_admin_signup
+VITE_EMAILJS_TEMPLATE_USER_APPROVAL=template_user_approval
+VITE_EMAILJS_TEMPLATE_USER_REJECTION=template_user_rejection
+VITE_EMAILJS_TEMPLATE_GENERIC=template_generic
 
 # Firebase Configuration (if not already set)
 VITE_FIREBASE_API_KEY=your_api_key
@@ -187,8 +193,11 @@ Update `src/utils/emailService.ts`:
 export const EMAIL_CONFIG = {
   ADMIN_EMAIL: import.meta.env.VITE_ADMIN_EMAIL || "admin@mcc-application.com",
   SERVICE_ID: import.meta.env.VITE_EMAILJS_SERVICE_ID || "",
-  TEMPLATE_ID: import.meta.env.VITE_EMAILJS_TEMPLATE_ID || "",
   PUBLIC_KEY: import.meta.env.VITE_EMAILJS_PUBLIC_KEY || "",
+  TEMPLATE_ADMIN_SIGNUP: import.meta.env.VITE_EMAILJS_TEMPLATE_ADMIN_SIGNUP || "template_admin_signup",
+  TEMPLATE_USER_APPROVAL: import.meta.env.VITE_EMAILJS_TEMPLATE_USER_APPROVAL || "template_user_approval",
+  TEMPLATE_USER_REJECTION: import.meta.env.VITE_EMAILJS_TEMPLATE_USER_REJECTION || "template_user_rejection",
+  TEMPLATE_GENERIC: import.meta.env.VITE_EMAILJS_TEMPLATE_GENERIC || "template_generic",
 };
 ```
 
