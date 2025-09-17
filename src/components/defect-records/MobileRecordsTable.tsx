@@ -139,39 +139,7 @@ export const MobileRecordsTable = ({
                       </div>
 
                       <div className="flex items-center space-x-2 ml-4">
-                        {/* Status indicators */}
-                        <div className="flex space-x-1">
-                          {record.nxs && (
-                            <span className="text-xs bg-red-200 text-red-900 px-2 py-1 rounded shadow-sm font-medium">
-                              NXS
-                            </span>
-                          )}
-                          {record.rst && (
-                            <span className="text-xs bg-orange-200 text-orange-900 px-2 py-1 rounded shadow-sm font-medium">
-                              RST
-                            </span>
-                          )}
-                          {record.dly && (
-                            <span className="text-xs bg-yellow-200 text-yellow-900 px-2 py-1 rounded shadow-sm font-medium">
-                              DLY
-                            </span>
-                          )}
-                          {record.pln && (
-                            <span className="text-xs bg-blue-200 text-blue-900 px-2 py-1 rounded shadow-sm font-medium">
-                              PLN
-                            </span>
-                          )}
-                          {record.sl && (
-                            <span className="text-xs bg-purple-200 text-purple-900 px-2 py-1 rounded shadow-sm font-medium">
-                              SL
-                            </span>
-                          )}
-                          {record.ok && (
-                            <span className="text-xs bg-green-200 text-green-900 px-2 py-1 rounded shadow-sm font-medium">
-                              OK
-                            </span>
-                          )}
-                        </div>
+                        {/* Color coding is handled by getRowColorClass - no labels needed */}
                       </div>
                     </div>
                   </div>
