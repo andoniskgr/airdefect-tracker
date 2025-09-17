@@ -190,13 +190,15 @@ export const MobileEditDefectModal = ({
               handleFieldChange(field, checked)
             }
           />
-        </div>
 
-        <ActionButtons
-          onClear={handleClear}
-          onCancel={handleCancel}
-          onSave={validateAndSubmit}
-        />
+          <div className="mt-6 pt-4 border-t border-gray-200">
+            <ActionButtons
+              onClear={handleClear}
+              onCancel={handleCancel}
+              onSave={validateAndSubmit}
+            />
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );

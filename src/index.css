@@ -240,6 +240,28 @@
     overflow-y: auto;
     /* Use dynamic viewport height for better mobile support */
     max-height: calc(100dvh - 2rem);
+    /* Ensure proper positioning when keyboard is visible */
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  
+  /* Mobile-specific dialog improvements */
+  @media (max-width: 1023px) {
+    [role="dialog"] {
+      /* Better mobile positioning */
+      margin: 0.5rem;
+      max-height: calc(100dvh - 1rem);
+      width: calc(100vw - 1rem);
+      /* Ensure it stays in view when keyboard appears */
+      position: fixed;
+      top: 0.5rem;
+      left: 0.5rem;
+      right: 0.5rem;
+      bottom: 0.5rem;
+      transform: none;
+    }
   }
   
   /* Fix scrolling issues when keyboard is visible */
@@ -253,7 +275,37 @@
   .mobile-form-container {
     max-height: calc(100dvh - 8rem);
     overflow-y: auto;
+    padding-bottom: 2rem;
+    /* Ensure smooth scrolling */
+    -webkit-overflow-scrolling: touch;
+    /* Add extra padding at bottom for better scrolling */
+    padding-bottom: 4rem;
+  }
+  
+  /* Mobile modal dialog improvements */
+  .mobile-modal-dialog {
+    max-height: 100dvh;
+    overflow: hidden;
+  }
+  
+  .mobile-modal-dialog .dialog-content {
+    max-height: 100dvh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .mobile-modal-dialog .dialog-body {
+    flex: 1;
+    overflow-y: auto;
     padding-bottom: 1rem;
+  }
+  
+  .mobile-modal-dialog .dialog-actions {
+    flex-shrink: 0;
+    padding-top: 1rem;
+    border-top: 1px solid #e2e8f0;
+    background: white;
   }
   
   /* Better mobile table handling */

@@ -215,12 +215,25 @@ export const AddDefectModal = ({
               handleFieldChange(field, checked)
             }
           />
+
+          {isMobile && (
+            <div className="mt-6 pt-4 border-t border-gray-200">
+              <ActionButtons
+                onClear={handleClear}
+                onCancel={() => onOpenChange(false)}
+                onSave={validateAndSubmit}
+              />
+            </div>
+          )}
         </div>
-        <ActionButtons
-          onClear={handleClear}
-          onCancel={() => onOpenChange(false)}
-          onSave={validateAndSubmit}
-        />
+
+        {!isMobile && (
+          <ActionButtons
+            onClear={handleClear}
+            onCancel={() => onOpenChange(false)}
+            onSave={validateAndSubmit}
+          />
+        )}
       </DialogContent>
     </Dialog>
   );
