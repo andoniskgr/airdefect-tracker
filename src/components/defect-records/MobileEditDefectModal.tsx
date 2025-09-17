@@ -126,7 +126,12 @@ export const MobileEditDefectModal = ({
           </DialogTitle>
         </DialogHeader>
 
-        <div className={cn("grid gap-4 py-4", isMobile && "gap-6")}>
+        <div
+          className={cn(
+            "grid gap-4 py-4",
+            isMobile && "gap-6 mobile-form-container"
+          )}
+        >
           <DateTimeSection
             date={formData.date}
             time={formData.time}

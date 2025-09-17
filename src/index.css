@@ -46,6 +46,18 @@
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* Mobile viewport fixes */
+  html {
+    /* Use dynamic viewport height for better mobile support */
+    height: 100dvh;
+  }
+  
+  body {
+    /* Ensure body can scroll properly on mobile */
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
 }
 
 .fade-in {
@@ -224,6 +236,24 @@
   [role="dialog"] {
     margin: 1rem;
     max-height: calc(100vh - 2rem);
+    /* Ensure modal can scroll when keyboard is visible */
+    overflow-y: auto;
+    /* Use dynamic viewport height for better mobile support */
+    max-height: calc(100dvh - 2rem);
+  }
+  
+  /* Fix scrolling issues when keyboard is visible */
+  .mobile-modal-content {
+    max-height: calc(100dvh - 4rem);
+    overflow-y: auto;
+    padding-bottom: 2rem;
+  }
+  
+  /* Ensure form content is scrollable on mobile */
+  .mobile-form-container {
+    max-height: calc(100dvh - 8rem);
+    overflow-y: auto;
+    padding-bottom: 1rem;
   }
   
   /* Better mobile table handling */
