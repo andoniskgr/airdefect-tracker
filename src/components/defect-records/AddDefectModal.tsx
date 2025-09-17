@@ -217,7 +217,7 @@ export const AddDefectModal = ({
           />
 
           {isMobile && (
-            <div className="mt-6 pt-4 border-t border-gray-200">
+            <div className="mobile-action-buttons">
               <ActionButtons
                 onClear={handleClear}
                 onCancel={() => onOpenChange(false)}

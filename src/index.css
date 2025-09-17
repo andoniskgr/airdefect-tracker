@@ -58,6 +58,24 @@
     min-height: 100dvh;
     overflow-x: hidden;
   }
+  
+  /* Additional mobile scrolling fixes */
+  @media (max-width: 1023px) {
+    /* Ensure modals can scroll properly on mobile */
+    .dialog-content {
+      max-height: 100dvh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* Make sure the scrollable area takes available space */
+    .mobile-form-container {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+  }
 }
 
 .fade-in {
@@ -273,13 +291,12 @@
   
   /* Ensure form content is scrollable on mobile */
   .mobile-form-container {
-    max-height: calc(100dvh - 8rem);
+    max-height: calc(100dvh - 6rem);
     overflow-y: auto;
-    padding-bottom: 2rem;
     /* Ensure smooth scrolling */
     -webkit-overflow-scrolling: touch;
     /* Add extra padding at bottom for better scrolling */
-    padding-bottom: 4rem;
+    padding-bottom: 6rem;
   }
   
   /* Mobile modal dialog improvements */
@@ -306,6 +323,17 @@
     padding-top: 1rem;
     border-top: 1px solid #e2e8f0;
     background: white;
+  }
+  
+  /* Ensure ActionButtons are fully visible on mobile */
+  .mobile-action-buttons {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e2e8f0;
+    background: white;
+    /* Ensure buttons are always visible */
+    position: relative;
+    z-index: 10;
   }
   
   /* Better mobile table handling */
