@@ -9,6 +9,7 @@ import Navbar from "./components/Navbar";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import PendingApproval from "./pages/PendingApproval";
 import NotFound from "./pages/NotFound";
 import ServiceOrder from "./pages/ServiceOrder";
 import AircraftAdmin from "./pages/AircraftAdmin";
@@ -37,6 +38,7 @@ const App = () => {
                 <Route path="/test" element={<TestPage />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
+                <Route path="/pending-approval" element={<PendingApproval />} />
                 <Route path="/admin-setup" element={<AdminSetup />} />
                 <Route
                   path="/"

@@ -26,6 +26,9 @@ type UserData = {
   createdAt: Date;
   approvedAt: Date | null;
   approvedBy: string | null;
+  disabled?: boolean;
+  disabledAt?: Date | null;
+  disabledBy?: string | null;
 };
 
 type AuthContextType = {
@@ -104,45 +107,88 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     const isUserCode = /^[A-Z0-9]{4}$/.test(emailOrCode);
 
     let userData: any = null;
+    let email: string;
 
-    if (isUserCode) {
-      // Look up email by user code
-      userData = await getUserByCode(emailOrCode);
+    try {
+      if (isUserCode) {
+        // Look up email by user code
+        userData = await getUserByCode(emailOrCode);
 
-      if (!userData) {
-        throw new Error("Invalid user code.");
+        if (!userData) {
+          throw new Error("Invalid user code.");
+        }
+
+        email = userData.email;
+
+        // Login with the found email
+        await signInWithEmailAndPassword(auth, email, password);
+      } else {
+        email = emailOrCode;
+        
+        // Login with email directly
+        await signInWithEmailAndPassword(auth, email, password);
+
+        // Get user data by email
+        userData = await getUserByEmail(email);
       }
+    } catch (error: any) {
+      // If it's a Firebase Auth error, handle it
+      if (error.code && error.code.startsWith('auth/')) {
+        throw new Error("Invalid email or password. Please check your credentials.");
+      }
+      // Re-throw our custom errors (like "Invalid user code")
+      throw error;
+    }
 
-      const email = userData.email;
+    // If we still don't have user data, try to get it by the authenticated user's UID
+    if (!userData && auth.currentUser) {
+      try {
+        userData = await getUserById(auth.currentUser.uid);
+      } catch (error) {
+        console.error("Error getting user by ID:", error);
+      }
+    }
 
-      // Login with the found email
-      await signInWithEmailAndPassword(auth, email, password);
-    } else {
-      // Login with email directly
-      await signInWithEmailAndPassword(auth, emailOrCode, password);
-
-      // Get user data by email
-      userData = await getUserByEmail(emailOrCode);
+    // If we still don't have user data, something went wrong
+    if (!userData) {
+      await signOut(auth);
+      throw new Error("Unable to retrieve user information. Please try again.");
     }
 
     // Check user approval status
-    if (userData && userData.status === "rejected") {
+    if (userData.status === "rejected") {
       await signOut(auth);
       throw new Error(
         "Your account has been rejected. Please contact the administrator."
       );
     }
 
-    if (userData && userData.status === "pending") {
+    if (userData.status === "pending") {
       await signOut(auth);
       throw new Error(
         "Your account is pending approval. You will receive an email once approved."
       );
     }
+
+    // Check if user is disabled
+    if (userData.disabled === true) {
+      await signOut(auth);
+      throw new Error(
+        "Your account has been disabled. Please contact the administrator for assistance."
+      );
+    }
   };
 
   const logout = async () => {
-    await signOut(auth);
+    try {
+      await signOut(auth);
+      // Clear local state immediately
+      setUserData(null);
+    } catch (error) {
+      console.error("Logout error:", error);
+      // Even if logout fails, clear local state
+      setUserData(null);
+    }
   };
 
   const updateUserCode = async (newUserCode: string) => {
@@ -174,10 +220,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         try {
           const userData = await getUserById(user.uid);
           if (userData) {
+            // Check if user is disabled and sign them out if so
+            if (userData.disabled === true) {
+              console.log("User is disabled, signing out");
+              await signOut(auth);
+              setUserData(null);
+              return;
+            }
+            
             setUserData(userData as UserData);
+          } else {
+            console.error("No user data found for authenticated user");
+            setUserData(null);
           }
         } catch (error) {
           console.error("Failed to load user data:", error);
+          setUserData(null);
         }
       } else {
         setUserData(null);

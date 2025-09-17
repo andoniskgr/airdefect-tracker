@@ -36,7 +36,7 @@ const Signup = () => {
       toast.success(
         "Account created successfully! Your account is pending approval. You will receive an email once approved."
       );
-      navigate("/login");
+      navigate("/pending-approval");
     } catch (error: any) {
       console.error("Signup error:", error);
       toast.error(error.message || "Failed to create account.");

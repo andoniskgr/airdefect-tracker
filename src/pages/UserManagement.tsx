@@ -37,12 +37,17 @@ import {
   Users,
   UserCheck,
   UserX,
+  UserMinus,
+  Trash2,
+  Shield,
+  ShieldOff,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
   collection,
   getDocs,
   updateDoc,
+  deleteDoc,
   doc,
   query,
   orderBy,
@@ -59,6 +64,9 @@ interface User {
   createdAt: any;
   approvedAt: any;
   approvedBy: string | null;
+  disabled?: boolean;
+  disabledAt?: any;
+  disabledBy?: string | null;
 }
 
 const UserManagement = () => {
@@ -68,7 +76,11 @@ const UserManagement = () => {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isApproveDialogOpen, setIsApproveDialogOpen] = useState(false);
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
+  const [isDisableDialogOpen, setIsDisableDialogOpen] = useState(false);
+  const [isEnableDialogOpen, setIsEnableDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
+  const [disableReason, setDisableReason] = useState("");
 
   // Check if current user is admin
   const isAdmin = userData?.role === "admin";
@@ -176,7 +188,101 @@ const UserManagement = () => {
     }
   };
 
-  const getStatusBadge = (status: string) => {
+  const handleDisableUser = async (user: User) => {
+    try {
+      const userRef = doc(db, "users", user.id);
+      await updateDoc(userRef, {
+        disabled: true,
+        disabledAt: new Date(),
+        disabledBy: userData?.email || "admin",
+      });
+
+      // Update local state
+      setUsers(
+        users.map((u) =>
+          u.id === user.id
+            ? {
+                ...u,
+                disabled: true,
+                disabledAt: new Date(),
+                disabledBy: userData?.email || "admin",
+              }
+            : u
+        )
+      );
+
+      toast.success(`User ${user.userCode} has been disabled`);
+      setIsDisableDialogOpen(false);
+      setDisableReason("");
+    } catch (error) {
+      console.error("Error disabling user:", error);
+      toast.error("Failed to disable user");
+    }
+  };
+
+  const handleEnableUser = async (user: User) => {
+    try {
+      const userRef = doc(db, "users", user.id);
+      await updateDoc(userRef, {
+        disabled: false,
+        disabledAt: null,
+        disabledBy: null,
+      });
+
+      // Update local state
+      setUsers(
+        users.map((u) =>
+          u.id === user.id
+            ? {
+                ...u,
+                disabled: false,
+                disabledAt: null,
+                disabledBy: null,
+              }
+            : u
+        )
+      );
+
+      toast.success(`User ${user.userCode} has been enabled`);
+      setIsEnableDialogOpen(false);
+    } catch (error) {
+      console.error("Error enabling user:", error);
+      toast.error("Failed to enable user");
+    }
+  };
+
+  const handleDeleteUser = async (user: User) => {
+    try {
+      // Prevent deleting the current admin user
+      if (user.id === userData?.id) {
+        toast.error("You cannot delete your own account");
+        return;
+      }
+
+      const userRef = doc(db, "users", user.id);
+      await deleteDoc(userRef);
+
+      // Update local state
+      setUsers(users.filter((u) => u.id !== user.id));
+
+      toast.success(`User ${user.userCode} has been deleted`);
+      setIsDeleteDialogOpen(false);
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      toast.error("Failed to delete user");
+    }
+  };
+
+  const getStatusBadge = (status: string, disabled?: boolean) => {
+    if (disabled) {
+      return (
+        <Badge variant="secondary" className="bg-gray-100 text-gray-800">
+          <ShieldOff className="w-3 h-3 mr-1" />
+          Disabled
+        </Badge>
+      );
+    }
+
     switch (status) {
       case "pending":
         return (
@@ -347,39 +453,89 @@ const UserManagement = () => {
                         <TableCell className="text-white font-mono">
                           {user.userCode}
                         </TableCell>
-                        <TableCell>{getStatusBadge(user.status)}</TableCell>
+                        <TableCell>{getStatusBadge(user.status, user.disabled)}</TableCell>
                         <TableCell>{getRoleBadge(user.role)}</TableCell>
                         <TableCell className="text-slate-300">
                           {user.createdAt?.toDate?.()?.toLocaleDateString() ||
                             "N/A"}
                         </TableCell>
                         <TableCell>
-                          {user.status === "pending" && (
-                            <div className="flex space-x-2">
-                              <Button
-                                size="sm"
-                                onClick={() => {
-                                  setSelectedUser(user);
-                                  setIsApproveDialogOpen(true);
-                                }}
-                                className="bg-green-600 hover:bg-green-700 text-white"
-                              >
-                                <CheckCircle className="w-4 h-4 mr-1" />
-                                Approve
-                              </Button>
+                          <div className="flex flex-wrap gap-2">
+                            {/* Pending user actions */}
+                            {user.status === "pending" && (
+                              <>
+                                <Button
+                                  size="sm"
+                                  onClick={() => {
+                                    setSelectedUser(user);
+                                    setIsApproveDialogOpen(true);
+                                  }}
+                                  className="bg-green-600 hover:bg-green-700 text-white"
+                                >
+                                  <CheckCircle className="w-4 h-4 mr-1" />
+                                  Approve
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => {
+                                    setSelectedUser(user);
+                                    setIsRejectDialogOpen(true);
+                                  }}
+                                >
+                                  <XCircle className="w-4 h-4 mr-1" />
+                                  Reject
+                                </Button>
+                              </>
+                            )}
+
+                            {/* Disable/Enable actions for approved users */}
+                            {user.status === "approved" && user.id !== userData?.id && (
+                              <>
+                                {user.disabled ? (
+                                  <Button
+                                    size="sm"
+                                    onClick={() => {
+                                      setSelectedUser(user);
+                                      setIsEnableDialogOpen(true);
+                                    }}
+                                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                                  >
+                                    <Shield className="w-4 h-4 mr-1" />
+                                    Enable
+                                  </Button>
+                                ) : (
+                                  <Button
+                                    size="sm"
+                                    onClick={() => {
+                                      setSelectedUser(user);
+                                      setIsDisableDialogOpen(true);
+                                    }}
+                                    className="bg-orange-600 hover:bg-orange-700 text-white"
+                                  >
+                                    <ShieldOff className="w-4 h-4 mr-1" />
+                                    Disable
+                                  </Button>
+                                )}
+                              </>
+                            )}
+
+                            {/* Delete action for all users except current admin */}
+                            {user.id !== userData?.id && (
                               <Button
                                 size="sm"
                                 variant="destructive"
                                 onClick={() => {
                                   setSelectedUser(user);
-                                  setIsRejectDialogOpen(true);
+                                  setIsDeleteDialogOpen(true);
                                 }}
+                                className="bg-red-600 hover:bg-red-700 text-white"
                               >
-                                <XCircle className="w-4 h-4 mr-1" />
-                                Reject
+                                <Trash2 className="w-4 h-4 mr-1" />
+                                Delete
                               </Button>
-                            </div>
-                          )}
+                            )}
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -477,6 +633,140 @@ const UserManagement = () => {
                 className="bg-red-600 hover:bg-red-700"
               >
                 Reject User
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Disable User Dialog */}
+        <AlertDialog
+          open={isDisableDialogOpen}
+          onOpenChange={setIsDisableDialogOpen}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Disable User</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to disable this user? They will lose access to the application but their account will be preserved.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            {selectedUser && (
+              <div className="space-y-4">
+                <div className="bg-slate-100 p-4 rounded-lg">
+                  <p>
+                    <strong>Email:</strong> {selectedUser.email}
+                  </p>
+                  <p>
+                    <strong>User Code:</strong> {selectedUser.userCode}
+                  </p>
+                  <p>
+                    <strong>Role:</strong> {selectedUser.role}
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="disable-reason">
+                    Reason for Disabling (Optional)
+                  </Label>
+                  <Textarea
+                    id="disable-reason"
+                    value={disableReason}
+                    onChange={(e) => setDisableReason(e.target.value)}
+                    placeholder="Enter reason for disabling..."
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+            )}
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => selectedUser && handleDisableUser(selectedUser)}
+                className="bg-orange-600 hover:bg-orange-700"
+              >
+                Disable User
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Enable User Dialog */}
+        <AlertDialog
+          open={isEnableDialogOpen}
+          onOpenChange={setIsEnableDialogOpen}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Enable User</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to enable this user? They will regain access to the application.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            {selectedUser && (
+              <div className="bg-slate-100 p-4 rounded-lg">
+                <p>
+                  <strong>Email:</strong> {selectedUser.email}
+                </p>
+                <p>
+                  <strong>User Code:</strong> {selectedUser.userCode}
+                </p>
+                <p>
+                  <strong>Role:</strong> {selectedUser.role}
+                </p>
+                {selectedUser.disabledAt && (
+                  <p>
+                    <strong>Disabled Since:</strong>{" "}
+                    {selectedUser.disabledAt?.toDate?.()?.toLocaleDateString()}
+                  </p>
+                )}
+              </div>
+            )}
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => selectedUser && handleEnableUser(selectedUser)}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                Enable User
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Delete User Dialog */}
+        <AlertDialog
+          open={isDeleteDialogOpen}
+          onOpenChange={setIsDeleteDialogOpen}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete User</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to permanently delete this user? This action cannot be undone and will remove all user data.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            {selectedUser && (
+              <div className="bg-red-50 border border-red-200 p-4 rounded-lg">
+                <p className="text-red-800">
+                  <strong>Email:</strong> {selectedUser.email}
+                </p>
+                <p className="text-red-800">
+                  <strong>User Code:</strong> {selectedUser.userCode}
+                </p>
+                <p className="text-red-800">
+                  <strong>Role:</strong> {selectedUser.role}
+                </p>
+                <p className="text-red-600 text-sm mt-2">
+                  ⚠️ This action is permanent and cannot be undone!
+                </p>
+              </div>
+            )}
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => selectedUser && handleDeleteUser(selectedUser)}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Delete User
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

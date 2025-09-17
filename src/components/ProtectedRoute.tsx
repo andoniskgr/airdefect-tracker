@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Clock, CheckCircle, XCircle } from "lucide-react";
+import { Clock, CheckCircle, XCircle, ShieldOff } from "lucide-react";
 
 type ProtectedRouteProps = {
   children: React.ReactNode;
@@ -93,6 +93,43 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
               <p className="text-sm text-muted-foreground">
                 If you believe this is an error, please contact the
                 administrator to resolve this issue.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+
+    if (userData.disabled === true) {
+      return (
+        <div className="min-h-screen bg-slate-700 text-white p-4 flex items-center justify-center">
+          <Card className="w-full max-w-md">
+            <CardHeader className="text-center">
+              <div className="mx-auto mb-4 w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
+                <ShieldOff className="w-6 h-6 text-gray-600" />
+              </div>
+              <CardTitle className="text-gray-600">Account Disabled</CardTitle>
+              <CardDescription>
+                Your account has been disabled. Please contact the administrator
+                for assistance.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="text-center">
+              <div className="bg-slate-100 p-4 rounded-lg mb-4">
+                <p className="text-sm text-slate-600">
+                  <strong>Email:</strong> {userData.email}
+                  <br />
+                  <strong>User Code:</strong> {userData.userCode}
+                </p>
+                {userData.disabledAt && (
+                  <p className="text-sm text-slate-600 mt-2">
+                    <strong>Disabled Since:</strong>{" "}
+                    {userData.disabledAt?.toDate?.()?.toLocaleDateString() || "N/A"}
+                  </p>
+                )}
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Please contact the administrator to restore access to your account.
               </p>
             </CardContent>
           </Card>
