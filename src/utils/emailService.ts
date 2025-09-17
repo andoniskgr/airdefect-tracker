@@ -146,6 +146,8 @@ export class EmailService {
           user_code: userData.userCode,
           signup_date: userData.createdAt.toLocaleDateString(),
           admin_email: this.adminEmail,
+          from_name: 'MCC Application',
+          reply_to: this.adminEmail,
         };
 
         const result = await emailjs.send(
@@ -184,6 +186,8 @@ export class EmailService {
           message: emailData.html,
           user_email: userEmail,
           user_code: userCode,
+          from_name: 'MCC Application',
+          reply_to: this.adminEmail,
         };
 
         const result = await emailjs.send(
@@ -223,6 +227,8 @@ export class EmailService {
           user_email: userEmail,
           user_code: userCode,
           rejection_reason: reason || 'No reason provided',
+          from_name: 'MCC Application',
+          reply_to: this.adminEmail,
         };
 
         const result = await emailjs.send(
@@ -258,6 +264,8 @@ export class EmailService {
           to_email: emailData.to,
           subject: emailData.subject,
           message: emailData.html,
+          from_name: 'MCC Application',
+          reply_to: this.adminEmail,
         };
 
         const result = await emailjs.send(
