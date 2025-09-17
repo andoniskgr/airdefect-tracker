@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "@/utils/firebaseDB";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface AircraftAutocompleteProps {
   value: string;
@@ -34,6 +35,7 @@ export const AircraftAutocomplete: React.FC<AircraftAutocompleteProps> = ({
   );
   const containerRef = useRef<HTMLDivElement>(null);
   const blurTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isMobile = useIsMobile();
 
   // Fetch aircraft registrations from Firestore
   useEffect(() => {
@@ -140,7 +142,8 @@ export const AircraftAutocomplete: React.FC<AircraftAutocompleteProps> = ({
         }}
         placeholder={placeholder}
         className={cn(
-          "text-lg uppercase w-[120px]",
+          "uppercase",
+          isMobile ? "h-12 text-base w-full" : "text-lg w-[120px]",
           validationError &&
             "bg-red-50 border-red-200 focus-visible:ring-red-300",
           className
@@ -150,12 +153,25 @@ export const AircraftAutocomplete: React.FC<AircraftAutocompleteProps> = ({
       />
 
       {isOpen && filteredRegistrations.length > 0 && (
-        <div className="absolute z-50 mt-1 w-40 rounded-md bg-white shadow-lg">
-          <ul className="max-h-60 overflow-auto py-1 text-base">
+        <div
+          className={cn(
+            "absolute z-50 mt-1 rounded-md bg-white shadow-lg",
+            isMobile ? "w-full" : "w-40"
+          )}
+        >
+          <ul
+            className={cn(
+              "overflow-auto py-1",
+              isMobile ? "max-h-48 text-base" : "max-h-60 text-base"
+            )}
+          >
             {filteredRegistrations.map((registration) => (
               <li
                 key={registration}
-                className="cursor-pointer select-none px-4 py-2 hover:bg-blue-100 text-black"
+                className={cn(
+                  "cursor-pointer select-none px-4 hover:bg-blue-100 text-black",
+                  isMobile ? "py-3" : "py-2"
+                )}
                 onClick={() => handleItemClick(registration)}
               >
                 {registration}

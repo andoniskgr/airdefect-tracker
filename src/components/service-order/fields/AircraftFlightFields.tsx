@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useAircraftData } from "@/hooks/useAircraftData";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface AircraftFlightFieldsProps {
   aircraft: string;
@@ -32,14 +33,21 @@ const AircraftFlightFields: React.FC<AircraftFlightFieldsProps> = ({
   handleInputChange,
 }) => {
   const { aircraftList } = useAircraftData();
+  const isMobile = useIsMobile();
 
   return (
-    <div className="flex flex-wrap items-center gap-4">
-      <div>
+    <div
+      className={cn(
+        "flex items-center gap-4",
+        isMobile ? "flex-col w-full" : "flex-wrap"
+      )}
+    >
+      <div className={cn(isMobile ? "w-full" : "")}>
         <Select value={aircraft} onValueChange={handleAircraftChange}>
           <SelectTrigger
             className={cn(
-              "bg-white text-black w-full max-w-[15ch]",
+              "bg-white text-black",
+              isMobile ? "w-full h-12 text-base" : "w-full max-w-[15ch]",
               validationErrors.aircraft && "bg-red-100"
             )}
           >
@@ -55,7 +63,7 @@ const AircraftFlightFields: React.FC<AircraftFlightFieldsProps> = ({
         </Select>
       </div>
 
-      <div>
+      <div className={cn(isMobile ? "w-full" : "")}>
         <Input
           type="text"
           name="flight"
@@ -63,14 +71,15 @@ const AircraftFlightFields: React.FC<AircraftFlightFieldsProps> = ({
           onChange={handleInputChange}
           placeholder="FLIGHT"
           className={cn(
-            "bg-white text-black max-w-[12ch]",
+            "bg-white text-black",
+            isMobile ? "w-full h-12 text-base" : "max-w-[12ch]",
             validationErrors.flight && "bg-red-100"
           )}
           required
         />
       </div>
 
-      <div>
+      <div className={cn(isMobile ? "w-full" : "")}>
         <Input
           type="text"
           name="from"
@@ -78,14 +87,15 @@ const AircraftFlightFields: React.FC<AircraftFlightFieldsProps> = ({
           value={from}
           placeholder="FROM"
           className={cn(
-            "bg-white text-black max-w-[12ch]",
+            "bg-white text-black",
+            isMobile ? "w-full h-12 text-base" : "max-w-[12ch]",
             validationErrors.from && "bg-red-100"
           )}
           required
         />
       </div>
 
-      <div>
+      <div className={cn(isMobile ? "w-full" : "")}>
         <Input
           type="text"
           name="to"
@@ -93,7 +103,8 @@ const AircraftFlightFields: React.FC<AircraftFlightFieldsProps> = ({
           onChange={handleInputChange}
           placeholder="TO"
           className={cn(
-            "bg-white text-black max-w-[12ch]",
+            "bg-white text-black",
+            isMobile ? "w-full h-12 text-base" : "max-w-[12ch]",
             validationErrors.to && "bg-red-100"
           )}
           required

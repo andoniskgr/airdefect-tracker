@@ -1,10 +1,10 @@
-
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { getVersionString } from "@/utils/version";
 
 const Signup = () => {
   const [email, setEmail] = useState("");
@@ -17,19 +17,19 @@ const Signup = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (password !== confirmPassword) {
       return toast.error("Passwords do not match");
     }
-    
+
     if (!userCode || userCode.length !== 4) {
       return toast.error("User code must be exactly 4 characters");
     }
-    
+
     if (!/^[A-Z0-9]{4}$/.test(userCode)) {
       return toast.error("User code must be 4 uppercase letters or numbers");
     }
-    
+
     try {
       setLoading(true);
       await signup(email, password, userCode);
@@ -48,12 +48,14 @@ const Signup = () => {
       {/* Version number */}
       <div className="absolute top-4 right-4">
         <span className="text-xs text-muted-foreground font-mono bg-muted px-2 py-1 rounded">
-          v1.0.0
+          {getVersionString()}
         </span>
       </div>
       <div className="w-full max-w-md space-y-8 rounded-lg border border-border bg-card p-8 shadow-md">
         <div className="text-center">
-          <h1 className="text-2xl font-bold tracking-tight">Create an account</h1>
+          <h1 className="text-2xl font-bold tracking-tight">
+            Create an account
+          </h1>
           <p className="mt-2 text-sm text-muted-foreground">
             Sign up to get started
           </p>
@@ -88,7 +90,7 @@ const Signup = () => {
                 className="mt-1"
                 placeholder="ABCD"
                 maxLength={4}
-                style={{ textTransform: 'uppercase' }}
+                style={{ textTransform: "uppercase" }}
               />
               <p className="mt-1 text-xs text-muted-foreground">
                 4 uppercase letters or numbers (e.g., ABCD, 1234)
@@ -109,7 +111,10 @@ const Signup = () => {
               />
             </div>
             <div>
-              <label htmlFor="confirm-password" className="block text-sm font-medium">
+              <label
+                htmlFor="confirm-password"
+                className="block text-sm font-medium"
+              >
                 Confirm Password
               </label>
               <Input
@@ -124,11 +129,7 @@ const Signup = () => {
             </div>
           </div>
 
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={loading}
-          >
+          <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Creating account..." : "Sign up"}
           </Button>
 

@@ -9,6 +9,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Aircraft } from "@/types/aircraft";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 
 interface AircraftFormProps {
   aircraftForm: Omit<Aircraft, "id">;
@@ -30,6 +32,7 @@ export const AircraftForm = ({
   formType,
 }: AircraftFormProps) => {
   const idPrefix = formType === "edit" ? "edit-" : "";
+  const isMobile = useIsMobile();
 
   const isCustomType =
     !existingTypes.includes(aircraftForm.type) && aircraftForm.type !== "";
@@ -38,9 +41,17 @@ export const AircraftForm = ({
     aircraftForm.engine !== "";
 
   return (
-    <div className="grid gap-4 py-4">
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor={`${idPrefix}registration`} className="text-right">
+    <div className={cn("grid gap-4 py-4", isMobile && "gap-6")}>
+      <div
+        className={cn(
+          "grid items-center gap-4",
+          isMobile ? "grid-cols-1" : "grid-cols-4"
+        )}
+      >
+        <Label
+          htmlFor={`${idPrefix}registration`}
+          className={cn(isMobile ? "text-left" : "text-right")}
+        >
           A/C
         </Label>
         <Input
@@ -48,15 +59,23 @@ export const AircraftForm = ({
           name="registration"
           value={aircraftForm.registration}
           onChange={handleInputChange}
-          className="col-span-3"
+          className={cn(isMobile ? "h-12 text-base" : "col-span-3")}
           placeholder="e.g. SX-DGT"
         />
       </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor={`${idPrefix}type`} className="text-right">
+      <div
+        className={cn(
+          "grid items-center gap-4",
+          isMobile ? "grid-cols-1" : "grid-cols-4"
+        )}
+      >
+        <Label
+          htmlFor={`${idPrefix}type`}
+          className={cn(isMobile ? "text-left" : "text-right")}
+        >
           Type
         </Label>
-        <div className="col-span-3">
+        <div className={cn(isMobile ? "w-full" : "col-span-3")}>
           {isCustomType ? (
             <div>
               <Input
@@ -64,11 +83,15 @@ export const AircraftForm = ({
                 value={aircraftForm.type}
                 onChange={(e) => handleSelectChange("type", e.target.value)}
                 autoFocus
+                className={cn(isMobile && "h-12 text-base")}
               />
               <button
                 type="button"
                 onClick={() => handleSelectChange("type", "")}
-                className="text-sm text-blue-600 hover:underline mt-1"
+                className={cn(
+                  "text-blue-600 hover:underline mt-1",
+                  isMobile ? "text-base" : "text-sm"
+                )}
               >
                 ← Back to list
               </button>
@@ -84,7 +107,7 @@ export const AircraftForm = ({
                 }
               }}
             >
-              <SelectTrigger>
+              <SelectTrigger className={cn(isMobile && "h-12 text-base")}>
                 <SelectValue placeholder="Select aircraft type or add custom" />
               </SelectTrigger>
               <SelectContent>
@@ -99,11 +122,19 @@ export const AircraftForm = ({
           )}
         </div>
       </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor={`${idPrefix}engine`} className="text-right">
+      <div
+        className={cn(
+          "grid items-center gap-4",
+          isMobile ? "grid-cols-1" : "grid-cols-4"
+        )}
+      >
+        <Label
+          htmlFor={`${idPrefix}engine`}
+          className={cn(isMobile ? "text-left" : "text-right")}
+        >
           Engine
         </Label>
-        <div className="col-span-3">
+        <div className={cn(isMobile ? "w-full" : "col-span-3")}>
           {isCustomEngine ? (
             <div>
               <Input
@@ -111,11 +142,15 @@ export const AircraftForm = ({
                 value={aircraftForm.engine}
                 onChange={(e) => handleSelectChange("engine", e.target.value)}
                 autoFocus
+                className={cn(isMobile && "h-12 text-base")}
               />
               <button
                 type="button"
                 onClick={() => handleSelectChange("engine", "")}
-                className="text-sm text-blue-600 hover:underline mt-1"
+                className={cn(
+                  "text-blue-600 hover:underline mt-1",
+                  isMobile ? "text-base" : "text-sm"
+                )}
               >
                 ← Back to list
               </button>
@@ -131,7 +166,7 @@ export const AircraftForm = ({
                 }
               }}
             >
-              <SelectTrigger>
+              <SelectTrigger className={cn(isMobile && "h-12 text-base")}>
                 <SelectValue placeholder="Select engine type or add custom" />
               </SelectTrigger>
               <SelectContent>
@@ -146,8 +181,16 @@ export const AircraftForm = ({
           )}
         </div>
       </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor={`${idPrefix}msn`} className="text-right">
+      <div
+        className={cn(
+          "grid items-center gap-4",
+          isMobile ? "grid-cols-1" : "grid-cols-4"
+        )}
+      >
+        <Label
+          htmlFor={`${idPrefix}msn`}
+          className={cn(isMobile ? "text-left" : "text-right")}
+        >
           MSN
         </Label>
         <Input
@@ -155,35 +198,53 @@ export const AircraftForm = ({
           name="msn"
           value={aircraftForm.msn}
           onChange={handleInputChange}
-          className="col-span-3"
+          className={cn(isMobile ? "h-12 text-base" : "col-span-3")}
           placeholder="e.g. 3162"
         />
       </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor={`${idPrefix}cls`} className="text-right">
+      <div
+        className={cn(
+          "grid items-center gap-4",
+          isMobile ? "grid-cols-1" : "grid-cols-4"
+        )}
+      >
+        <Label
+          htmlFor={`${idPrefix}cls`}
+          className={cn(isMobile ? "text-left" : "text-right")}
+        >
           CLS
         </Label>
-        <div className="col-span-3">
+        <div className={cn(isMobile ? "w-full" : "col-span-3")}>
           <Checkbox
             id={`${idPrefix}cls`}
             checked={aircraftForm.cls}
             onCheckedChange={(checked) =>
               handleCheckboxChange("cls", checked === true)
             }
+            className={cn(isMobile && "h-6 w-6")}
           />
         </div>
       </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor={`${idPrefix}wifi`} className="text-right">
+      <div
+        className={cn(
+          "grid items-center gap-4",
+          isMobile ? "grid-cols-1" : "grid-cols-4"
+        )}
+      >
+        <Label
+          htmlFor={`${idPrefix}wifi`}
+          className={cn(isMobile ? "text-left" : "text-right")}
+        >
           WIFI
         </Label>
-        <div className="col-span-3">
+        <div className={cn(isMobile ? "w-full" : "col-span-3")}>
           <Checkbox
             id={`${idPrefix}wifi`}
             checked={aircraftForm.wifi}
             onCheckedChange={(checked) =>
               handleCheckboxChange("wifi", checked === true)
             }
+            className={cn(isMobile && "h-6 w-6")}
           />
         </div>
       </div>

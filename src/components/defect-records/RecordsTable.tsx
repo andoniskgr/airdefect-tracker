@@ -4,6 +4,8 @@ import { format } from "date-fns";
 import { DefectRecord } from "./DefectRecord.types";
 import { useState, useEffect } from "react";
 import { DateGroupAccordion } from "./DateGroupAccordion";
+import { MobileRecordsTable } from "./MobileRecordsTable";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface RecordsTableProps {
   records: DefectRecord[];
@@ -33,6 +35,7 @@ export const RecordsTable = ({
   isArchiveView = false, // Default to false
 }: RecordsTableProps) => {
   const [currentTime, setCurrentTime] = useState(new Date());
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -41,6 +44,21 @@ export const RecordsTable = ({
 
     return () => clearInterval(interval);
   }, []);
+
+  // Show mobile table on mobile devices
+  if (isMobile) {
+    return (
+      <MobileRecordsTable
+        records={records}
+        handleEditRecord={handleEditRecord}
+        handleDeleteRecord={handleDeleteRecord}
+        handleUpdateRecord={handleUpdateRecord}
+        handleToggleVisibility={handleToggleVisibility}
+        currentUserEmail={currentUserEmail}
+        isArchiveView={isArchiveView}
+      />
+    );
+  }
 
   const groupRecordsByDate = () => {
     const groups: { [key: string]: DefectRecord[] } = {};

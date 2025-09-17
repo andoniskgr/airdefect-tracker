@@ -1,10 +1,10 @@
-
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { getVersionString } from "@/utils/version";
 
 const Login = () => {
   const [emailOrCode, setEmailOrCode] = useState("");
@@ -15,7 +15,7 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       setLoading(true);
       await login(emailOrCode, password);
@@ -34,7 +34,7 @@ const Login = () => {
       {/* Version number */}
       <div className="absolute top-4 right-4">
         <span className="text-xs text-muted-foreground font-mono bg-muted px-2 py-1 rounded">
-          v1.0.0
+          {getVersionString()}
         </span>
       </div>
       <div className="w-full max-w-md space-y-8 rounded-lg border border-border bg-card p-8 shadow-md">
@@ -48,7 +48,10 @@ const Login = () => {
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
           <div className="space-y-4">
             <div>
-              <label htmlFor="email-or-code" className="block text-sm font-medium">
+              <label
+                htmlFor="email-or-code"
+                className="block text-sm font-medium"
+              >
                 Email address or User Code
               </label>
               <Input
@@ -59,7 +62,7 @@ const Login = () => {
                 required
                 className="mt-1"
                 placeholder="Email address or ABCD"
-                style={{ textTransform: 'uppercase' }}
+                style={{ textTransform: "uppercase" }}
               />
               <p className="mt-1 text-xs text-muted-foreground">
                 Enter your email address or 4-character user code
@@ -81,11 +84,7 @@ const Login = () => {
             </div>
           </div>
 
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={loading}
-          >
+          <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Logging in..." : "Login"}
           </Button>
 

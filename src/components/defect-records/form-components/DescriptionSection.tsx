@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface DescriptionSectionProps {
   defect: string;
@@ -28,6 +29,7 @@ export const DescriptionSection = ({
 }: DescriptionSectionProps) => {
   const [defectValue, setDefectValue] = useState(defect);
   const [remarksValue, setRemarksValue] = useState(remarks);
+  const isMobile = useIsMobile();
 
   const defectCursorPosition = useRef<number | null>(null);
   const remarksCursorPosition = useRef<number | null>(null);
@@ -91,7 +93,12 @@ export const DescriptionSection = ({
   return (
     <>
       <div>
-        <label className="text-lg font-medium mb-1 block uppercase">
+        <label
+          className={cn(
+            "font-medium mb-2 block uppercase",
+            isMobile ? "text-base" : "text-lg"
+          )}
+        >
           Defect Description *
         </label>
         <Input
@@ -101,14 +108,20 @@ export const DescriptionSection = ({
           onKeyDown={(e) => handleKeyDown(e, "defect")}
           placeholder="DESCRIPTION"
           className={cn(
-            "text-lg uppercase",
+            "uppercase",
+            isMobile ? "h-12 text-base" : "text-lg",
             validationErrors.defect &&
               "bg-red-50 border-red-200 focus-visible:ring-red-300"
           )}
         />
       </div>
       <div>
-        <label className="text-lg font-medium mb-1 block uppercase">
+        <label
+          className={cn(
+            "font-medium mb-2 block uppercase",
+            isMobile ? "text-base" : "text-lg"
+          )}
+        >
           Remarks
         </label>
         <Input
@@ -117,7 +130,7 @@ export const DescriptionSection = ({
           onChange={handleRemarksChange}
           onKeyDown={(e) => handleKeyDown(e, "remarks")}
           placeholder="REMARKS"
-          className="text-lg uppercase"
+          className={cn("uppercase", isMobile ? "h-12 text-base" : "text-lg")}
         />
       </div>
     </>

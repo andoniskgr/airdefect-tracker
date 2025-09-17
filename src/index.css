@@ -207,3 +207,74 @@
   @apply rounded-t-xl;
   max-height: 80vh;
 }
+
+/* Mobile-specific improvements */
+@media (max-width: 768px) {
+  /* Improve touch targets */
+  button, input, select, textarea {
+    min-height: 44px;
+  }
+  
+  /* Better spacing for mobile forms */
+  .space-y-3 > * + * {
+    margin-top: 0.75rem;
+  }
+  
+  /* Improve modal appearance on mobile */
+  [role="dialog"] {
+    margin: 1rem;
+    max-height: calc(100vh - 2rem);
+  }
+  
+  /* Better mobile table handling */
+  .defect-records-table {
+    font-size: 0.875rem;
+  }
+  
+  /* Mobile-friendly form layouts */
+  .grid-cols-1 > * {
+    width: 100%;
+  }
+  
+  /* Improve mobile button spacing */
+  .space-x-3 > * + * {
+    margin-left: 0.75rem;
+  }
+  
+  .space-y-3 > * + * {
+    margin-top: 0.75rem;
+  }
+  
+  /* Mobile table improvements */
+  .line-clamp-1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+  }
+  
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  
+  /* Mobile record cards */
+  .mobile-record-card {
+    transition: all 0.2s ease-in-out;
+  }
+  
+  .mobile-record-card:active {
+    transform: scale(0.98);
+  }
+  
+  /* Colored row backgrounds for SL and OK only - matching desktop */
+  .mobile-record-card.bg-yellow-200 {
+    background-color: #fde68a;
+  }
+  
+  .mobile-record-card.bg-green-200 {
+    background-color: #bbf7d0;
+  }
+}

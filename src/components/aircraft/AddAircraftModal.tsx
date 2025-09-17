@@ -8,6 +8,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { AircraftForm } from "./AircraftForm";
 import { Aircraft } from "@/types/aircraft";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 
 interface AddAircraftModalProps {
   isOpen: boolean;
@@ -32,11 +34,20 @@ export const AddAircraftModal = ({
   existingEngines,
   handleAddSubmit,
 }: AddAircraftModalProps) => {
+  const isMobile = useIsMobile();
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent
+        className={cn(
+          "sm:max-w-md",
+          isMobile && "w-[95vw] h-[90vh] max-h-[90vh] overflow-y-auto"
+        )}
+      >
         <DialogHeader>
-          <DialogTitle>Add New Aircraft</DialogTitle>
+          <DialogTitle className={cn(isMobile ? "text-xl" : "text-2xl")}>
+            Add New Aircraft
+          </DialogTitle>
         </DialogHeader>
         <AircraftForm
           aircraftForm={aircraftForm}
@@ -47,11 +58,22 @@ export const AddAircraftModal = ({
           existingEngines={existingEngines}
           formType="add"
         />
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+        <DialogFooter
+          className={cn(isMobile && "flex-col space-y-3 space-x-0")}
+        >
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            className={cn(isMobile && "h-12 text-base w-full")}
+          >
             Cancel
           </Button>
-          <Button onClick={handleAddSubmit}>Add Aircraft</Button>
+          <Button
+            onClick={handleAddSubmit}
+            className={cn(isMobile && "h-12 text-base w-full")}
+          >
+            Add Aircraft
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

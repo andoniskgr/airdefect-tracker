@@ -1,17 +1,20 @@
-
 import React from "react";
 import { ServiceOrderData } from "./types";
 import AircraftFlightFields from "./fields/AircraftFlightFields";
 import DateEtaFields from "./fields/DateEtaFields";
 import DefectFields from "./fields/DefectFields";
 import PreparedTextField from "./fields/PreparedTextField";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 
 interface ServiceOrderFieldsProps {
   formData: ServiceOrderData;
   validationErrors: Record<string, boolean>;
   calendarOpen: boolean;
   setCalendarOpen: (open: boolean) => void;
-  handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  handleInputChange: (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => void;
   handleCheckboxChange: (name: string, checked: boolean) => void;
 }
 
@@ -21,19 +24,28 @@ const ServiceOrderFields: React.FC<ServiceOrderFieldsProps> = ({
   calendarOpen,
   setCalendarOpen,
   handleInputChange,
-  handleCheckboxChange
+  handleCheckboxChange,
 }) => {
+  const isMobile = useIsMobile();
+
   const handleAircraftChange = (value: string) => {
     handleInputChange({
-      target: { name: 'aircraft', value }
+      target: { name: "aircraft", value },
     } as React.ChangeEvent<HTMLInputElement>);
   };
 
   return (
     <>
-      <div className="mb-3">
-        <div className="flex flex-col md:flex-row md:items-center md:space-x-2 space-y-2 md:space-y-0">
-          <AircraftFlightFields 
+      <div className={cn("mb-3", isMobile && "mb-6")}>
+        <div
+          className={cn(
+            "flex space-y-2",
+            isMobile
+              ? "flex-col"
+              : "md:flex-row md:items-center md:space-x-2 md:space-y-0"
+          )}
+        >
+          <AircraftFlightFields
             aircraft={formData.aircraft}
             flight={formData.flight}
             from={formData.from}
@@ -42,8 +54,8 @@ const ServiceOrderFields: React.FC<ServiceOrderFieldsProps> = ({
             handleAircraftChange={handleAircraftChange}
             handleInputChange={handleInputChange}
           />
-          
-          <DateEtaFields 
+
+          <DateEtaFields
             date={formData.date}
             etaUtc={formData.etaUtc}
             atDestAirport={formData.atDestAirport}
@@ -55,9 +67,9 @@ const ServiceOrderFields: React.FC<ServiceOrderFieldsProps> = ({
           />
         </div>
       </div>
-      
-      <div className="mb-3">
-        <DefectFields 
+
+      <div className={cn("mb-3", isMobile && "mb-6")}>
+        <DefectFields
           defectType={formData.defectType}
           defectDescription={formData.defectDescription}
           mel={formData.mel}
@@ -66,11 +78,9 @@ const ServiceOrderFields: React.FC<ServiceOrderFieldsProps> = ({
           handleInputChange={handleInputChange}
         />
       </div>
-      
-      <div className="mb-3">
-        <PreparedTextField 
-          preparedText={formData.preparedText}
-        />
+
+      <div className={cn("mb-3", isMobile && "mb-6")}>
+        <PreparedTextField preparedText={formData.preparedText} />
       </div>
     </>
   );

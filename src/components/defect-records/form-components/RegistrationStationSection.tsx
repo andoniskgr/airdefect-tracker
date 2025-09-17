@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { AircraftAutocomplete } from "../AircraftAutocomplete";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface RegistrationStationSectionProps {
   registration: string;
@@ -29,6 +30,7 @@ export const RegistrationStationSection = ({
 }: RegistrationStationSectionProps) => {
   // Internal state for station to prevent cursor jumping
   const [stationValue, setStationValue] = useState(station);
+  const isMobile = useIsMobile();
 
   // Store cursor position
   const stationCursorPosition = useRef<number | null>(null);
@@ -68,9 +70,14 @@ export const RegistrationStationSection = ({
   };
 
   return (
-    <div className="grid grid-cols-2 gap-4">
+    <div className={cn("grid gap-4", isMobile ? "grid-cols-2" : "grid-cols-2")}>
       <div>
-        <label className="text-lg font-medium mb-1 block uppercase">
+        <label
+          className={cn(
+            "font-medium mb-2 block uppercase",
+            isMobile ? "text-base" : "text-lg"
+          )}
+        >
           Registration *
         </label>
         <AircraftAutocomplete
@@ -80,10 +87,16 @@ export const RegistrationStationSection = ({
           onKeyDown={(e) => handleKeyDown(e, "registration")}
           validationError={validationErrors.registration}
           autoFocus={true}
+          className={isMobile ? "h-12 text-base" : ""}
         />
       </div>
       <div>
-        <label className="text-lg font-medium mb-1 block uppercase">
+        <label
+          className={cn(
+            "font-medium mb-2 block uppercase",
+            isMobile ? "text-base" : "text-lg"
+          )}
+        >
           Station *
         </label>
         <Input
@@ -93,7 +106,8 @@ export const RegistrationStationSection = ({
           onKeyDown={(e) => handleKeyDown(e, "station")}
           placeholder="STATION"
           className={cn(
-            "text-lg uppercase w-[120px]",
+            "uppercase",
+            isMobile ? "h-12 text-base w-full" : "text-lg w-[120px]",
             validationErrors.station &&
               "bg-red-50 border-red-200 focus-visible:ring-red-300"
           )}

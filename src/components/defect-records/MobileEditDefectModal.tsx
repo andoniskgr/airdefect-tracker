@@ -1,10 +1,9 @@
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@/components/ui/dialog";
 import { DefectRecord } from "./DefectRecord.types";
 import { DateTimeSection } from "./form-components/DateTimeSection";
@@ -18,64 +17,48 @@ import { useDefectKeyboardNavigation } from "@/hooks/defect-records/useDefectKey
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 
-interface AddDefectModalProps {
+interface MobileEditDefectModalProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  formData: Omit<DefectRecord, "id">;
-  setFormData: React.Dispatch<React.SetStateAction<Omit<DefectRecord, "id">>>;
-  handleClear: () => void;
-  handleSubmit: () => void;
+  record: DefectRecord;
+  onUpdate: (updatedRecord: DefectRecord) => void;
+  onCancel: () => void;
 }
 
-export const AddDefectModal = ({
+export const MobileEditDefectModal = ({
   isOpen,
   onOpenChange,
-  formData,
-  setFormData,
-  handleClear,
-  handleSubmit,
-}: AddDefectModalProps) => {
+  record,
+  onUpdate,
+  onCancel,
+}: MobileEditDefectModalProps) => {
+  const [formData, setFormData] = useState<DefectRecord>(record);
+  const isMobile = useIsMobile();
+
   const registrationRef = useRef<HTMLInputElement>(null);
   const stationRef = useRef<HTMLInputElement>(null);
   const defectRef = useRef<HTMLInputElement>(null);
   const remarksRef = useRef<HTMLInputElement>(null);
   const timeRef = useRef<HTMLInputElement>(null);
-  const isMobile = useIsMobile();
 
   const { validationErrors, setValidationErrors, validateField, validateForm } =
     useDefectValidation();
-  const [initialRender, setInitialRender] = useState(true);
-
-  const validateAndSubmit = () => {
-    const { hasErrors, errors } = validateForm(formData);
-
-    if (!hasErrors) {
-      handleSubmit();
-    } else {
-      // Focus on the first field with an error
-      if (errors.time) timeRef.current?.focus();
-      else if (errors.registration) registrationRef.current?.focus();
-      else if (errors.station) stationRef.current?.focus();
-      else if (errors.defect) defectRef.current?.focus();
-    }
-  };
 
   const { handleKeyDown } = useDefectKeyboardNavigation({
     refs: { registrationRef, stationRef, defectRef, remarksRef },
-    validateAndSubmit,
+    validateAndSubmit: () => {},
   });
 
-  const handleFieldChange = (
-    field: keyof Omit<DefectRecord, "id">,
-    value: any
-  ) => {
-    console.log(`Field ${field} changing to:`, value);
+  // Update form data when record prop changes
+  useEffect(() => {
+    setFormData(record);
+  }, [record]);
 
-    setFormData((prev) => {
-      const updated = { ...prev, [field]: value };
-      console.log("Updated form data:", updated);
-      return updated;
-    });
+  const handleFieldChange = (field: keyof DefectRecord, value: any) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
 
     if (typeof value === "string") {
       const isValid = validateField(field as string, value);
@@ -86,39 +69,36 @@ export const AddDefectModal = ({
     }
   };
 
-  // Reset form when modal opens
-  useEffect(() => {
-    if (isOpen && !initialRender) {
-      console.log("Modal opened, resetting form");
-      handleClear();
-    } else if (isOpen) {
-      setInitialRender(false);
-    }
-  }, [isOpen, handleClear, initialRender]);
+  const validateAndSubmit = () => {
+    const { hasErrors, errors } = validateForm(formData);
 
-  // Focus registration field when modal opens
-  useEffect(() => {
-    if (isOpen) {
-      const focusInterval = setInterval(() => {
-        if (registrationRef.current) {
-          registrationRef.current.focus();
-          console.log("Registration field focused");
-          clearInterval(focusInterval);
-        } else {
-          console.log("Registration ref not available yet");
-        }
-      }, 100);
-
-      return () => clearInterval(focusInterval);
+    if (!hasErrors) {
+      onUpdate(formData);
+    } else {
+      // Focus on the first field with an error
+      if (errors.time) timeRef.current?.focus();
+      else if (errors.registration) registrationRef.current?.focus();
+      else if (errors.station) stationRef.current?.focus();
+      else if (errors.defect) defectRef.current?.focus();
     }
-  }, [isOpen]);
+  };
+
+  const handleClear = () => {
+    setFormData(record); // Reset to original values
+    setValidationErrors({});
+  };
+
+  const handleCancel = () => {
+    setFormData(record); // Reset to original values
+    setValidationErrors({});
+    onCancel();
+  };
 
   return (
     <Dialog
       open={isOpen}
       onOpenChange={(open) => {
         if (!open) {
-          // Only reset validation errors when closing
           setValidationErrors({});
         }
         onOpenChange(open);
@@ -127,16 +107,13 @@ export const AddDefectModal = ({
       <DialogContent
         className={cn(
           "sm:max-w-md",
-          isMobile && "w-[95vw] h-[90vh] max-h-[90vh] overflow-y-auto"
+          isMobile && "w-[95vw] h-[95vh] max-h-[95vh] overflow-y-auto"
         )}
         onOpenAutoFocus={(e) => {
           e.preventDefault();
           setTimeout(() => {
             if (registrationRef.current) {
               registrationRef.current.focus();
-              console.log(
-                "Focus set on registration input via onOpenAutoFocus"
-              );
             }
           }, 100);
         }}
@@ -145,12 +122,10 @@ export const AddDefectModal = ({
           <DialogTitle
             className={cn("uppercase", isMobile ? "text-xl" : "text-2xl")}
           >
-            Record Aircraft Defect
+            Edit Defect Record
           </DialogTitle>
-          <DialogDescription className="sr-only">
-            Enter defect details below
-          </DialogDescription>
         </DialogHeader>
+
         <div className={cn("grid gap-4 py-4", isMobile && "gap-6")}>
           <DateTimeSection
             date={formData.date}
@@ -211,9 +186,10 @@ export const AddDefectModal = ({
             }
           />
         </div>
+
         <ActionButtons
           onClear={handleClear}
-          onCancel={() => onOpenChange(false)}
+          onCancel={handleCancel}
           onSave={validateAndSubmit}
         />
       </DialogContent>
