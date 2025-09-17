@@ -1,6 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { FileSpreadsheet, Plus, Filter, Printer } from "lucide-react";
-import { FilterType, DefectRecord, VisibilityFilterType } from "./DefectRecord.types";
+import {
+  FilterType,
+  DefectRecord,
+  VisibilityFilterType,
+} from "./DefectRecord.types";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useState } from "react";
 import { format } from "date-fns";
@@ -329,24 +333,6 @@ export const FilterButtons = ({
 
         <div className="flex gap-2">
           <Button
-            onClick={exportToExcel}
-            variant="outline"
-            className="text-sm uppercase bg-white text-slate-800 border-slate-300 hover:bg-slate-100 font-semibold"
-          >
-            <FileSpreadsheet className="h-4 w-4" />
-            <span className="sr-only">Export to Excel</span>
-          </Button>
-
-          <Button
-            onClick={handlePrint}
-            variant="outline"
-            className="text-sm uppercase bg-white text-slate-800 border-slate-300 hover:bg-slate-100 font-semibold"
-          >
-            <Printer className="h-4 w-4" />
-            <span className="sr-only">Print Records</span>
-          </Button>
-
-          <Button
             onClick={onAddRecord}
             className="bg-slate-700 text-white hover:bg-slate-800"
           >
@@ -437,7 +423,9 @@ export const FilterButtons = ({
             </Button>
           </div>
           <div className="border-t pt-4">
-            <h3 className="text-sm font-semibold mb-3 text-slate-700">Visibility</h3>
+            <h3 className="text-sm font-semibold mb-3 text-slate-700">
+              Visibility
+            </h3>
             <div className="grid gap-2">
               <Button
                 onClick={() => {
