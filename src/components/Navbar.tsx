@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Archive, User, Menu, X } from "lucide-react";
+import { User, Menu, X } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { getVersionString } from "@/utils/version";
@@ -65,17 +65,7 @@ const Navbar = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          {currentUser && !isMobile && (
-            <>
-              <Link
-                to="/archive-records"
-                className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
-              >
-                <Archive className="h-4 w-4" />
-                <span>Archives</span>
-              </Link>
-            </>
-          )}
+          {currentUser && !isMobile && <>{/* No navigation links */}</>}
         </div>
 
         <div className="flex items-center gap-4">
@@ -139,14 +129,6 @@ const Navbar = () => {
       {isMobile && currentUser && isMobileMenuOpen && (
         <div className="border-t border-border bg-card">
           <div className="container mx-auto px-4 py-4 space-y-3">
-            <Link
-              to="/archive-records"
-              className="flex items-center gap-3 text-blue-600 hover:text-blue-800 transition-colors py-2"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              <Archive className="h-5 w-5" />
-              <span className="text-base">Archives</span>
-            </Link>
             <Link
               to="/profile"
               className="flex items-center gap-3 text-blue-600 hover:text-blue-800 transition-colors py-2"
