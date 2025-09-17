@@ -74,7 +74,7 @@ EmailJS is a popular choice for sending emails directly from the frontend.
    # In your .env file
    VITE_ADMIN_EMAIL=andoniskgr@gmail.com
    VITE_EMAILJS_SERVICE_ID=service_apl6r78
-   VITE_EMAILJS_PUBLIC_KEY=your_public_key
+   VITE_EMAILJS_PUBLIC_KEY=IGU2SXlHLq9LxImWA
    VITE_EMAILJS_TEMPLATE_ADMIN_SIGNUP=Contact Us
    VITE_EMAILJS_TEMPLATE_USER_APPROVAL=Contact Us
    VITE_EMAILJS_TEMPLATE_USER_REJECTION=Contact Us
