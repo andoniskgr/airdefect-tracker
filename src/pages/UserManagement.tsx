@@ -54,6 +54,11 @@ import {
 } from "firebase/firestore";
 import { db } from "../utils/firebaseDB";
 import { emailService } from "../utils/emailService";
+import {
+  deleteUserFromAuth,
+  disableUser,
+  enableUser,
+} from "../utils/adminAuth";
 
 interface User {
   id: string;
@@ -190,12 +195,13 @@ const UserManagement = () => {
 
   const handleDisableUser = async (user: User) => {
     try {
-      const userRef = doc(db, "users", user.id);
-      await updateDoc(userRef, {
-        disabled: true,
-        disabledAt: new Date(),
-        disabledBy: userData?.email || "admin",
-      });
+      // Disable user using Firebase Functions
+      const disableResult = await disableUser(user.id, disableReason);
+
+      if (!disableResult.success) {
+        toast.error(`Failed to disable user: ${disableResult.error}`);
+        return;
+      }
 
       // Update local state
       setUsers(
@@ -206,12 +212,15 @@ const UserManagement = () => {
                 disabled: true,
                 disabledAt: new Date(),
                 disabledBy: userData?.email || "admin",
+                disableReason: disableReason || null,
               }
             : u
         )
       );
 
-      toast.success(`User ${user.userCode} has been disabled`);
+      toast.success(
+        `User ${user.userCode} has been disabled and will be signed out immediately`
+      );
       setIsDisableDialogOpen(false);
       setDisableReason("");
     } catch (error) {
@@ -222,12 +231,13 @@ const UserManagement = () => {
 
   const handleEnableUser = async (user: User) => {
     try {
-      const userRef = doc(db, "users", user.id);
-      await updateDoc(userRef, {
-        disabled: false,
-        disabledAt: null,
-        disabledBy: null,
-      });
+      // Enable user using Firebase Functions
+      const enableResult = await enableUser(user.id);
+
+      if (!enableResult.success) {
+        toast.error(`Failed to enable user: ${enableResult.error}`);
+        return;
+      }
 
       // Update local state
       setUsers(
@@ -238,6 +248,7 @@ const UserManagement = () => {
                 disabled: false,
                 disabledAt: null,
                 disabledBy: null,
+                disableReason: null,
               }
             : u
         )
@@ -259,13 +270,23 @@ const UserManagement = () => {
         return;
       }
 
-      const userRef = doc(db, "users", user.id);
-      await deleteDoc(userRef);
+      // Delete user from Firebase Authentication using Firebase Functions
+      const authResult = await deleteUserFromAuth(user.id);
 
-      // Update local state
+      if (!authResult.success) {
+        toast.error(
+          `Failed to delete user from authentication: ${authResult.error}`
+        );
+        return;
+      }
+
+      // The Firebase Function already deletes the user document and records
+      // So we just need to update the local state
       setUsers(users.filter((u) => u.id !== user.id));
 
-      toast.success(`User ${user.userCode} has been deleted`);
+      toast.success(
+        `User ${user.userCode} has been deleted from both Firestore and Firebase Authentication`
+      );
       setIsDeleteDialogOpen(false);
     } catch (error) {
       console.error("Error deleting user:", error);
@@ -453,7 +474,9 @@ const UserManagement = () => {
                         <TableCell className="text-white font-mono">
                           {user.userCode}
                         </TableCell>
-                        <TableCell>{getStatusBadge(user.status, user.disabled)}</TableCell>
+                        <TableCell>
+                          {getStatusBadge(user.status, user.disabled)}
+                        </TableCell>
                         <TableCell>{getRoleBadge(user.role)}</TableCell>
                         <TableCell className="text-slate-300">
                           {user.createdAt?.toDate?.()?.toLocaleDateString() ||
@@ -490,35 +513,36 @@ const UserManagement = () => {
                             )}
 
                             {/* Disable/Enable actions for approved users */}
-                            {user.status === "approved" && user.id !== userData?.id && (
-                              <>
-                                {user.disabled ? (
-                                  <Button
-                                    size="sm"
-                                    onClick={() => {
-                                      setSelectedUser(user);
-                                      setIsEnableDialogOpen(true);
-                                    }}
-                                    className="bg-blue-600 hover:bg-blue-700 text-white"
-                                  >
-                                    <Shield className="w-4 h-4 mr-1" />
-                                    Enable
-                                  </Button>
-                                ) : (
-                                  <Button
-                                    size="sm"
-                                    onClick={() => {
-                                      setSelectedUser(user);
-                                      setIsDisableDialogOpen(true);
-                                    }}
-                                    className="bg-orange-600 hover:bg-orange-700 text-white"
-                                  >
-                                    <ShieldOff className="w-4 h-4 mr-1" />
-                                    Disable
-                                  </Button>
-                                )}
-                              </>
-                            )}
+                            {user.status === "approved" &&
+                              user.id !== userData?.id && (
+                                <>
+                                  {user.disabled ? (
+                                    <Button
+                                      size="sm"
+                                      onClick={() => {
+                                        setSelectedUser(user);
+                                        setIsEnableDialogOpen(true);
+                                      }}
+                                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                                    >
+                                      <Shield className="w-4 h-4 mr-1" />
+                                      Enable
+                                    </Button>
+                                  ) : (
+                                    <Button
+                                      size="sm"
+                                      onClick={() => {
+                                        setSelectedUser(user);
+                                        setIsDisableDialogOpen(true);
+                                      }}
+                                      className="bg-orange-600 hover:bg-orange-700 text-white"
+                                    >
+                                      <ShieldOff className="w-4 h-4 mr-1" />
+                                      Disable
+                                    </Button>
+                                  )}
+                                </>
+                              )}
 
                             {/* Delete action for all users except current admin */}
                             {user.id !== userData?.id && (
@@ -647,7 +671,8 @@ const UserManagement = () => {
             <AlertDialogHeader>
               <AlertDialogTitle>Disable User</AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to disable this user? They will lose access to the application but their account will be preserved.
+                Are you sure you want to disable this user? They will lose
+                access to the application but their account will be preserved.
               </AlertDialogDescription>
             </AlertDialogHeader>
             {selectedUser && (
@@ -698,7 +723,8 @@ const UserManagement = () => {
             <AlertDialogHeader>
               <AlertDialogTitle>Enable User</AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to enable this user? They will regain access to the application.
+                Are you sure you want to enable this user? They will regain
+                access to the application.
               </AlertDialogDescription>
             </AlertDialogHeader>
             {selectedUser && (
@@ -741,7 +767,8 @@ const UserManagement = () => {
             <AlertDialogHeader>
               <AlertDialogTitle>Delete User</AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to permanently delete this user? This action cannot be undone and will remove all user data.
+                Are you sure you want to permanently delete this user? This
+                action cannot be undone and will remove all user data.
               </AlertDialogDescription>
             </AlertDialogHeader>
             {selectedUser && (

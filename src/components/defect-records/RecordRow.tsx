@@ -9,7 +9,12 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   MessageSquare,
   Trash,
@@ -52,11 +57,122 @@ export const RecordRow = ({
   const defectTextareaRef = useRef<HTMLTextAreaElement>(null);
   const remarksTextareaRef = useRef<HTMLTextAreaElement>(null);
 
+  // Cursor position tracking for input fields
+  const registrationCursorPosition = useRef<number | null>(null);
+  const stationCursorPosition = useRef<number | null>(null);
+  const defectCursorPosition = useRef<number | null>(null);
+  const remarksCursorPosition = useRef<number | null>(null);
+  const etaCursorPosition = useRef<number | null>(null);
+  const stdCursorPosition = useRef<number | null>(null);
+  const updCursorPosition = useRef<number | null>(null);
+
   // Function to adjust textarea height
   const adjustTextareaHeight = (textarea: HTMLTextAreaElement) => {
     textarea.style.height = "auto";
     textarea.style.height = Math.max(textarea.scrollHeight, 32) + "px";
   };
+
+  // Restore cursor position after re-renders
+  useEffect(() => {
+    if (registrationCursorPosition.current !== null) {
+      const input = document.querySelector(
+        `input[value="${localData.registration}"]`
+      ) as HTMLInputElement;
+      if (input && document.activeElement === input) {
+        const pos = Math.min(
+          registrationCursorPosition.current,
+          localData.registration.length
+        );
+        input.setSelectionRange(pos, pos);
+        registrationCursorPosition.current = null;
+      }
+    }
+  });
+
+  useEffect(() => {
+    if (stationCursorPosition.current !== null) {
+      const input = document.querySelector(
+        `input[value="${localData.station}"]`
+      ) as HTMLInputElement;
+      if (input && document.activeElement === input) {
+        const pos = Math.min(
+          stationCursorPosition.current,
+          localData.station.length
+        );
+        input.setSelectionRange(pos, pos);
+        stationCursorPosition.current = null;
+      }
+    }
+  });
+
+  useEffect(() => {
+    if (
+      defectCursorPosition.current !== null &&
+      defectTextareaRef.current &&
+      document.activeElement === defectTextareaRef.current
+    ) {
+      const pos = Math.min(
+        defectCursorPosition.current,
+        localData.defect.length
+      );
+      defectTextareaRef.current.setSelectionRange(pos, pos);
+      defectCursorPosition.current = null;
+    }
+  });
+
+  useEffect(() => {
+    if (
+      remarksCursorPosition.current !== null &&
+      remarksTextareaRef.current &&
+      document.activeElement === remarksTextareaRef.current
+    ) {
+      const pos = Math.min(
+        remarksCursorPosition.current,
+        localData.remarks.length
+      );
+      remarksTextareaRef.current.setSelectionRange(pos, pos);
+      remarksCursorPosition.current = null;
+    }
+  });
+
+  useEffect(() => {
+    if (etaCursorPosition.current !== null) {
+      const input = document.querySelector(
+        `input[value="${localData.eta}"]`
+      ) as HTMLInputElement;
+      if (input && document.activeElement === input) {
+        const pos = Math.min(etaCursorPosition.current, localData.eta.length);
+        input.setSelectionRange(pos, pos);
+        etaCursorPosition.current = null;
+      }
+    }
+  });
+
+  useEffect(() => {
+    if (stdCursorPosition.current !== null) {
+      const input = document.querySelector(
+        `input[value="${localData.std}"]`
+      ) as HTMLInputElement;
+      if (input && document.activeElement === input) {
+        const pos = Math.min(stdCursorPosition.current, localData.std.length);
+        input.setSelectionRange(pos, pos);
+        stdCursorPosition.current = null;
+      }
+    }
+  });
+
+  useEffect(() => {
+    if (updCursorPosition.current !== null) {
+      const input = document.querySelector(
+        `input[value="${localData.upd}"]`
+      ) as HTMLInputElement;
+      if (input && document.activeElement === input) {
+        const pos = Math.min(updCursorPosition.current, localData.upd.length);
+        input.setSelectionRange(pos, pos);
+        updCursorPosition.current = null;
+      }
+    }
+  });
 
   // Function to get creator information
   const getCreatorInfo = async (createdBy: string) => {
@@ -85,7 +201,7 @@ export const RecordRow = ({
       registration: record.registration,
       defect: record.defect,
       isPublic: record.isPublic,
-      updatedAt: record.updatedAt
+      updatedAt: record.updatedAt,
     });
     setLocalData(record);
   }, [record]);
@@ -150,20 +266,48 @@ export const RecordRow = ({
     return "";
   };
 
-  const handleTextChange = (field: keyof DefectRecord, value: string) => {
+  const handleTextChange = (
+    field: keyof DefectRecord,
+    value: string,
+    event?: React.ChangeEvent<HTMLInputElement>
+  ) => {
     // Only update local state, don't auto-save on every keystroke
     // Convert to uppercase for remarks and defect fields
     const processedValue =
       field === "remarks" || field === "defect" ? value.toUpperCase() : value;
+
+    // Store cursor position for specific fields
+    if (event) {
+      if (field === "registration") {
+        registrationCursorPosition.current = event.target.selectionStart;
+      } else if (field === "station") {
+        stationCursorPosition.current = event.target.selectionStart;
+      }
+    }
+
     setLocalData((prev) => ({ ...prev, [field]: processedValue }));
   };
 
   // Handle textarea field changes
-  const handleTextareaChange = (field: keyof DefectRecord, value: string) => {
+  const handleTextareaChange = (
+    field: keyof DefectRecord,
+    value: string,
+    event?: React.ChangeEvent<HTMLTextAreaElement>
+  ) => {
     // Only update local state, don't auto-save on every keystroke
     // Convert to uppercase for remarks and defect fields
     const processedValue =
       field === "remarks" || field === "defect" ? value.toUpperCase() : value;
+
+    // Store cursor position for textarea fields
+    if (event) {
+      if (field === "defect") {
+        defectCursorPosition.current = event.target.selectionStart;
+      } else if (field === "remarks") {
+        remarksCursorPosition.current = event.target.selectionStart;
+      }
+    }
+
     setLocalData((prev) => ({ ...prev, [field]: processedValue }));
   };
 
@@ -211,9 +355,22 @@ export const RecordRow = ({
 
   const handleTimeFieldChange = (
     field: "eta" | "std" | "upd",
-    value: string
+    value: string,
+    event?: React.ChangeEvent<HTMLInputElement>
   ) => {
     // Only update local state, don't auto-save on every keystroke
+
+    // Store cursor position for time fields
+    if (event) {
+      if (field === "eta") {
+        etaCursorPosition.current = event.target.selectionStart;
+      } else if (field === "std") {
+        stdCursorPosition.current = event.target.selectionStart;
+      } else if (field === "upd") {
+        updCursorPosition.current = event.target.selectionStart;
+      }
+    }
+
     setLocalData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -507,7 +664,9 @@ export const RecordRow = ({
                 />
               </TooltipTrigger>
               <TooltipContent>
-                <p>Created by: {creatorInfo || record.createdBy || "Unknown"}</p>
+                <p>
+                  Created by: {creatorInfo || record.createdBy || "Unknown"}
+                </p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -520,7 +679,7 @@ export const RecordRow = ({
               <Input
                 value={localData.registration}
                 onChange={(e) =>
-                  handleTextChange("registration", e.target.value)
+                  handleTextChange("registration", e.target.value, e)
                 }
                 onBlur={(e) => handleTextBlur("registration", e.target.value)}
                 onKeyDown={(e) => handleKeyDown(e, "registration")}
@@ -550,7 +709,7 @@ export const RecordRow = ({
         <TableCell className="py-3" style={{ width: "1.5%" }}>
           <Input
             value={localData.station}
-            onChange={(e) => handleTextChange("station", e.target.value)}
+            onChange={(e) => handleTextChange("station", e.target.value, e)}
             onBlur={(e) => handleTextBlur("station", e.target.value)}
             onKeyDown={(e) => handleKeyDown(e, "station")}
             onFocus={handleFocus}
@@ -567,7 +726,7 @@ export const RecordRow = ({
           <Textarea
             ref={defectTextareaRef}
             value={localData.defect}
-            onChange={(e) => handleTextareaChange("defect", e.target.value)}
+            onChange={(e) => handleTextareaChange("defect", e.target.value, e)}
             onBlur={(e) => handleTextareaBlur("defect", e.target.value)}
             onKeyDown={(e) => handleTextareaKeyDown(e, "defect")}
             onFocus={handleTextareaFocus}
@@ -589,7 +748,7 @@ export const RecordRow = ({
           <Textarea
             ref={remarksTextareaRef}
             value={localData.remarks}
-            onChange={(e) => handleTextareaChange("remarks", e.target.value)}
+            onChange={(e) => handleTextareaChange("remarks", e.target.value, e)}
             onBlur={(e) => handleTextareaBlur("remarks", e.target.value)}
             onKeyDown={(e) => handleTextareaKeyDown(e, "remarks")}
             onFocus={handleTextareaFocus}
@@ -607,7 +766,7 @@ export const RecordRow = ({
         <TableCell className="px-0 py-3" style={{ width: "1.5%" }}>
           <Input
             value={localData.eta}
-            onChange={(e) => handleTimeFieldChange("eta", e.target.value)}
+            onChange={(e) => handleTimeFieldChange("eta", e.target.value, e)}
             onBlur={(e) => handleTimeFieldBlur("eta", e.target.value)}
             onKeyDown={(e) => handleTimeFieldKeyDown(e, "eta")}
             onFocus={handleFocus}
@@ -621,7 +780,7 @@ export const RecordRow = ({
         <TableCell className="px-0 py-3" style={{ width: "1.5%" }}>
           <Input
             value={localData.std}
-            onChange={(e) => handleTimeFieldChange("std", e.target.value)}
+            onChange={(e) => handleTimeFieldChange("std", e.target.value, e)}
             onBlur={(e) => handleTimeFieldBlur("std", e.target.value)}
             onKeyDown={(e) => handleTimeFieldKeyDown(e, "std")}
             onFocus={handleFocus}
@@ -638,7 +797,7 @@ export const RecordRow = ({
         >
           <Input
             value={localData.upd}
-            onChange={(e) => handleTimeFieldChange("upd", e.target.value)}
+            onChange={(e) => handleTimeFieldChange("upd", e.target.value, e)}
             onBlur={(e) => handleTimeFieldBlur("upd", e.target.value)}
             onKeyDown={(e) => handleTimeFieldKeyDown(e, "upd")}
             onFocus={handleFocus}
@@ -735,7 +894,11 @@ export const RecordRow = ({
               <button
                 onClick={() => handleToggleVisibility(record)}
                 className="flex items-center hover:opacity-70 transition-opacity"
-                title={record.isPublic ? "Click to make private - Currently visible to other users" : "Click to make public - Currently only visible to you"}
+                title={
+                  record.isPublic
+                    ? "Click to make private - Currently visible to other users"
+                    : "Click to make public - Currently only visible to you"
+                }
               >
                 {record.isPublic ? (
                   <Globe className="h-4 w-4 text-green-500" />
@@ -747,7 +910,11 @@ export const RecordRow = ({
               // Read-only for other users
               <div
                 className="flex items-center"
-                title={record.isPublic ? "Public record - Visible to all users" : "Private record - Only visible to creator"}
+                title={
+                  record.isPublic
+                    ? "Public record - Visible to all users"
+                    : "Private record - Only visible to creator"
+                }
               >
                 {record.isPublic ? (
                   <Globe className="h-4 w-4 text-green-500" />

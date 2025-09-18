@@ -9,35 +9,11 @@ import { cn } from "@/lib/utils";
 import { getVersionString } from "@/utils/version";
 
 const Navbar = () => {
-  const { currentUser, userData, logout, getUserData } = useAuth();
+  const { currentUser, userData, logout } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [userCode, setUserCode] = useState<string>("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-
-  // Fetch user data to get user code
-  useEffect(() => {
-    const fetchUserData = async () => {
-      if (currentUser && getUserData) {
-        try {
-          const userData = await getUserData();
-          if (userData && userData.userCode) {
-            setUserCode(userData.userCode);
-          } else {
-            setUserCode(""); // Clear user code if not found
-          }
-        } catch (error) {
-          console.error("Error fetching user data:", error);
-          setUserCode(""); // Clear user code on error
-        }
-      } else {
-        setUserCode(""); // Clear user code when not logged in
-      }
-    };
-
-    fetchUserData();
-  }, [currentUser, getUserData]);
 
   const handleLogout = async () => {
     try {
@@ -131,7 +107,7 @@ const Navbar = () => {
                 <span>Profile</span>
               </Link>
               <span className="text-sm text-muted-foreground font-mono">
-                {userCode || currentUser.email}
+                {userData?.userCode || currentUser.email}
               </span>
               <Button
                 variant="outline"
@@ -186,7 +162,7 @@ const Navbar = () => {
             </Link>
             <div className="pt-3 border-t border-border">
               <div className="text-sm text-muted-foreground font-mono mb-3">
-                {userCode || currentUser.email}
+                {userData?.userCode || currentUser.email}
               </div>
               <Button
                 variant="outline"

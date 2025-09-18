@@ -14,7 +14,7 @@ import {
   updateUserCode as updateUserCodeInDB,
   getUserById,
 } from "../utils/firebaseDB";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, onSnapshot } from "firebase/firestore";
 import { emailService } from "../utils/emailService";
 
 type UserData = {
@@ -124,7 +124,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         await signInWithEmailAndPassword(auth, email, password);
       } else {
         email = emailOrCode;
-        
+
         // Login with email directly
         await signInWithEmailAndPassword(auth, email, password);
 
@@ -133,8 +133,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       }
     } catch (error: any) {
       // If it's a Firebase Auth error, handle it
-      if (error.code && error.code.startsWith('auth/')) {
-        throw new Error("Invalid email or password. Please check your credentials.");
+      if (error.code && error.code.startsWith("auth/")) {
+        throw new Error(
+          "Invalid email or password. Please check your credentials."
+        );
       }
       // Re-throw our custom errors (like "Invalid user code")
       throw error;
@@ -201,6 +203,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       newUserCode,
       currentUser.email || ""
     );
+
+    // Update the local userData state to reflect the change immediately
+    if (userData) {
+      setUserData({
+        ...userData,
+        userCode: newUserCode,
+      });
+    }
   };
 
   const getUserData = async () => {
@@ -227,7 +237,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
               setUserData(null);
               return;
             }
-            
+
             setUserData(userData as UserData);
           } else {
             console.error("No user data found for authenticated user");
@@ -245,6 +255,49 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     });
     return unsubscribe;
   }, []);
+
+  // Real-time listener to detect when current user is disabled
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const userDocRef = doc(db, "users", currentUser.uid);
+    const unsubscribe = onSnapshot(
+      userDocRef,
+      async (docSnapshot) => {
+        if (docSnapshot.exists()) {
+          const userData = docSnapshot.data();
+
+          // If user becomes disabled while logged in, sign them out immediately
+          if (userData.disabled === true) {
+            console.log("User has been disabled, signing out immediately");
+            try {
+              await signOut(auth);
+              setUserData(null);
+              // Show a toast notification to inform the user
+              if (
+                typeof window !== "undefined" &&
+                window.location.pathname !== "/login"
+              ) {
+                // Import toast dynamically to avoid circular dependencies
+                import("sonner").then(({ toast }) => {
+                  toast.error(
+                    "Your account has been disabled. You have been signed out."
+                  );
+                });
+              }
+            } catch (error) {
+              console.error("Error signing out disabled user:", error);
+            }
+          }
+        }
+      },
+      (error) => {
+        console.error("Error listening to user document:", error);
+      }
+    );
+
+    return unsubscribe;
+  }, [currentUser]);
 
   const value = {
     currentUser,
