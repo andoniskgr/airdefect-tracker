@@ -13,6 +13,7 @@ import {
   getUserByCode,
   updateUserCode as updateUserCodeInDB,
   getUserById,
+  getUserByEmail,
 } from "../utils/firebaseDB";
 import { doc, setDoc, onSnapshot } from "firebase/firestore";
 import { emailService } from "../utils/emailService";
