@@ -4,7 +4,6 @@ import { useAuth } from "../context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { getVersionString } from "@/utils/version";
 
 const Signup = () => {
   const [email, setEmail] = useState("");
@@ -46,13 +45,7 @@ const Signup = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 relative">
-      {/* Version number */}
-      <div className="absolute top-4 right-4">
-        <span className="text-xs text-muted-foreground font-mono bg-muted px-2 py-1 rounded">
-          {getVersionString()}
-        </span>
-      </div>
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-md space-y-8 rounded-lg border border-border bg-card p-8 shadow-md">
         <div className="text-center">
           <h1 className="text-2xl font-bold tracking-tight">

@@ -4,11 +4,9 @@ This project includes an automated version management system that updates the ve
 
 ## How It Works
 
-The version is stored in `src/version.json` and is automatically displayed throughout the application in:
+The version is stored in `src/version.json` and is automatically displayed in:
 
 - Navigation bar
-- Login page
-- Signup page
 
 ## Version Update Commands
 
@@ -86,7 +84,5 @@ This will:
 The version is displayed in:
 
 - **Navbar**: Top-right corner
-- **Login Page**: Top-right corner
-- **Signup Page**: Top-right corner
 
-All version displays are automatically updated when the version is incremented.
+The version display is automatically updated when the version is incremented.
