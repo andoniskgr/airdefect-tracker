@@ -34,7 +34,11 @@ interface RecordRowProps {
   record: DefectRecord;
   handleEditRecord: (record: DefectRecord) => void;
   handleDeleteRecord: (id: string) => void;
-  handleUpdateRecord: (id: string, updates: Partial<DefectRecord>) => void;
+  handleUpdateRecord: (
+    id: string,
+    updates: Partial<DefectRecord>,
+    oldRecord?: DefectRecord
+  ) => void;
   handleToggleVisibility: (record: DefectRecord) => void;
   currentTime: Date;
   currentUserEmail?: string | null;
@@ -225,7 +229,7 @@ export const RecordRow = ({
     saveTimeoutRef.current = setTimeout(async () => {
       setIsSaving(true);
       try {
-        await handleUpdateRecord(record.id, updates);
+        await handleUpdateRecord(record.id, updates, record);
         // No toast for auto-save to avoid spam
       } catch (error) {
         toast.error("Failed to update record");
@@ -411,7 +415,7 @@ export const RecordRow = ({
 
       setIsSaving(true);
       try {
-        handleUpdateRecord(record.id, updates);
+        handleUpdateRecord(record.id, updates, record);
         // No toast for auto-save to avoid spam
       } catch (error) {
         toast.error("Failed to update record");
@@ -443,7 +447,7 @@ export const RecordRow = ({
 
       setIsSaving(true);
       try {
-        handleUpdateRecord(record.id, updates);
+        handleUpdateRecord(record.id, updates, record);
         // No toast for auto-save to avoid spam
       } catch (error) {
         toast.error("Failed to update record");
@@ -473,7 +477,7 @@ export const RecordRow = ({
 
       setIsSaving(true);
       try {
-        handleUpdateRecord(record.id, updates);
+        handleUpdateRecord(record.id, updates, record);
         // No toast for auto-save to avoid spam
       } catch (error) {
         toast.error("Failed to update record");
@@ -506,7 +510,7 @@ export const RecordRow = ({
 
       setIsSaving(true);
       try {
-        handleUpdateRecord(record.id, updates);
+        handleUpdateRecord(record.id, updates, record);
         // No toast for auto-save to avoid spam
       } catch (error) {
         toast.error("Failed to update record");

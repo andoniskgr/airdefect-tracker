@@ -2,7 +2,7 @@
 import { useState, useCallback } from "react";
 import { DefectRecord } from "../components/defect-records/DefectRecord.types";
 import { saveRecord } from "../utils/firebaseDB";
-import { createInitialHistory } from "../utils/historyUtils";
+import { createInitialHistory, trackFieldChanges } from "../utils/historyUtils";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
@@ -31,6 +31,7 @@ export const useDefectForm = (currentUserEmail: string | null | undefined) => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<DefectRecord | null>(null);
+  const [originalRecord, setOriginalRecord] = useState<DefectRecord | null>(null);
   
   const handleClear = useCallback(() => {
     console.log('Clearing form data');
@@ -74,11 +75,12 @@ export const useDefectForm = (currentUserEmail: string | null | undefined) => {
   const handleEditRecord = (record: DefectRecord) => {
     console.log("Editing record with ID:", record.id);
     setEditingRecord(record);
+    setOriginalRecord({ ...record }); // Store a copy of the original record
     setIsEditModalOpen(true);
   };
   
   const handleEditSubmit = async () => {
-    if (!editingRecord) return;
+    if (!editingRecord || !originalRecord) return;
     
     try {
       console.log("Updating record with ID:", editingRecord.id);
@@ -86,17 +88,25 @@ export const useDefectForm = (currentUserEmail: string | null | undefined) => {
       const timestamp = new Date().toISOString();
       const userEmail = currentUserEmail || 'unknown';
       
-      const updatedRecord = {
+      // Create the updated record with proper metadata
+      const updatedRecord: DefectRecord = {
         ...editingRecord,
         updatedBy: userEmail,
         updatedAt: timestamp
       };
+      
+      // Track changes by comparing original record with updated record
+      const changes = trackFieldChanges(originalRecord, updatedRecord, userEmail);
+      if (changes.length > 0) {
+        updatedRecord.history = [...(originalRecord.history || []), ...changes];
+      }
       
       await saveRecord(updatedRecord);
       
       toast.success("Record updated successfully!");
       setIsEditModalOpen(false);
       setEditingRecord(null);
+      setOriginalRecord(null);
     } catch (error) {
       console.error("Error updating record:", error);
       toast.error("Failed to update record: " + (error instanceof Error ? error.message : "Unknown error"));
@@ -112,6 +122,8 @@ export const useDefectForm = (currentUserEmail: string | null | undefined) => {
     setIsEditModalOpen,
     editingRecord,
     setEditingRecord,
+    originalRecord,
+    setOriginalRecord,
     handleClear,
     handleSubmit,
     handleEditRecord,

@@ -58,7 +58,8 @@ export const MobileRecordsTable = ({
   };
 
   const handleEditSubmit = (updatedRecord: DefectRecord) => {
-    handleUpdateRecord(updatedRecord.id, updatedRecord);
+    // Pass the original record as the third parameter for change tracking
+    handleUpdateRecord(updatedRecord.id, updatedRecord, selectedRecord);
     setIsEditModalOpen(false);
     setSelectedRecord(null);
   };
