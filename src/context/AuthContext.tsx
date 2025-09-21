@@ -70,13 +70,60 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       );
     }
 
-    // Create user with Firebase Auth
-    const userCredential = await createUserWithEmailAndPassword(
-      auth,
-      email,
-      password
-    );
-    const user = userCredential.user;
+    let user: any;
+    try {
+      // Create user with Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      user = userCredential.user;
+    } catch (error: any) {
+      // Handle Firebase Auth errors
+      if (error.code === "auth/email-already-in-use") {
+        // Check if this email exists in Firestore
+        const existingUserData = await getUserByEmail(email);
+        if (!existingUserData) {
+          // Email exists in Firebase Auth but not in Firestore (orphaned account)
+          // Try to sign in with the existing Firebase Auth account to reuse it
+          try {
+            const userCredential = await signInWithEmailAndPassword(
+              auth,
+              email,
+              password
+            );
+            user = userCredential.user;
+            // Sign out immediately as we just need to verify the password is correct
+            await signOut(auth);
+            console.log(
+              "Successfully verified orphaned Firebase Auth account, proceeding with registration"
+            );
+          } catch (signInError: any) {
+            if (signInError.code === "auth/wrong-password") {
+              throw new Error(
+                "This email was previously registered. Please use the correct password to login, or contact the administrator to reset your account."
+              );
+            } else {
+              throw new Error(
+                "This email was previously registered but there's an issue with the account. Please contact the administrator."
+              );
+            }
+          }
+        } else {
+          // Email exists in both Firebase Auth and Firestore
+          throw new Error(
+            "This email is already registered. Please use the login page instead."
+          );
+        }
+      } else if (error.code && error.code.startsWith("auth/")) {
+        throw new Error(
+          "Authentication error. Please check your email format and try again."
+        );
+      }
+      // Re-throw other errors
+      throw error;
+    }
 
     // Save user data to Firestore with pending approval status
     await setDoc(doc(db, "users", user.uid), {
@@ -116,7 +163,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         userData = await getUserByCode(emailOrCode);
 
         if (!userData) {
-          throw new Error("Invalid user code.");
+          throw new Error("User not registered. Signup to create account.");
         }
 
         email = userData.email;
@@ -152,10 +199,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       }
     }
 
-    // If we still don't have user data, something went wrong
+    // If we still don't have user data, the user is not registered in our system
     if (!userData) {
       await signOut(auth);
-      throw new Error("Unable to retrieve user information. Please try again.");
+      throw new Error("User not registered. Signup to create account.");
     }
 
     // Check user approval status

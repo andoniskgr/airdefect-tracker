@@ -77,6 +77,11 @@ export const deleteUserFromAuth = async (userId: string): Promise<DeleteUserResp
         success: false, 
         error: 'Internal server error. Please check the Firebase Functions logs for details.' 
       };
+    } else if (error.message?.includes('CORS policy') || error.message?.includes('Access-Control-Allow-Origin') || error.message?.includes('ERR_FAILED')) {
+      return { 
+        success: false, 
+        error: 'Firebase Functions are not available due to CORS policy. Using fallback method.' 
+      };
     }
     
     return { 

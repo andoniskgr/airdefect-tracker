@@ -152,7 +152,7 @@ export const deleteUserFallback = async (userId: string): Promise<DeleteUserResp
     console.log('User deleted from Firestore successfully (fallback method)');
     return { 
       success: true, 
-      message: 'User deleted from Firestore successfully. Note: User still exists in Firebase Authentication and must be deleted manually from the Firebase Console.' 
+      message: 'User deleted from Firestore successfully. Note: The user can now re-register with the same email and password, as the system will automatically reuse the existing Firebase Authentication account.' 
     };
   } catch (error: any) {
     console.error('Error deleting user (fallback method):', error);

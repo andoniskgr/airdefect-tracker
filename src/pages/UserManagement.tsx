@@ -310,7 +310,8 @@ const UserManagement = () => {
         (authResult.error?.includes("Firebase Functions are not available") ||
           authResult.error?.includes("Internal server error") ||
           authResult.error?.includes("functions/unavailable") ||
-          authResult.error?.includes("functions/internal"))
+          authResult.error?.includes("functions/internal") ||
+          authResult.error?.includes("CORS policy"))
       ) {
         console.log("Firebase Functions not available, using fallback method");
         authResult = await deleteUserFallback(user.id);
