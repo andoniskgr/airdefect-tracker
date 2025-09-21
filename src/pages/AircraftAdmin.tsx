@@ -40,6 +40,8 @@ const AircraftAdmin = () => {
     handleExcelImport,
     handleDeleteAircraft,
     handleDeleteAllAircraft,
+    addSampleAircraft,
+    testFirebaseConnection,
   } = useAircraftAdmin();
 
   return (
@@ -55,6 +57,20 @@ const AircraftAdmin = () => {
             >
               <Plus className="mr-2 h-4 w-4" />
               Add New Aircraft
+            </Button>
+
+            <Button
+              onClick={addSampleAircraft}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              Add Sample Data
+            </Button>
+
+            <Button
+              onClick={testFirebaseConnection}
+              className="bg-purple-600 hover:bg-purple-700"
+            >
+              Test Firebase
             </Button>
 
             {aircraftData.length > 0 && (

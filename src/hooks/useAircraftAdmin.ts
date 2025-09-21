@@ -36,26 +36,91 @@ export const useAircraftAdmin = () => {
     wifi: false,
   });
 
+  // Test Firebase connection
+  const testFirebaseConnection = async () => {
+    try {
+      console.log("Testing Firebase connection...");
+      console.log("Firebase app:", db.app);
+      console.log("Firebase project ID:", db.app.options.projectId);
+      
+      // Try to read from users collection (which should have rules)
+      const usersCollection = collection(db, 'users');
+      const usersSnapshot = await getDocs(usersCollection);
+      console.log("Users collection accessible, size:", usersSnapshot.size);
+      
+      // Try to read from aircraft collection
+      const aircraftCollection = collection(db, 'aircraft');
+      const aircraftSnapshot = await getDocs(aircraftCollection);
+      console.log("Aircraft collection accessible, size:", aircraftSnapshot.size);
+      
+      return true;
+    } catch (error) {
+      console.error("Firebase connection test failed:", error);
+      return false;
+    }
+  };
+
   // Fetch aircraft data from Firestore on component mount
   useEffect(() => {
-    fetchAircraftData();
+    testFirebaseConnection().then((connected) => {
+      if (connected) {
+        fetchAircraftData();
+      } else {
+        console.error("Firebase connection test failed, skipping aircraft fetch");
+        setIsLoading(false);
+      }
+    });
   }, []);
 
   // Fetch aircraft data from Firestore
   const fetchAircraftData = async () => {
     setIsLoading(true);
     try {
-      const aircraftCollection = collection(db, COLLECTION_NAME);
-      const aircraftSnapshot = await getDocs(aircraftCollection);
-      const aircraftList = aircraftSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Aircraft[];
+      console.log("Fetching aircraft data from collection:", COLLECTION_NAME);
+      console.log("Firebase db instance:", db);
+      console.log("Firebase app:", db.app);
       
+      const aircraftCollection = collection(db, COLLECTION_NAME);
+      console.log("Aircraft collection reference:", aircraftCollection);
+      
+      const aircraftSnapshot = await getDocs(aircraftCollection);
+      console.log("Aircraft snapshot size:", aircraftSnapshot.size);
+      console.log("Aircraft snapshot empty:", aircraftSnapshot.empty);
+      console.log("Aircraft snapshot docs:", aircraftSnapshot.docs);
+      
+      if (aircraftSnapshot.empty) {
+        console.log("No aircraft documents found in the collection");
+        setAircraftData([]);
+        return;
+      }
+      
+      const aircraftList = aircraftSnapshot.docs.map(doc => {
+        console.log("Processing aircraft doc:", doc.id, doc.data());
+        return {
+          id: doc.id,
+          ...doc.data()
+        };
+      }) as Aircraft[];
+      
+      console.log("Processed aircraft list:", aircraftList);
       setAircraftData(aircraftList);
     } catch (error) {
       console.error("Error fetching aircraft data:", error);
-      toast.error("Failed to load aircraft data");
+      console.error("Error details:", {
+        name: error.name,
+        message: error.message,
+        code: error.code,
+        stack: error.stack
+      });
+      
+      // Check for specific Firebase errors
+      if (error.code === 'permission-denied') {
+        toast.error("Permission denied: Please check Firestore security rules for aircraft collection");
+      } else if (error.code === 'unavailable') {
+        toast.error("Firebase service unavailable. Please check your internet connection.");
+      } else {
+        toast.error(`Failed to load aircraft data: ${error.message}`);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -141,8 +206,10 @@ export const useAircraftAdmin = () => {
     }
 
     try {
+      console.log("Adding aircraft to Firestore:", aircraftForm);
       // Add to Firestore
       const docRef = await addDoc(collection(db, COLLECTION_NAME), aircraftForm);
+      console.log("Aircraft added with ID:", docRef.id);
       
       // Add to local state with Firestore ID
       const newAircraftWithId: Aircraft = {
@@ -336,6 +403,72 @@ export const useAircraftAdmin = () => {
     e.target.value = "";
   };
 
+  // Function to add sample aircraft data for testing
+  const addSampleAircraft = async () => {
+    const sampleAircraft = [
+      {
+        registration: "N123AB",
+        type: "BOEING 737",
+        engine: "CFM56-7B",
+        msn: "12345",
+        cls: true,
+        wifi: false,
+      },
+      {
+        registration: "N456CD",
+        type: "AIRBUS A320",
+        engine: "CFM56-5B",
+        msn: "67890",
+        cls: false,
+        wifi: true,
+      },
+      {
+        registration: "N789EF",
+        type: "BOEING 777",
+        engine: "GE90-115B",
+        msn: "11111",
+        cls: true,
+        wifi: true,
+      }
+    ];
+
+    try {
+      console.log("Attempting to add sample aircraft data...");
+      console.log("Sample data:", sampleAircraft);
+      
+      const batch = writeBatch(getFirestore());
+      
+      for (const aircraft of sampleAircraft) {
+        const docRef = doc(collection(db, COLLECTION_NAME));
+        console.log("Adding aircraft to batch:", aircraft);
+        batch.set(docRef, aircraft);
+      }
+      
+      console.log("Committing batch...");
+      await batch.commit();
+      console.log("Sample aircraft data added successfully");
+      toast.success("Sample aircraft data added successfully");
+      
+      // Refresh the data
+      console.log("Refreshing aircraft data...");
+      await fetchAircraftData();
+    } catch (error) {
+      console.error("Error adding sample aircraft:", error);
+      console.error("Error details:", {
+        name: error.name,
+        message: error.message,
+        code: error.code,
+        stack: error.stack
+      });
+      
+      if (error.code === 'permission-denied') {
+        toast.error("Permission denied: Cannot add aircraft data. Check Firestore rules.");
+      } else {
+        toast.error(`Failed to add sample aircraft data: ${error.message}`);
+      }
+    }
+  };
+
   return {
     aircraftData,
     isLoading,
@@ -356,5 +489,7 @@ export const useAircraftAdmin = () => {
     handleExcelImport,
     handleDeleteAircraft,
     handleDeleteAllAircraft,
+    addSampleAircraft,
+    testFirebaseConnection,
   };
 };

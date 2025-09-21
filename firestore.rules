@@ -30,5 +30,10 @@ service cloud.firestore {
       allow read, write: if request.auth != null && 
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
+    
+    // Aircraft collection - allow all access for testing (temporary)
+    match /aircraft/{aircraftId} {
+      allow read, write: if true;
+    }
   }
 }
