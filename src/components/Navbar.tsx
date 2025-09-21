@@ -3,7 +3,16 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { User, Menu, X, Settings, Users, FileText, Bell } from "lucide-react";
+import {
+  User,
+  Menu,
+  X,
+  Settings,
+  Users,
+  FileText,
+  Bell,
+  Archive,
+} from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { getVersionString } from "@/utils/version";
@@ -56,6 +65,13 @@ const Navbar = () => {
               >
                 <Bell className="h-4 w-4" />
                 <span>Internal Notices</span>
+              </Link>
+              <Link
+                to="/archive-records"
+                className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
+              >
+                <Archive className="h-4 w-4" />
+                <span>Archive</span>
               </Link>
               <Link
                 to="/aircraft-admin"

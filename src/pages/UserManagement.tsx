@@ -59,6 +59,11 @@ import {
   disableUser,
   enableUser,
 } from "../utils/adminAuth";
+import {
+  deleteUserFallback,
+  disableUserFallback,
+  enableUserFallback,
+} from "../utils/adminAuthFallback";
 
 interface User {
   id: string;
@@ -195,8 +200,22 @@ const UserManagement = () => {
 
   const handleDisableUser = async (user: User) => {
     try {
-      // Disable user using Firebase Functions
-      const disableResult = await disableUser(user.id, disableReason);
+      // Try Firebase Functions first
+      let disableResult = await disableUser(user.id, disableReason);
+
+      // If Firebase Functions fail, try fallback method
+      if (
+        !disableResult.success &&
+        (disableResult.error?.includes(
+          "Firebase Functions are not available"
+        ) ||
+          disableResult.error?.includes("Internal server error") ||
+          disableResult.error?.includes("functions/unavailable") ||
+          disableResult.error?.includes("functions/internal"))
+      ) {
+        console.log("Firebase Functions not available, using fallback method");
+        disableResult = await disableUserFallback(user.id, disableReason);
+      }
 
       if (!disableResult.success) {
         toast.error(`Failed to disable user: ${disableResult.error}`);
@@ -231,8 +250,20 @@ const UserManagement = () => {
 
   const handleEnableUser = async (user: User) => {
     try {
-      // Enable user using Firebase Functions
-      const enableResult = await enableUser(user.id);
+      // Try Firebase Functions first
+      let enableResult = await enableUser(user.id);
+
+      // If Firebase Functions fail, try fallback method
+      if (
+        !enableResult.success &&
+        (enableResult.error?.includes("Firebase Functions are not available") ||
+          enableResult.error?.includes("Internal server error") ||
+          enableResult.error?.includes("functions/unavailable") ||
+          enableResult.error?.includes("functions/internal"))
+      ) {
+        console.log("Firebase Functions not available, using fallback method");
+        enableResult = await enableUserFallback(user.id);
+      }
 
       if (!enableResult.success) {
         toast.error(`Failed to enable user: ${enableResult.error}`);
@@ -270,23 +301,30 @@ const UserManagement = () => {
         return;
       }
 
-      // Delete user from Firebase Authentication using Firebase Functions
-      const authResult = await deleteUserFromAuth(user.id);
+      // Try Firebase Functions first
+      let authResult = await deleteUserFromAuth(user.id);
+
+      // If Firebase Functions fail, try fallback method
+      if (
+        !authResult.success &&
+        (authResult.error?.includes("Firebase Functions are not available") ||
+          authResult.error?.includes("Internal server error") ||
+          authResult.error?.includes("functions/unavailable") ||
+          authResult.error?.includes("functions/internal"))
+      ) {
+        console.log("Firebase Functions not available, using fallback method");
+        authResult = await deleteUserFallback(user.id);
+      }
 
       if (!authResult.success) {
-        toast.error(
-          `Failed to delete user from authentication: ${authResult.error}`
-        );
+        toast.error(`Failed to delete user: ${authResult.error}`);
         return;
       }
 
-      // The Firebase Function already deletes the user document and records
-      // So we just need to update the local state
+      // Update local state
       setUsers(users.filter((u) => u.id !== user.id));
 
-      toast.success(
-        `User ${user.userCode} has been deleted from both Firestore and Firebase Authentication`
-      );
+      toast.success(`User ${user.userCode} has been deleted successfully`);
       setIsDeleteDialogOpen(false);
     } catch (error) {
       console.error("Error deleting user:", error);

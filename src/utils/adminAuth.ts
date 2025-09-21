@@ -43,8 +43,42 @@ export const deleteUserFromAuth = async (userId: string): Promise<DeleteUserResp
     } else {
       throw new Error(data.error || 'Failed to delete user');
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error deleting user from auth:', error);
+    
+    // Handle Firebase Functions errors specifically
+    if (error.code === 'functions/unavailable' || error.code === 'unavailable') {
+      return { 
+        success: false, 
+        error: 'Firebase Functions are not available. Please ensure they are deployed and try again.' 
+      };
+    } else if (error.code === 'functions/not-found' || error.code === 'not-found') {
+      return { 
+        success: false, 
+        error: 'User not found in Firebase Authentication.' 
+      };
+    } else if (error.code === 'functions/permission-denied' || error.code === 'permission-denied') {
+      return { 
+        success: false, 
+        error: 'Permission denied. Please ensure you have admin privileges.' 
+      };
+    } else if (error.code === 'functions/unauthenticated' || error.code === 'unauthenticated') {
+      return { 
+        success: false, 
+        error: 'Authentication required. Please log in again.' 
+      };
+    } else if (error.code === 'functions/invalid-argument' || error.code === 'invalid-argument') {
+      return { 
+        success: false, 
+        error: error.message || 'Invalid arguments provided.' 
+      };
+    } else if (error.code === 'functions/internal' || error.code === 'internal' || error.message?.includes('Internal server error')) {
+      return { 
+        success: false, 
+        error: 'Internal server error. Please check the Firebase Functions logs for details.' 
+      };
+    }
+    
     return { 
       success: false, 
       error: error instanceof Error ? error.message : 'Unknown error occurred' 
@@ -82,8 +116,42 @@ export const disableUser = async (userId: string, reason?: string): Promise<Dele
     } else {
       throw new Error(data.error || 'Failed to disable user');
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error disabling user:', error);
+    
+    // Handle Firebase Functions errors specifically
+    if (error.code === 'functions/unavailable' || error.code === 'unavailable') {
+      return { 
+        success: false, 
+        error: 'Firebase Functions are not available. Please ensure they are deployed and try again.' 
+      };
+    } else if (error.code === 'functions/not-found' || error.code === 'not-found') {
+      return { 
+        success: false, 
+        error: 'User not found in Firestore.' 
+      };
+    } else if (error.code === 'functions/permission-denied' || error.code === 'permission-denied') {
+      return { 
+        success: false, 
+        error: 'Permission denied. Please ensure you have admin privileges.' 
+      };
+    } else if (error.code === 'functions/unauthenticated' || error.code === 'unauthenticated') {
+      return { 
+        success: false, 
+        error: 'Authentication required. Please log in again.' 
+      };
+    } else if (error.code === 'functions/invalid-argument' || error.code === 'invalid-argument') {
+      return { 
+        success: false, 
+        error: error.message || 'Invalid arguments provided.' 
+      };
+    } else if (error.code === 'functions/internal' || error.code === 'internal' || error.message?.includes('Internal server error')) {
+      return { 
+        success: false, 
+        error: 'Internal server error. Please check the Firebase Functions logs for details.' 
+      };
+    }
+    
     return { 
       success: false, 
       error: error instanceof Error ? error.message : 'Unknown error occurred' 
@@ -120,8 +188,42 @@ export const enableUser = async (userId: string): Promise<DeleteUserResponse> =>
     } else {
       throw new Error(data.error || 'Failed to enable user');
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error enabling user:', error);
+    
+    // Handle Firebase Functions errors specifically
+    if (error.code === 'functions/unavailable' || error.code === 'unavailable') {
+      return { 
+        success: false, 
+        error: 'Firebase Functions are not available. Please ensure they are deployed and try again.' 
+      };
+    } else if (error.code === 'functions/not-found' || error.code === 'not-found') {
+      return { 
+        success: false, 
+        error: 'User not found in Firestore.' 
+      };
+    } else if (error.code === 'functions/permission-denied' || error.code === 'permission-denied') {
+      return { 
+        success: false, 
+        error: 'Permission denied. Please ensure you have admin privileges.' 
+      };
+    } else if (error.code === 'functions/unauthenticated' || error.code === 'unauthenticated') {
+      return { 
+        success: false, 
+        error: 'Authentication required. Please log in again.' 
+      };
+    } else if (error.code === 'functions/invalid-argument' || error.code === 'invalid-argument') {
+      return { 
+        success: false, 
+        error: error.message || 'Invalid arguments provided.' 
+      };
+    } else if (error.code === 'functions/internal' || error.code === 'internal' || error.message?.includes('Internal server error')) {
+      return { 
+        success: false, 
+        error: 'Internal server error. Please check the Firebase Functions logs for details.' 
+      };
+    }
+    
     return { 
       success: false, 
       error: error instanceof Error ? error.message : 'Unknown error occurred' 
