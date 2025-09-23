@@ -76,7 +76,6 @@ const InternalNotices = () => {
         const loadedNotices = await getNotices();
         setNotices(loadedNotices);
       } catch (error) {
-        console.error("Error loading notices:", error);
         toast.error("Failed to load notices");
       } finally {
         setIsLoading(false);
@@ -122,7 +121,6 @@ const InternalNotices = () => {
       setDialogOpen(false);
       
     } catch (error) {
-      console.error("Error saving notice:", error);
       toast.error(isEditing ? "Failed to update notice" : "Failed to add notice");
     } finally {
       setIsLoading(false);
@@ -147,7 +145,6 @@ const InternalNotices = () => {
         
         toast.success("Notice deleted successfully");
       } catch (error) {
-        console.error("Error deleting notice:", error);
         toast.error("Failed to delete notice");
       } finally {
         setIsLoading(false);

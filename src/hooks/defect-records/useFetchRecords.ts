@@ -15,9 +15,7 @@ export const useFetchRecords = (userEmail: string | null | undefined) => {
       try {
         const records = await getAllRecords(userEmail);
         setDefectRecords(records);
-        console.log(`Fetched ${records.length} records for user ${userEmail}`);
       } catch (error) {
-        console.error("Error fetching records:", error);
         toast.error("Failed to load records: " + (error instanceof Error ? error.message : "Unknown error"));
       } finally {
         setLoading(false);
@@ -33,7 +31,6 @@ export const useFetchRecords = (userEmail: string | null | undefined) => {
       // Listen to user's own records
       const userRecordsQuery = query(recordsCollection, where("createdBy", "==", userEmail));
       const unsubscribeUser = onSnapshot(userRecordsQuery, (userSnapshot) => {
-        console.log(`User records snapshot received, docs count: ${userSnapshot.docs.length} for user ${userEmail}`);
         
         const userRecords = userSnapshot.docs.map((doc) => {
           const data = doc.data();
@@ -51,13 +48,11 @@ export const useFetchRecords = (userEmail: string | null | undefined) => {
           const newRecords = [...userRecords, ...otherUsersRecords];
           
           // Log changes for debugging
-          console.log(`Updated user records. Total records: ${newRecords.length}`);
           
           return newRecords;
         });
         setLoading(false);
       }, (error) => {
-        console.error("Firestore error:", error);
         toast.error("Failed to load records: " + error.message);
         setLoading(false);
       });
@@ -68,7 +63,6 @@ export const useFetchRecords = (userEmail: string | null | undefined) => {
         where("isPublic", "==", true)
       );
       const unsubscribePublic = onSnapshot(publicRecordsQuery, (publicSnapshot) => {
-        console.log(`Public records snapshot received, docs count: ${publicSnapshot.docs.length}`);
         
         const allPublicRecords = publicSnapshot.docs.map((doc) => {
           const data = doc.data();
@@ -82,7 +76,6 @@ export const useFetchRecords = (userEmail: string | null | undefined) => {
         // Filter out user's own records from public records to avoid duplicates
         const otherUsersPublicRecords = allPublicRecords.filter(record => record.createdBy !== userEmail);
         
-        console.log(`Other users' public records: ${otherUsersPublicRecords.length}`);
         
         // Update the records state with public records
         setDefectRecords(prevRecords => {
@@ -94,14 +87,12 @@ export const useFetchRecords = (userEmail: string | null | undefined) => {
           const prevPublicCount = prevRecords.filter(r => r.createdBy !== userEmail && r.isPublic).length;
           const newPublicCount = otherUsersPublicRecords.length;
           if (newPublicCount !== prevPublicCount) {
-            console.log(`Public records count changed: ${prevPublicCount} -> ${newPublicCount}`);
           }
           
           return newRecords;
         });
         setLoading(false);
       }, (error) => {
-        console.error("Error fetching public records:", error);
         setLoading(false);
       });
       
@@ -114,7 +105,6 @@ export const useFetchRecords = (userEmail: string | null | undefined) => {
       // Listen to all records if no user email
       const allRecordsQuery = query(recordsCollection);
       const unsubscribeAll = onSnapshot(allRecordsQuery, (snapshot) => {
-        console.log(`All records snapshot received, docs count: ${snapshot.docs.length}`);
         const records = snapshot.docs.map((doc) => {
           const data = doc.data();
           return {
@@ -127,7 +117,6 @@ export const useFetchRecords = (userEmail: string | null | undefined) => {
         setDefectRecords(records);
         setLoading(false);
       }, (error) => {
-        console.error("Firestore error:", error);
         toast.error("Failed to load records: " + error.message);
         setLoading(false);
       });

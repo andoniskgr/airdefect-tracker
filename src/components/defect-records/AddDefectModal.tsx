@@ -69,11 +69,9 @@ export const AddDefectModal = ({
     field: keyof Omit<DefectRecord, "id">,
     value: any
   ) => {
-    console.log(`Field ${field} changing to:`, value);
 
     setFormData((prev) => {
       const updated = { ...prev, [field]: value };
-      console.log("Updated form data:", updated);
       return updated;
     });
 
@@ -89,7 +87,6 @@ export const AddDefectModal = ({
   // Reset form when modal opens
   useEffect(() => {
     if (isOpen && !initialRender) {
-      console.log("Modal opened, resetting form");
       handleClear();
     } else if (isOpen) {
       setInitialRender(false);
@@ -102,10 +99,8 @@ export const AddDefectModal = ({
       const focusInterval = setInterval(() => {
         if (registrationRef.current) {
           registrationRef.current.focus();
-          console.log("Registration field focused");
           clearInterval(focusInterval);
         } else {
-          console.log("Registration ref not available yet");
         }
       }, 100);
 
@@ -134,9 +129,6 @@ export const AddDefectModal = ({
           setTimeout(() => {
             if (registrationRef.current) {
               registrationRef.current.focus();
-              console.log(
-                "Focus set on registration input via onOpenAutoFocus"
-              );
             }
           }, 100);
         }}

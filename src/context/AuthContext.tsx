@@ -96,9 +96,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             user = userCredential.user;
             // Sign out immediately as we just need to verify the password is correct
             await signOut(auth);
-            console.log(
-              "Successfully verified orphaned Firebase Auth account, proceeding with registration"
-            );
           } catch (signInError: any) {
             if (signInError.code === "auth/wrong-password") {
               throw new Error(
@@ -145,7 +142,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         userId: user.uid,
       });
     } catch (error) {
-      console.error("Failed to send admin notification:", error);
       // Don't throw error here as user creation was successful
     }
   };
@@ -195,7 +191,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       try {
         userData = await getUserById(auth.currentUser.uid);
       } catch (error) {
-        console.error("Error getting user by ID:", error);
       }
     }
 
@@ -235,7 +230,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       // Clear local state immediately
       setUserData(null);
     } catch (error) {
-      console.error("Logout error:", error);
       // Even if logout fails, clear local state
       setUserData(null);
     }
@@ -277,10 +271,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         // Load user data from Firestore
         try {
           const userData = await getUserById(user.uid);
+          
           if (userData) {
             // Check if user is disabled and sign them out if so
             if (userData.disabled === true) {
-              console.log("User is disabled, signing out");
               await signOut(auth);
               setUserData(null);
               return;
@@ -288,11 +282,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
             setUserData(userData as UserData);
           } else {
-            console.error("No user data found for authenticated user");
             setUserData(null);
           }
         } catch (error) {
-          console.error("Failed to load user data:", error);
           setUserData(null);
         }
       } else {
@@ -317,7 +309,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
           // If user becomes disabled while logged in, sign them out immediately
           if (userData.disabled === true) {
-            console.log("User has been disabled, signing out immediately");
             try {
               await signOut(auth);
               setUserData(null);
@@ -334,13 +325,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
                 });
               }
             } catch (error) {
-              console.error("Error signing out disabled user:", error);
             }
           }
         }
       },
       (error) => {
-        console.error("Error listening to user document:", error);
       }
     );
 

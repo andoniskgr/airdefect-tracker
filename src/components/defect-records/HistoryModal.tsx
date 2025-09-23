@@ -89,14 +89,15 @@ export const HistoryModal = ({
           <style>
             body {
               font-family: Arial, sans-serif;
-              margin: 20px;
+              margin: 0;
+              padding: 10px;
               color: #333;
             }
             .header {
               text-align: center;
               border-bottom: 2px solid #333;
-              padding-bottom: 20px;
-              margin-bottom: 30px;
+              padding-bottom: 10px;
+              margin-bottom: 15px;
             }
             .header h1 {
               margin: 0;
@@ -181,7 +182,21 @@ export const HistoryModal = ({
               color: #666;
             }
             @media print {
-              body { margin: 0; }
+              body { 
+                margin: 0; 
+                padding: 5px;
+              }
+              .header {
+                margin-bottom: 10px;
+                padding-bottom: 8px;
+              }
+              .record-info {
+                margin-bottom: 15px;
+              }
+              .history-entry {
+                page-break-inside: avoid;
+                margin-bottom: 10px;
+              }
               .no-print { display: none; }
             }
           </style>
@@ -272,7 +287,37 @@ export const HistoryModal = ({
     printWindow.document.write(printContent);
     printWindow.document.close();
     printWindow.focus();
-    printWindow.print();
+    
+    // Wait for content to be fully rendered before printing
+    setTimeout(() => {
+      printWindow.print();
+      
+      // Auto-close the tab when print dialog is cancelled or completed
+      const handlePrintComplete = () => {
+        setTimeout(() => {
+          if (printWindow && !printWindow.closed) {
+            printWindow.close();
+          }
+        }, 1000);
+      };
+
+      // Listen for print dialog events
+      printWindow.addEventListener("afterprint", handlePrintComplete);
+      
+      // Also listen for beforeunload to catch cancel events
+      printWindow.addEventListener("beforeunload", () => {
+        if (printWindow && !printWindow.closed) {
+          printWindow.close();
+        }
+      });
+      
+      // Fallback: close after 1 second if still open (covers cancel case)
+      setTimeout(() => {
+        if (printWindow && !printWindow.closed) {
+          printWindow.close();
+        }
+      }, 1000);
+    }, 500);
   };
 
   if (!record) return null;

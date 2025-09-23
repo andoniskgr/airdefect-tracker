@@ -10,7 +10,6 @@ export const exportRecordsToPDF = (filteredRecords: DefectRecord[]) => {
     return;
   }
 
-  console.log("Starting PDF export with", filteredRecords.length, "records");
   
   // Create a temporary div element for rendering the PDF content
   const exportContainer = document.createElement('div');
@@ -94,7 +93,6 @@ export const exportRecordsToPDF = (filteredRecords: DefectRecord[]) => {
       document.body.removeChild(exportContainer);
       toast("PDF export complete");
     }).catch(error => {
-      console.error("PDF generation error:", error);
       document.body.removeChild(exportContainer);
       toast("Failed to generate PDF: " + error.message);
     });

@@ -134,7 +134,6 @@ export class EmailService {
   async sendAdminSignupNotification(userData: UserSignupData): Promise<boolean> {
     try {
       const emailData = emailTemplates.adminSignupNotification(userData, this.adminEmail);
-      console.log('Sending admin notification:', emailData);
       
       // Use EmailJS to send the email
       if (EMAIL_CONFIG.SERVICE_ID && EMAIL_CONFIG.PUBLIC_KEY) {
@@ -157,17 +156,13 @@ export class EmailService {
           EMAIL_CONFIG.PUBLIC_KEY
         );
 
-        console.log('Admin notification sent successfully:', result);
         return true;
       } else {
-        console.warn('EmailJS not configured, falling back to console logging');
         // Fallback to console logging if EmailJS is not configured
         await new Promise(resolve => setTimeout(resolve, 1000));
-        console.log('Admin notification sent successfully (simulated)');
         return true;
       }
     } catch (error) {
-      console.error('Failed to send admin notification:', error);
       return false;
     }
   }
@@ -176,7 +171,6 @@ export class EmailService {
   async sendUserApprovalNotification(userEmail: string, userCode: string): Promise<boolean> {
     try {
       const emailData = emailTemplates.userApprovalNotification(userEmail, userCode);
-      console.log('Sending user approval notification:', emailData);
       
       // Use EmailJS to send the email
       if (EMAIL_CONFIG.SERVICE_ID && EMAIL_CONFIG.PUBLIC_KEY) {
@@ -197,17 +191,13 @@ export class EmailService {
           EMAIL_CONFIG.PUBLIC_KEY
         );
 
-        console.log('User approval notification sent successfully:', result);
         return true;
       } else {
-        console.warn('EmailJS not configured, falling back to console logging');
         // Fallback to console logging if EmailJS is not configured
         await new Promise(resolve => setTimeout(resolve, 1000));
-        console.log('User approval notification sent successfully (simulated)');
         return true;
       }
     } catch (error) {
-      console.error('Failed to send user approval notification:', error);
       return false;
     }
   }
@@ -216,7 +206,6 @@ export class EmailService {
   async sendUserRejectionNotification(userEmail: string, userCode: string, reason?: string): Promise<boolean> {
     try {
       const emailData = emailTemplates.userRejectionNotification(userEmail, userCode, reason);
-      console.log('Sending user rejection notification:', emailData);
       
       // Use EmailJS to send the email
       if (EMAIL_CONFIG.SERVICE_ID && EMAIL_CONFIG.PUBLIC_KEY) {
@@ -238,17 +227,13 @@ export class EmailService {
           EMAIL_CONFIG.PUBLIC_KEY
         );
 
-        console.log('User rejection notification sent successfully:', result);
         return true;
       } else {
-        console.warn('EmailJS not configured, falling back to console logging');
         // Fallback to console logging if EmailJS is not configured
         await new Promise(resolve => setTimeout(resolve, 1000));
-        console.log('User rejection notification sent successfully (simulated)');
         return true;
       }
     } catch (error) {
-      console.error('Failed to send user rejection notification:', error);
       return false;
     }
   }
@@ -256,7 +241,6 @@ export class EmailService {
   // Generic email sending method
   async sendEmail(emailData: EmailData): Promise<boolean> {
     try {
-      console.log('Sending email:', emailData);
       
       // Use EmailJS to send the email
       if (EMAIL_CONFIG.SERVICE_ID && EMAIL_CONFIG.PUBLIC_KEY) {
@@ -275,17 +259,13 @@ export class EmailService {
           EMAIL_CONFIG.PUBLIC_KEY
         );
 
-        console.log('Email sent successfully:', result);
         return true;
       } else {
-        console.warn('EmailJS not configured, falling back to console logging');
         // Fallback to console logging if EmailJS is not configured
         await new Promise(resolve => setTimeout(resolve, 1000));
-        console.log('Email sent successfully (simulated)');
         return true;
       }
     } catch (error) {
-      console.error('Failed to send email:', error);
       return false;
     }
   }

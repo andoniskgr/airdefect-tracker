@@ -36,10 +36,8 @@ export const createFirstAdmin = async (email: string, userCode: string): Promise
       // Store admin info
       await setDoc(doc(db, 'adminUsers', 'firstAdmin'), adminData);
       
-      console.log('First admin user created:', adminData);
     }
   } catch (error) {
-    console.error('Error creating first admin:', error);
     throw error;
   }
 };
@@ -58,7 +56,6 @@ export const isUserAdmin = async (userId: string): Promise<boolean> => {
     
     return false;
   } catch (error) {
-    console.error('Error checking admin status:', error);
     return false;
   }
 };
@@ -75,9 +72,7 @@ export const promoteToAdmin = async (userId: string, promotedBy: string): Promis
       approvedBy: promotedBy,
     }, { merge: true });
     
-    console.log(`User ${userId} promoted to admin by ${promotedBy}`);
   } catch (error) {
-    console.error('Error promoting user to admin:', error);
     throw error;
   }
 };
@@ -95,7 +90,6 @@ export const getAdminConfig = async () => {
     
     return null;
   } catch (error) {
-    console.error('Error getting admin config:', error);
     return null;
   }
 };

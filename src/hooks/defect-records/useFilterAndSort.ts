@@ -15,7 +15,6 @@ export const useFilterAndSort = () => {
       key: column,
       direction: prevConfig.key === column && prevConfig.direction === 'asc' ? 'desc' : 'asc'
     }));
-    console.log(`Sorting by ${column} in ${sortConfig.direction === 'asc' ? 'desc' : 'asc'} order`);
   };
 
   const getFilteredRecords = (defectRecords: DefectRecord[]) => {

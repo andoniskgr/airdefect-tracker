@@ -4,9 +4,12 @@ import { useAuth } from "../context/AuthContext";
 import { useServiceOrderForm } from "../hooks/service-order/useServiceOrderForm";
 import ServiceOrderForm from "../components/service-order/ServiceOrderForm";
 import { Toaster } from "sonner";
+import { useSearchParams } from "react-router-dom";
 
 const ServiceOrder = () => {
   const { currentUser } = useAuth();
+  const [searchParams] = useSearchParams();
+  const aircraftParam = searchParams.get('aircraft') || '';
   
   const {
     formData,
@@ -18,7 +21,7 @@ const ServiceOrder = () => {
     handleCheckboxChange,
     handlePrepareAndCopy,
     handleClear
-  } = useServiceOrderForm();
+  } = useServiceOrderForm(aircraftParam);
 
   return (
     <div className="min-h-screen bg-slate-700 text-white p-0 w-full" style={{ margin: 0, maxWidth: '100%' }}>

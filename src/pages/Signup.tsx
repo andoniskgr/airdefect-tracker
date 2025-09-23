@@ -37,7 +37,6 @@ const Signup = () => {
       );
       navigate("/pending-approval");
     } catch (error: any) {
-      console.error("Signup error:", error);
       toast.error(error.message || "Failed to create account.");
     } finally {
       setLoading(false);

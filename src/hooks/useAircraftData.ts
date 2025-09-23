@@ -31,7 +31,6 @@ export const useAircraftData = () => {
       
       setAircraftList(uniqueAircraft);
     } catch (error) {
-      console.error("Error fetching aircraft data:", error);
     } finally {
       setIsLoading(false);
     }

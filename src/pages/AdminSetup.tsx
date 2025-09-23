@@ -52,7 +52,6 @@ const AdminSetup = () => {
         }
       }
     } catch (error) {
-      console.error("Error checking admin status:", error);
       toast.error("Failed to check admin status");
     } finally {
       setIsChecking(false);
@@ -96,7 +95,6 @@ const AdminSetup = () => {
         navigate("/login");
       }, 3000);
     } catch (error: any) {
-      console.error("Setup error:", error);
       toast.error(error.message || "Failed to create admin user");
     } finally {
       setIsSettingUp(false);

@@ -11,7 +11,6 @@ try {
   const root = createRoot(rootElement);
   root.render(<App />);
 } catch (error) {
-  console.error("Main.tsx: Error rendering app:", error);
   document.getElementById("root")!.innerHTML = `
     <div style="
       min-height: 100vh; 

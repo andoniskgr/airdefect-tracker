@@ -15,8 +15,9 @@ const PreparedTextField: React.FC<PreparedTextFieldProps> = ({
       <Textarea 
         name="preparedText"
         value={preparedText}
+        readOnly
         className="w-full h-96 p-2 bg-white text-black rounded-md font-mono text-sm"
-        placeholder="Enter prepared text here..."
+        placeholder="Click 'Prepare and Copy' to generate the service order text..."
       />
     </div>
   );

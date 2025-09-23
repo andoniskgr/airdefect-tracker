@@ -34,7 +34,6 @@ export const useDefectForm = (currentUserEmail: string | null | undefined) => {
   const [originalRecord, setOriginalRecord] = useState<DefectRecord | null>(null);
   
   const handleClear = useCallback(() => {
-    console.log('Clearing form data');
     setFormData({
       ...defaultFormData,
       date: format(new Date(), 'yyyy-MM-dd'),
@@ -59,7 +58,6 @@ export const useDefectForm = (currentUserEmail: string | null | undefined) => {
       // Create initial history for the new record
       newRecord.history = createInitialHistory(newRecord, userEmail);
       
-      console.log("Saving new record with audit data:", newRecord);
       await saveRecord(newRecord);
       
       toast.success("Record added successfully!");
@@ -67,13 +65,11 @@ export const useDefectForm = (currentUserEmail: string | null | undefined) => {
       
       handleClear();
     } catch (error) {
-      console.error("Error adding record:", error);
       toast.error("Failed to add record: " + (error instanceof Error ? error.message : "Unknown error"));
     }
   };
   
   const handleEditRecord = (record: DefectRecord) => {
-    console.log("Editing record with ID:", record.id);
     setEditingRecord(record);
     setOriginalRecord({ ...record }); // Store a copy of the original record
     setIsEditModalOpen(true);
@@ -83,7 +79,6 @@ export const useDefectForm = (currentUserEmail: string | null | undefined) => {
     if (!editingRecord || !originalRecord) return;
     
     try {
-      console.log("Updating record with ID:", editingRecord.id);
       
       const timestamp = new Date().toISOString();
       const userEmail = currentUserEmail || 'unknown';
@@ -108,7 +103,6 @@ export const useDefectForm = (currentUserEmail: string | null | undefined) => {
       setEditingRecord(null);
       setOriginalRecord(null);
     } catch (error) {
-      console.error("Error updating record:", error);
       toast.error("Failed to update record: " + (error instanceof Error ? error.message : "Unknown error"));
     }
   };

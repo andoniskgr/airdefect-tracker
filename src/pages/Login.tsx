@@ -21,7 +21,6 @@ const Login = () => {
       toast.success("Logged in successfully!");
       navigate("/");
     } catch (error: any) {
-      console.error("Login error:", error);
       // Display the specific error message from the AuthContext
       const errorMessage =
         error?.message || "Failed to login. Please check your credentials.";

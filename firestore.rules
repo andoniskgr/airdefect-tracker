@@ -31,9 +31,19 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
     
-    // Aircraft collection - allow all access for testing (temporary)
+    // Aircraft collection - admin-only write access, all authenticated users can read
     match /aircraft/{aircraftId} {
-      allow read, write: if true;
+      // Allow all authenticated users to read aircraft data
+      allow read: if request.auth != null;
+      
+      // Only allow admins to write (create, update, delete) aircraft data
+      allow write: if request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    // Allow queries on aircraft collection for all authenticated users
+    match /aircraft {
+      allow read: if request.auth != null;
     }
   }
 }

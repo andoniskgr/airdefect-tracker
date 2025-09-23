@@ -73,7 +73,6 @@ exports.deleteUser = functions.https.onCall(async (data, context) => {
 
     return { success: true, message: "User deleted successfully" };
   } catch (error) {
-    console.error("Error deleting user:", error);
 
     // Provide more specific error messages based on the error type
     if (error.code === "auth/user-not-found") {
@@ -162,7 +161,6 @@ exports.disableUser = functions.https.onCall(async (data, context) => {
 
     return { success: true, message: "User disabled successfully" };
   } catch (error) {
-    console.error("Error disabling user:", error);
 
     // Provide more specific error messages based on the error type
     if (error.code === "permission-denied") {
@@ -239,7 +237,6 @@ exports.enableUser = functions.https.onCall(async (data, context) => {
 
     return { success: true, message: "User enabled successfully" };
   } catch (error) {
-    console.error("Error enabling user:", error);
 
     // Provide more specific error messages based on the error type
     if (error.code === "permission-denied") {
@@ -309,7 +306,6 @@ exports.getUsers = functions.https.onCall(async (data, context) => {
 
     return { users };
   } catch (error) {
-    console.error("Error fetching users:", error);
     throw new functions.https.HttpsError(
       "internal",
       "Failed to fetch users: " + error.message

@@ -23,7 +23,6 @@ const UserProfile = () => {
         // If no user data exists, initialize with empty string
         setNewUserCode(data?.userCode || "");
       } catch (error) {
-        console.error("Error fetching user data:", error);
         // If user data doesn't exist, that's okay - they can create their first code
         setUserData(null);
         setNewUserCode("");
@@ -58,7 +57,6 @@ const UserProfile = () => {
       setUserData({ ...userData, userCode: newUserCode });
       toast.success(userData?.userCode ? "User code updated successfully!" : "User code created successfully!");
     } catch (error: any) {
-      console.error("Error updating user code:", error);
       toast.error(error.message || "Failed to update user code");
     } finally {
       setLoading(false);

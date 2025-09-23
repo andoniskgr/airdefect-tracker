@@ -18,12 +18,10 @@ export interface AdminSetupConfig {
  */
 export const setupFirstAdmin = async (config: AdminSetupConfig): Promise<void> => {
   try {
-    console.log('Setting up first admin user...');
 
     // Check if admin already exists
     const adminDoc = await getDoc(doc(db, 'adminUsers', 'firstAdmin'));
     if (adminDoc.exists()) {
-      console.log('Admin user already exists, skipping setup');
       return;
     }
 
@@ -51,17 +49,11 @@ export const setupFirstAdmin = async (config: AdminSetupConfig): Promise<void> =
       userId: user.uid,
     });
 
-    console.log('First admin user created successfully:', {
-      email: config.email,
-      userCode: config.userCode,
-      userId: user.uid,
-    });
 
     // Sign out the admin user
     await auth.signOut();
 
   } catch (error) {
-    console.error('Error setting up first admin:', error);
     throw error;
   }
 };
@@ -74,7 +66,6 @@ export const hasAdminUser = async (): Promise<boolean> => {
     const adminDoc = await getDoc(doc(db, 'adminUsers', 'firstAdmin'));
     return adminDoc.exists();
   } catch (error) {
-    console.error('Error checking admin user:', error);
     return false;
   }
 };
@@ -90,7 +81,6 @@ export const getAdminConfig = async () => {
     }
     return null;
   } catch (error) {
-    console.error('Error getting admin config:', error);
     return null;
   }
 };
@@ -108,12 +98,9 @@ export const autoSetupAdmin = async (): Promise<void> => {
     const hasAdmin = await hasAdminUser();
     
     if (!hasAdmin) {
-      console.log('No admin user found, setting up default admin...');
       await setupFirstAdmin(DEFAULT_ADMIN_CONFIG);
-      console.log('Default admin user created. Please change the password immediately.');
     }
   } catch (error) {
-    console.error('Error in auto setup:', error);
     // Don't throw error to prevent app from crashing
   }
 };

@@ -115,7 +115,6 @@ const UserManagement = () => {
 
       setUsers(usersList);
     } catch (error) {
-      console.error("Error fetching users:", error);
       toast.error("Failed to load users");
     } finally {
       setLoading(false);
@@ -154,7 +153,6 @@ const UserManagement = () => {
       toast.success(`User ${user.userCode} has been approved`);
       setIsApproveDialogOpen(false);
     } catch (error) {
-      console.error("Error approving user:", error);
       toast.error("Failed to approve user");
     }
   };
@@ -193,7 +191,6 @@ const UserManagement = () => {
       setIsRejectDialogOpen(false);
       setRejectionReason("");
     } catch (error) {
-      console.error("Error rejecting user:", error);
       toast.error("Failed to reject user");
     }
   };
@@ -213,7 +210,6 @@ const UserManagement = () => {
           disableResult.error?.includes("functions/unavailable") ||
           disableResult.error?.includes("functions/internal"))
       ) {
-        console.log("Firebase Functions not available, using fallback method");
         disableResult = await disableUserFallback(user.id, disableReason);
       }
 
@@ -243,7 +239,6 @@ const UserManagement = () => {
       setIsDisableDialogOpen(false);
       setDisableReason("");
     } catch (error) {
-      console.error("Error disabling user:", error);
       toast.error("Failed to disable user");
     }
   };
@@ -261,7 +256,6 @@ const UserManagement = () => {
           enableResult.error?.includes("functions/unavailable") ||
           enableResult.error?.includes("functions/internal"))
       ) {
-        console.log("Firebase Functions not available, using fallback method");
         enableResult = await enableUserFallback(user.id);
       }
 
@@ -288,7 +282,6 @@ const UserManagement = () => {
       toast.success(`User ${user.userCode} has been enabled`);
       setIsEnableDialogOpen(false);
     } catch (error) {
-      console.error("Error enabling user:", error);
       toast.error("Failed to enable user");
     }
   };
@@ -313,7 +306,6 @@ const UserManagement = () => {
           authResult.error?.includes("functions/internal") ||
           authResult.error?.includes("CORS policy"))
       ) {
-        console.log("Firebase Functions not available, using fallback method");
         authResult = await deleteUserFallback(user.id);
       }
 
@@ -328,7 +320,6 @@ const UserManagement = () => {
       toast.success(`User ${user.userCode} has been deleted successfully`);
       setIsDeleteDialogOpen(false);
     } catch (error) {
-      console.error("Error deleting user:", error);
       toast.error("Failed to delete user");
     }
   };
@@ -412,7 +403,7 @@ const UserManagement = () => {
           <Button
             onClick={fetchUsers}
             variant="outline"
-            className="text-white border-white hover:bg-white hover:text-slate-700"
+            className="text-slate-700 border-white bg-white hover:bg-slate-100 hover:text-slate-800"
           >
             Refresh
           </Button>

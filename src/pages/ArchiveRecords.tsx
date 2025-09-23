@@ -91,7 +91,6 @@ const ArchiveRecords = () => {
           setSelectedDate(null);
         }
       } catch (error) {
-        console.error("Error unarchiving date:", error);
         toast.error("Failed to unarchive date");
       }
     }
@@ -138,7 +137,6 @@ const ArchiveRecords = () => {
             setSelectedDate(null);
           }
         } catch (error) {
-          console.error("Error reloading archived dates:", error);
           // Fallback to local state update
           const updatedDates = archivedDates.filter(
             (date) => !selectedDates.includes(date)
@@ -151,7 +149,6 @@ const ArchiveRecords = () => {
       setSelectedDates([]);
       setSelectAll(false);
     } catch (error) {
-      console.error("Error deleting selected dates:", error);
     }
   };
 
@@ -167,7 +164,6 @@ const ArchiveRecords = () => {
           setArchivedDates(updatedDates);
           localStorage.setItem("archivedDates", JSON.stringify(updatedDates));
         } catch (error) {
-          console.error("Error reloading archived dates:", error);
           // Fallback to clearing local state
           setArchivedDates([]);
           localStorage.setItem("archivedDates", JSON.stringify([]));
@@ -182,7 +178,6 @@ const ArchiveRecords = () => {
       setSelectAll(false);
       setSelectedDate(null);
     } catch (error) {
-      console.error("Error deleting all records:", error);
     }
   };
 

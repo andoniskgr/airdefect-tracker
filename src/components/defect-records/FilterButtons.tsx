@@ -43,7 +43,7 @@ export const FilterButtons = ({
   const handlePrint = () => {
     if (records.length === 0) return;
 
-    const printWindow = window.open("", "_blank");
+    const printWindow = window.open("", "_blank", "width=800,height=600");
     if (!printWindow) return;
 
     // Group records by date
@@ -75,131 +75,78 @@ export const FilterButtons = ({
         <head>
           <title>Defect Records Report</title>
           <style>
+            @page {
+              margin: 0.5in;
+            }
             body {
               font-family: Arial, sans-serif;
-              margin: 20px;
-              color: #333;
+              margin: 0;
+              padding: 10px;
+              color: #000;
+              font-size: 11px;
+              line-height: 1.2;
             }
             .header {
               text-align: center;
-              border-bottom: 2px solid #333;
-              padding-bottom: 20px;
-              margin-bottom: 30px;
+              border-bottom: 1px solid #000;
+              padding-bottom: 5px;
+              margin-bottom: 10px;
             }
             .header h1 {
               margin: 0;
-              font-size: 24px;
-              text-transform: uppercase;
+              font-size: 16px;
+              font-weight: bold;
             }
             .header p {
-              margin: 5px 0 0 0;
-              color: #666;
+              margin: 2px 0 0 0;
+              font-size: 10px;
             }
             .date-group {
-              margin-bottom: 30px;
-              page-break-inside: avoid;
+              margin-bottom: 15px;
             }
             .date-header {
-              background: #f5f5f5;
-              padding: 10px 15px;
+              background: #f0f0f0;
+              padding: 3px 5px;
               font-weight: bold;
-              font-size: 16px;
-              border: 1px solid black;
+              font-size: 10px;
+              border: 1px solid #000;
               margin-bottom: 0;
             }
             .records-table {
               width: 100%;
               border-collapse: collapse;
-              border: 1px solid black;
-              margin-bottom: 20px;
+              border: 1px solid #000;
+              margin-bottom: 10px;
+              font-size: 9px;
             }
             .records-table th {
-              background: #333;
-              color: black;
-              padding: 12px 8px;
+              background: #e0e0e0;
+              color: #000;
+              padding: 2px 3px;
               text-align: left;
               font-weight: bold;
-              text-transform: uppercase;
-              font-size: 12px;
-              border-right: 1px solid black;
-              border-bottom: 1px solid black;
-            }
-            .records-table th:last-child {
-              border-right: none;
-            }
-            .records-table th:nth-child(1),
-            .records-table th:nth-child(2),
-            .records-table th:nth-child(3),
-            .records-table th:nth-child(6),
-            .records-table th:nth-child(7),
-            .records-table th:nth-child(8) {
-              width: 1%;
-              white-space: nowrap;
-            }
-            .records-table th:nth-child(4),
-            .records-table th:nth-child(5) {
-              width: 50%;
+              font-size: 8px;
+              border: 1px solid #000;
             }
             .records-table td {
-              padding: 8px;
-              border-bottom: 1px solid black;
-              border-right: 1px solid black;
-              font-size: 12px;
-            }
-            .records-table td:last-child {
-              border-right: none;
-            }
-            .records-table td:nth-child(1),
-            .records-table td:nth-child(2),
-            .records-table td:nth-child(3),
-            .records-table td:nth-child(6),
-            .records-table td:nth-child(7),
-            .records-table td:nth-child(8) {
-              width: 1%;
-              white-space: nowrap;
-              text-align: center;
-              font-size: 12px;
-            }
-            .records-table td:nth-child(4),
-            .records-table td:nth-child(5) {
-              width: 50%;
+              padding: 2px 3px;
+              border: 1px solid #000;
+              font-size: 8px;
             }
             .records-table tr:nth-child(even) {
               background: #f9f9f9;
             }
-            .records-table tr:hover {
-              background: #f5f5f5;
-            }
-            .yes {
-              color: #28a745;
-              font-weight: bold;
-            }
-            .no {
-              color: #dc3545;
-              font-weight: bold;
-            }
             .checkbox {
-              font-size: 40px;
-              color: black;
+              text-align: center;
             }
-            .checkbox-unchecked {
-              font-size: 40px;
-              color: black;
-            }
-            .checkbox-input {
-              width: 20px;
-              height: 20px;
-              margin: 0;
+            .checkbox input {
+              width: 10px;
+              height: 10px;
             }
             .no-records {
               text-align: center;
-              padding: 40px;
+              padding: 20px;
               color: #666;
-              font-style: italic;
-            }
-            @media print {
-              body { margin: 0; }
-              .no-print { display: none; }
             }
           </style>
         </head>
@@ -247,26 +194,20 @@ export const FilterButtons = ({
                         <td>${record.station}</td>
                         <td>${record.defect}</td>
                         <td>${(record.remarks || "").toUpperCase()}</td>
-                        <td class="${
-                          record.rst ? "checkbox" : "checkbox-unchecked"
-                        }">
+                        <td class="checkbox">
                           <input type="checkbox" ${
                             record.rst ? "checked" : ""
-                          } disabled class="checkbox-input" />
+                          } disabled />
                         </td>
-                        <td class="${
-                          record.dly ? "checkbox" : "checkbox-unchecked"
-                        }">
+                        <td class="checkbox">
                           <input type="checkbox" ${
                             record.dly ? "checked" : ""
-                          } disabled class="checkbox-input" />
+                          } disabled />
                         </td>
-                        <td class="${
-                          record.ok ? "checkbox" : "checkbox-unchecked"
-                        }">
+                        <td class="checkbox">
                           <input type="checkbox" ${
                             record.ok ? "checked" : ""
-                          } disabled class="checkbox-input" />
+                          } disabled />
                         </td>
                       </tr>
                     `
@@ -286,37 +227,42 @@ export const FilterButtons = ({
 
     printWindow.document.write(printContent);
     printWindow.document.close();
-    printWindow.focus();
-
-    // Auto-close the tab when print dialog is cancelled or completed
-    const handlePrintComplete = () => {
-      // Close the tab after a short delay to allow for print dialog interaction
+    
+    // Wait for the window to be fully loaded and rendered
+    printWindow.addEventListener('load', () => {
       setTimeout(() => {
-        if (printWindow && !printWindow.closed) {
-          printWindow.close();
-        }
+        // Force a reflow to ensure content is rendered
+        printWindow.document.body.offsetHeight;
+        // Start the print process
+        printWindow.print();
+        
+        // Auto-close the tab when print dialog is cancelled or completed
+        const handlePrintComplete = () => {
+          setTimeout(() => {
+            if (printWindow && !printWindow.closed) {
+              printWindow.close();
+            }
+          }, 1000);
+        };
+
+        // Listen for print dialog events
+        printWindow.addEventListener("afterprint", handlePrintComplete);
+        
+        // Also listen for beforeunload to catch cancel events
+        printWindow.addEventListener("beforeunload", () => {
+          if (printWindow && !printWindow.closed) {
+            printWindow.close();
+          }
+        });
+        
+        // Fallback: close after 1 second if still open (covers cancel case)
+        setTimeout(() => {
+          if (printWindow && !printWindow.closed) {
+            printWindow.close();
+          }
+        }, 1000);
       }, 1000);
-    };
-
-    // Listen for print dialog events
-    printWindow.addEventListener("afterprint", handlePrintComplete);
-
-    // Also close if user navigates away or closes the tab
-    printWindow.addEventListener("beforeunload", () => {
-      if (printWindow && !printWindow.closed) {
-        printWindow.close();
-      }
     });
-
-    // Start the print process
-    printWindow.print();
-
-    // Fallback: close after 30 seconds if still open
-    setTimeout(() => {
-      if (printWindow && !printWindow.closed) {
-        printWindow.close();
-      }
-    }, 30000);
   };
 
   // Mobile filter buttons in drawer

@@ -31,7 +31,6 @@ const Navbar = () => {
       toast.success("Logged out successfully");
       navigate("/login");
     } catch (error) {
-      console.error("Logout error:", error);
       toast.error("Failed to log out");
     } finally {
       setIsLoggingOut(false);
@@ -52,13 +51,15 @@ const Navbar = () => {
           {/* Desktop Navigation - Hidden on mobile and tablet */}
           {currentUser && !isMobile && (
             <div className="hidden lg:flex items-center gap-4">
-              <Link
-                to="/service-order"
+              <a
+                href="/service-order"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
               >
                 <FileText className="h-4 w-4" />
                 <span>Service Order</span>
-              </Link>
+              </a>
               <Link
                 to="/internal-notices"
                 className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"

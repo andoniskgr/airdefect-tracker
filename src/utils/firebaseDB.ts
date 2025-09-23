@@ -85,11 +85,9 @@ export const getAllRecords = async (userEmail?: string | null): Promise<DefectRe
       });
     }
   } catch (error) {
-    console.error('Firestore error:', error);
     
     // Check if error is a Firebase permission error
     if (error instanceof Error && error.message.includes('permission')) {
-      console.error('This appears to be a Firebase security rules issue. Please update your Firestore security rules to allow read/write access.');
     }
     
     return [];
@@ -103,7 +101,6 @@ export const recordExists = async (id: string): Promise<boolean> => {
     const docSnap = await getDoc(docRef);
     return docSnap.exists();
   } catch (error) {
-    console.error('Error checking record existence:', error);
     return false;
   }
 };
@@ -116,33 +113,27 @@ export const saveRecord = async (record: DefectRecord): Promise<void> => {
       // This is an existing record, check if it exists first
       const exists = await recordExists(record.id);
       if (!exists) {
-        console.error(`Record with ID ${record.id} does not exist in Firestore.`);
         throw new Error(`Document with ID ${record.id} does not exist`);
       }
       
       // Create a clone without the id field for updateDoc
       const { id, ...recordWithoutId } = record;
-      console.log(`Updating existing record with ID: ${id}`, recordWithoutId);
       
       const recordRef = doc(db, COLLECTION_NAME, id);
       await updateDoc(recordRef, recordWithoutId);
     } else {
       // This is a new record, let Firestore generate an ID
-      console.log('Adding new record without predefined ID');
       const newDocRef = await addDoc(collection(db, COLLECTION_NAME), 
         // Remove id if it's empty to avoid empty string IDs
         record.id && record.id.trim() !== '' ? record : Object.fromEntries(
           Object.entries(record).filter(([key]) => key !== 'id')
         )
       );
-      console.log('New record added with Firestore-generated ID:', newDocRef.id);
     }
   } catch (error) {
-    console.error('Firestore error when saving record:', error);
     
     // Check if error is a Firebase permission error
     if (error instanceof Error && error.message.includes('permission')) {
-      console.error('This appears to be a Firebase security rules issue. Please update your Firestore security rules to allow read/write access.');
       throw new Error('Firebase permission denied. Please update your Firestore security rules.');
     }
     
@@ -172,11 +163,9 @@ export const saveRecords = async (records: DefectRecord[]): Promise<void> => {
     // Commit the batch
     await batch.commit();
   } catch (error) {
-    console.error('Firestore error:', error);
     
     // Check if error is a Firebase permission error
     if (error instanceof Error && error.message.includes('permission')) {
-      console.error('This appears to be a Firebase security rules issue. Please update your Firestore security rules to allow read/write access.');
       throw new Error('Firebase permission denied. Please update your Firestore security rules.');
     }
     
@@ -205,11 +194,9 @@ export const deleteRecord = async (id: string, userEmail?: string | null): Promi
     const recordRef = doc(db, COLLECTION_NAME, id);
     await deleteDoc(recordRef);
   } catch (error) {
-    console.error('Firestore error:', error);
     
     // Check if error is a Firebase permission error
     if (error instanceof Error && error.message.includes('permission')) {
-      console.error('This appears to be a Firebase security rules issue. Please update your Firestore security rules to allow read/write access.');
       throw new Error('Firebase permission denied. Please update your Firestore security rules.');
     }
     
@@ -244,11 +231,9 @@ export const deleteRecordsByDate = async (date: string, userEmail?: string | nul
     // Commit the batch
     await batch.commit();
   } catch (error) {
-    console.error('Firestore error:', error);
     
     // Check if error is a Firebase permission error
     if (error instanceof Error && error.message.includes('permission')) {
-      console.error('This appears to be a Firebase security rules issue. Please update your Firestore security rules to allow read/write access.');
       throw new Error('Firebase permission denied. Please update your Firestore security rules.');
     }
     
@@ -294,13 +279,10 @@ export const deleteRecordsByDates = async (dates: string[], userEmail?: string |
     
     // Commit the batch
     await batch.commit();
-    console.log(`Deleted ${totalDeleted} records across ${dates.length} dates`);
   } catch (error) {
-    console.error('Firestore error:', error);
     
     // Check if error is a Firebase permission error
     if (error instanceof Error && error.message.includes('permission')) {
-      console.error('This appears to be a Firebase security rules issue. Please update your Firestore security rules to allow read/write access.');
       throw new Error('Firebase permission denied. Please update your Firestore security rules.');
     }
     
@@ -338,13 +320,10 @@ export const deleteAllRecords = async (userEmail?: string | null): Promise<void>
       await setDoc(archivedDatesRef, { dates: [] });
     }
     
-    console.log(`Deleted ${snapshot.docs.length} records`);
   } catch (error) {
-    console.error('Firestore error:', error);
     
     // Check if error is a Firebase permission error
     if (error instanceof Error && error.message.includes('permission')) {
-      console.error('This appears to be a Firebase security rules issue. Please update your Firestore security rules to allow read/write access.');
       throw new Error('Firebase permission denied. Please update your Firestore security rules.');
     }
     
@@ -384,7 +363,6 @@ export const saveArchivedDate = async (userEmail: string, date: string) => {
     
     return true;
   } catch (error) {
-    console.error("Error saving archived date:", error);
     throw error;
   }
 };
@@ -410,7 +388,6 @@ export const removeArchivedDate = async (userEmail: string, date: string) => {
     
     return true;
   } catch (error) {
-    console.error("Error removing archived date:", error);
     throw error;
   }
 };
@@ -430,7 +407,6 @@ export const getUserArchivedDates = async (userEmail: string): Promise<string[]>
     
     return [];
   } catch (error) {
-    console.error("Error getting archived dates:", error);
     return [];
   }
 };
@@ -443,7 +419,6 @@ export const checkUserCodeExists = async (userCode: string): Promise<boolean> =>
     const codeSnapshot = await getDocs(codeQuery);
     return !codeSnapshot.empty;
   } catch (error) {
-    console.error('Error checking user code existence:', error);
     return false;
   }
 };
@@ -464,7 +439,6 @@ export const getUserByCode = async (userCode: string) => {
       ...userDoc.data()
     };
   } catch (error) {
-    console.error('Error getting user by code:', error);
     return null;
   }
 };
@@ -499,7 +473,6 @@ export const updateUserCode = async (userId: string, newUserCode: string, userEm
       });
     }
   } catch (error) {
-    console.error('Error updating user code:', error);
     throw error;
   }
 };
@@ -518,7 +491,6 @@ export const getUserById = async (userId: string) => {
     
     return null;
   } catch (error) {
-    console.error('Error getting user by ID:', error);
     return null;
   }
 };
@@ -539,7 +511,6 @@ export const getUserByEmail = async (email: string) => {
       ...userDoc.data()
     };
   } catch (error) {
-    console.error('Error getting user by email:', error);
     return null;
   }
 };

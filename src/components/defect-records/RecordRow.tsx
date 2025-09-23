@@ -187,7 +187,6 @@ export const RecordRow = ({
       }
       return createdBy; // Fallback to email if no user code
     } catch (error) {
-      console.error("Error getting creator info:", error);
       return createdBy; // Fallback to email on error
     }
   };
@@ -201,12 +200,6 @@ export const RecordRow = ({
 
   // Sync localData with record prop when record changes from external sources
   useEffect(() => {
-    console.log(`Record ${record.id} updated from external source:`, {
-      registration: record.registration,
-      defect: record.defect,
-      isPublic: record.isPublic,
-      updatedAt: record.updatedAt,
-    });
     setLocalData(record);
   }, [record]);
 
@@ -544,15 +537,14 @@ export const RecordRow = ({
   };
 
   const handleServiceOrder = () => {
-    // TODO: Implement service order functionality
-    toast.info("Service Order functionality coming soon!");
-    console.log("Service Order for record:", record.id);
+    // Open service order page in a new window with pre-filled aircraft registration
+    const serviceOrderUrl = `/service-order?aircraft=${encodeURIComponent(localData.registration)}`;
+    window.open(serviceOrderUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
   };
 
   const handleManagerial = () => {
     // TODO: Implement managerial functionality
     toast.info("Managerial functionality coming soon!");
-    console.log("Managerial for record:", record.id);
   };
 
   const handleHistory = () => {
@@ -610,7 +602,6 @@ export const RecordRow = ({
             toast.success("Copied to clipboard for Teams");
           })
           .catch((err) => {
-            console.error("Failed to copy to clipboard:", err);
             toast.error("Failed to copy to clipboard");
           });
       } else {
@@ -630,14 +621,12 @@ export const RecordRow = ({
             toast.error("Failed to copy to clipboard");
           }
         } catch (err) {
-          console.error("Fallback clipboard copy failed:", err);
           toast.error("Failed to copy to clipboard");
         }
 
         document.body.removeChild(textArea);
       }
     } catch (error) {
-      console.error("Failed to copy to clipboard:", error);
       toast.error("Failed to copy to clipboard");
     }
   };

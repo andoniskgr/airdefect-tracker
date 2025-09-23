@@ -29,7 +29,6 @@ export const addNotice = async (notice: Omit<Notice, 'id'>): Promise<string> => 
     
     return docRef.id;
   } catch (error) {
-    console.error('Error adding notice:', error);
     throw error;
   }
 };
@@ -59,7 +58,6 @@ export const getNotices = async (): Promise<Notice[]> => {
       } as Notice;
     });
   } catch (error) {
-    console.error('Error getting notices:', error);
     return [];
   }
 };
@@ -87,7 +85,6 @@ export const getNoticeById = async (id: string): Promise<Notice | null> => {
     
     return null;
   } catch (error) {
-    console.error('Error getting notice by ID:', error);
     return null;
   }
 };
@@ -109,7 +106,6 @@ export const updateNotice = async (id: string, notice: Partial<Notice>): Promise
     
     return true;
   } catch (error) {
-    console.error('Error updating notice:', error);
     return false;
   }
 };
@@ -124,7 +120,6 @@ export const deleteNotice = async (id: string): Promise<boolean> => {
     
     return true;
   } catch (error) {
-    console.error('Error deleting notice:', error);
     return false;
   }
 };

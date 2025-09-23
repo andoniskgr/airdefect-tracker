@@ -51,7 +51,6 @@ export const AircraftAutocomplete: React.FC<AircraftAutocompleteProps> = ({
         const uniqueRegs = [...new Set(aircraftRegs)];
         setRegistrations(uniqueRegs);
       } catch (error) {
-        console.error("Error fetching aircraft data:", error);
       }
     };
 

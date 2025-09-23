@@ -19,7 +19,6 @@ export const useRecordOperations = (
           // Also update localStorage as a backup
           localStorage.setItem('archivedDates', JSON.stringify(dates));
         } catch (error) {
-          console.error("Error loading archived dates:", error);
         }
       };
       
@@ -29,11 +28,9 @@ export const useRecordOperations = (
 
   const handleDeleteRecord = async (id: string) => {
     try {
-      console.log("Deleting record with ID:", id);
       await deleteRecord(id, userEmail);
       toast.success("Record deleted successfully!");
     } catch (error) {
-      console.error("Error deleting record:", error);
       toast.error("Failed to delete record: " + (error instanceof Error ? error.message : "Unknown error"));
     }
   };
@@ -42,7 +39,6 @@ export const useRecordOperations = (
     try {
       // Security check: Only allow the record creator to toggle visibility
       if (record.createdBy !== userEmail) {
-        console.warn(`User ${userEmail} attempted to toggle visibility for record ${record.id} created by ${record.createdBy}`);
         toast.error("You can only change visibility of records you created");
         return;
       }
@@ -73,10 +69,8 @@ export const useRecordOperations = (
       await saveRecord(updatedRecord);
       
       const visibilityText = newVisibility ? 'public' : 'private';
-      console.log(`Record ${record.id} is now ${visibilityText}. Created by: ${record.createdBy}, User: ${userEmail}`);
       toast.success(`Record is now ${visibilityText}!`);
     } catch (error) {
-      console.error("Error toggling visibility:", error);
       toast.error("Failed to update visibility: " + (error instanceof Error ? error.message : "Unknown error"));
     }
   };
@@ -103,7 +97,6 @@ export const useRecordOperations = (
       await saveRecord(updatedRecord);
       // Toast messages are handled by the calling component
     } catch (error) {
-      console.error("Error updating record:", error);
       throw error; // Re-throw to let the calling component handle the error
     }
   };
@@ -113,7 +106,6 @@ export const useRecordOperations = (
       await deleteRecordsByDate(date, userEmail);
       toast.success(`All records for ${format(new Date(date), 'dd/MM/yyyy')} deleted successfully!`);
     } catch (error) {
-      console.error("Error deleting records:", error);
       toast.error("Failed to delete records: " + (error instanceof Error ? error.message : "Unknown error"));
     }
   };
@@ -140,7 +132,6 @@ export const useRecordOperations = (
       toast.success(`Date ${format(new Date(date), 'dd/MM/yyyy')} archived successfully!`);
       return true;
     } catch (error) {
-      console.error("Error archiving date:", error);
       toast.error("Failed to archive date");
       return false;
     }
@@ -170,7 +161,6 @@ export const useRecordOperations = (
       toast.success(`Date ${format(new Date(date), 'dd/MM/yyyy')} unarchived successfully!`);
       return true;
     } catch (error) {
-      console.error("Error unarchiving date:", error);
       toast.error("Failed to unarchive date");
       return false;
     }
@@ -226,7 +216,6 @@ export const useRecordOperations = (
       
       toast.success("Excel export completed successfully");
     } catch (error) {
-      console.error("Error exporting to Excel:", error);
       toast.error("Failed to export to Excel");
     }
   };
@@ -236,7 +225,6 @@ export const useRecordOperations = (
       await deleteRecordsByDates(dates, userEmail);
       toast.success(`Successfully deleted records from ${dates.length} date(s)!`);
     } catch (error) {
-      console.error("Error deleting records:", error);
       toast.error("Failed to delete records: " + (error instanceof Error ? error.message : "Unknown error"));
     }
   };
@@ -246,7 +234,6 @@ export const useRecordOperations = (
       await deleteAllRecords(userEmail);
       toast.success("All records deleted successfully!");
     } catch (error) {
-      console.error("Error deleting all records:", error);
       toast.error("Failed to delete all records: " + (error instanceof Error ? error.message : "Unknown error"));
     }
   };

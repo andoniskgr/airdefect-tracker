@@ -30,7 +30,6 @@ export const EditDefectModal = ({
   if (!editingRecord) return null;
 
   // Log record ID for debugging
-  console.log("EditDefectModal rendering with record ID:", editingRecord.id);
 
   const registrationRef = useRef<HTMLInputElement>(null);
   const stationRef = useRef<HTMLInputElement>(null);
@@ -39,7 +38,6 @@ export const EditDefectModal = ({
 
   // Using useCallback to prevent recreation of handler on each render
   const handleFieldChange = useCallback((field: keyof DefectRecord, value: any) => {
-    console.log(`Updating ${field} to:`, value);
     
     // Use functional update to ensure we're working with the latest state
     setEditingRecord((prev) => {
@@ -49,7 +47,6 @@ export const EditDefectModal = ({
   }, [setEditingRecord]);
 
   const handleUpdateClick = () => {
-    console.log("Update button clicked, sending record with ID:", editingRecord.id);
     handleEditSubmit();
   };
 

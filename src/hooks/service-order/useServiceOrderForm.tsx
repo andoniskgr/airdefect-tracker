@@ -7,9 +7,9 @@ import { useServiceOrderClipboard } from "./useServiceOrderClipboard";
 import { useServiceOrderInputs } from "./useServiceOrderInputs";
 
 // Initial form data
-const initialFormData: ServiceOrderData = {
+const getInitialFormData = (initialAircraft: string = ""): ServiceOrderData => ({
   defectType: "PIREP",
-  aircraft: "",
+  aircraft: initialAircraft,
   flight: "",
   from: "",
   to: "",
@@ -20,9 +20,9 @@ const initialFormData: ServiceOrderData = {
   mel: "",
   melDescription: "",
   preparedText: ""
-};
+});
 
-export const useServiceOrderForm = () => {
+export const useServiceOrderForm = (initialAircraft: string = "") => {
   const { aircraftList } = useAircraftData();
   const { validate } = useServiceOrderValidation();
   const { generateFormattedText, copyToClipboard } = useServiceOrderClipboard();
@@ -37,7 +37,7 @@ export const useServiceOrderForm = () => {
     handleDefectTypeChange,
     handleCheckboxChange,
     resetForm
-  } = useServiceOrderInputs(initialFormData);
+  } = useServiceOrderInputs(getInitialFormData(initialAircraft));
   
   // References to input fields for focusing
   const fieldsRef = useRef<Record<string, HTMLElement | null>>({});
@@ -80,7 +80,7 @@ export const useServiceOrderForm = () => {
   };
 
   const handleClear = () => {
-    resetForm(initialFormData);
+    resetForm(getInitialFormData(initialAircraft));
   };
 
   return {

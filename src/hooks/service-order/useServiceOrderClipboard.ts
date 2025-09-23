@@ -62,7 +62,6 @@ Access to manuals is made by AirnavX using the link : https://extranet.aegeanair
           toast.success("Service order copied to clipboard!");
         })
         .catch(err => {
-          console.error('Clipboard API failed, trying fallback: ', err);
           // Fallback to legacy method
           return fallbackCopyToClipboard(trimmedText);
         });
@@ -97,7 +96,6 @@ Access to manuals is made by AirnavX using the link : https://extranet.aegeanair
           reject(new Error('Copy command failed'));
         }
       } catch (err) {
-        console.error('Fallback copy failed: ', err);
         toast.error("Failed to copy to clipboard. Please copy manually.");
         reject(err);
       }

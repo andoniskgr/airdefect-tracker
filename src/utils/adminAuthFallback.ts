@@ -22,7 +22,6 @@ interface DeleteUserResponse {
  */
 export const disableUserFallback = async (userId: string, reason?: string): Promise<DeleteUserResponse> => {
   try {
-    console.log(`Attempting to disable user ${userId} (fallback method)`);
     
     // Get the current user to ensure they're authenticated
     const currentUser = auth.currentUser;
@@ -54,10 +53,8 @@ export const disableUserFallback = async (userId: string, reason?: string): Prom
       disableReason: reason || null,
     });
 
-    console.log('User disabled successfully (fallback method)');
     return { success: true, message: 'User disabled successfully' };
   } catch (error: any) {
-    console.error('Error disabling user (fallback method):', error);
     return { 
       success: false, 
       error: error instanceof Error ? error.message : 'Unknown error occurred' 
@@ -74,7 +71,6 @@ export const disableUserFallback = async (userId: string, reason?: string): Prom
  */
 export const enableUserFallback = async (userId: string): Promise<DeleteUserResponse> => {
   try {
-    console.log(`Attempting to enable user ${userId} (fallback method)`);
     
     // Get the current user to ensure they're authenticated
     const currentUser = auth.currentUser;
@@ -101,10 +97,8 @@ export const enableUserFallback = async (userId: string): Promise<DeleteUserResp
       disableReason: null,
     });
 
-    console.log('User enabled successfully (fallback method)');
     return { success: true, message: 'User enabled successfully' };
   } catch (error: any) {
-    console.error('Error enabling user (fallback method):', error);
     return { 
       success: false, 
       error: error instanceof Error ? error.message : 'Unknown error occurred' 
@@ -122,7 +116,6 @@ export const enableUserFallback = async (userId: string): Promise<DeleteUserResp
  */
 export const deleteUserFallback = async (userId: string): Promise<DeleteUserResponse> => {
   try {
-    console.log(`Attempting to delete user ${userId} (fallback method - Firestore only)`);
     
     // Get the current user to ensure they're authenticated
     const currentUser = auth.currentUser;
@@ -149,13 +142,11 @@ export const deleteUserFallback = async (userId: string): Promise<DeleteUserResp
     // Delete user document from Firestore
     await deleteDoc(doc(db, 'users', userId));
 
-    console.log('User deleted from Firestore successfully (fallback method)');
     return { 
       success: true, 
       message: 'User deleted from Firestore successfully. Note: The user can now re-register with the same email and password, as the system will automatically reuse the existing Firebase Authentication account.' 
     };
   } catch (error: any) {
-    console.error('Error deleting user (fallback method):', error);
     return { 
       success: false, 
       error: error instanceof Error ? error.message : 'Unknown error occurred' 

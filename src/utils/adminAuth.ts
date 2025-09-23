@@ -23,7 +23,6 @@ const functions = getFunctions();
  */
 export const deleteUserFromAuth = async (userId: string): Promise<DeleteUserResponse> => {
   try {
-    console.log(`Attempting to delete user ${userId} from Firebase Authentication`);
     
     // Get the current user to ensure they're authenticated
     const currentUser = auth.currentUser;
@@ -38,13 +37,11 @@ export const deleteUserFromAuth = async (userId: string): Promise<DeleteUserResp
     const data = result.data as { success: boolean; message?: string; error?: string };
     
     if (data.success) {
-      console.log('User deleted successfully:', data.message);
       return { success: true, message: data.message };
     } else {
       throw new Error(data.error || 'Failed to delete user');
     }
   } catch (error: any) {
-    console.error('Error deleting user from auth:', error);
     
     // Handle Firebase Functions errors specifically
     if (error.code === 'functions/unavailable' || error.code === 'unavailable') {
@@ -101,7 +98,6 @@ export const deleteUserFromAuth = async (userId: string): Promise<DeleteUserResp
  */
 export const disableUser = async (userId: string, reason?: string): Promise<DeleteUserResponse> => {
   try {
-    console.log(`Attempting to disable user ${userId}`);
     
     // Get the current user to ensure they're authenticated
     const currentUser = auth.currentUser;
@@ -116,13 +112,11 @@ export const disableUser = async (userId: string, reason?: string): Promise<Dele
     const data = result.data as { success: boolean; message?: string; error?: string };
     
     if (data.success) {
-      console.log('User disabled successfully:', data.message);
       return { success: true, message: data.message };
     } else {
       throw new Error(data.error || 'Failed to disable user');
     }
   } catch (error: any) {
-    console.error('Error disabling user:', error);
     
     // Handle Firebase Functions errors specifically
     if (error.code === 'functions/unavailable' || error.code === 'unavailable') {
@@ -173,7 +167,6 @@ export const disableUser = async (userId: string, reason?: string): Promise<Dele
  */
 export const enableUser = async (userId: string): Promise<DeleteUserResponse> => {
   try {
-    console.log(`Attempting to enable user ${userId}`);
     
     // Get the current user to ensure they're authenticated
     const currentUser = auth.currentUser;
@@ -188,13 +181,11 @@ export const enableUser = async (userId: string): Promise<DeleteUserResponse> =>
     const data = result.data as { success: boolean; message?: string; error?: string };
     
     if (data.success) {
-      console.log('User enabled successfully:', data.message);
       return { success: true, message: data.message };
     } else {
       throw new Error(data.error || 'Failed to enable user');
     }
   } catch (error: any) {
-    console.error('Error enabling user:', error);
     
     // Handle Firebase Functions errors specifically
     if (error.code === 'functions/unavailable' || error.code === 'unavailable') {
@@ -257,7 +248,35 @@ export const getAllUsers = async (): Promise<{ users: any[] }> => {
     const data = result.data as { users: any[] };
     return data;
   } catch (error) {
-    console.error('Error fetching users:', error);
     throw error;
   }
+};
+
+/**
+ * Utility function to check if the current user is an admin
+ * This is a simple check that can be used across components
+ * 
+ * @param userData - The user data object from AuthContext
+ * @returns boolean - true if user is admin, false otherwise
+ */
+export const isUserAdmin = (userData: any): boolean => {
+  return userData?.role === 'admin';
+};
+
+/**
+ * Utility function to check admin permissions and show error message if not admin
+ * 
+ * @param userData - The user data object from AuthContext
+ * @param action - The action being attempted (for error message)
+ * @returns boolean - true if user is admin, false otherwise
+ */
+export const checkAdminPermission = (userData: any, action: string = 'perform this action'): boolean => {
+  if (!isUserAdmin(userData)) {
+    // Import toast dynamically to avoid circular dependencies
+    import('sonner').then(({ toast }) => {
+      toast.error(`Permission denied. Only administrators can ${action}.`);
+    });
+    return false;
+  }
+  return true;
 };
