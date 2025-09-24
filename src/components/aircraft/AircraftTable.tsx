@@ -1,5 +1,11 @@
-
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -20,18 +26,27 @@ interface AircraftTableProps {
   isAdmin?: boolean;
 }
 
-export const AircraftTable = ({ aircraftData, onEditAircraft, onDeleteAircraft, isAdmin = false }: AircraftTableProps) => {
+export const AircraftTable = ({
+  aircraftData,
+  onEditAircraft,
+  onDeleteAircraft,
+  isAdmin = false,
+}: AircraftTableProps) => {
   const [sortedData, setSortedData] = useState<Aircraft[]>([]);
-  const [sortConfig, setSortConfig] = useState<{ key: keyof Aircraft, direction: 'asc' | 'desc' }>({
-    key: 'registration',
-    direction: 'asc'
+  const [sortConfig, setSortConfig] = useState<{
+    key: keyof Aircraft;
+    direction: "asc" | "desc";
+  }>({
+    key: "registration",
+    direction: "asc",
   });
-  
 
   useEffect(() => {
     // First remove duplicates based on registration
     const uniqueAircraft = aircraftData.reduce((acc: Aircraft[], current) => {
-      const isDuplicate = acc.find((item) => item.registration === current.registration);
+      const isDuplicate = acc.find(
+        (item) => item.registration === current.registration
+      );
       if (!isDuplicate) {
         acc.push(current);
       }
@@ -42,10 +57,10 @@ export const AircraftTable = ({ aircraftData, onEditAircraft, onDeleteAircraft, 
     const sortableData = [...uniqueAircraft];
     sortableData.sort((a, b) => {
       if (a[sortConfig.key] < b[sortConfig.key]) {
-        return sortConfig.direction === 'asc' ? -1 : 1;
+        return sortConfig.direction === "asc" ? -1 : 1;
       }
       if (a[sortConfig.key] > b[sortConfig.key]) {
-        return sortConfig.direction === 'asc' ? 1 : -1;
+        return sortConfig.direction === "asc" ? 1 : -1;
       }
       return 0;
     });
@@ -55,7 +70,10 @@ export const AircraftTable = ({ aircraftData, onEditAircraft, onDeleteAircraft, 
   const handleSort = (key: keyof Aircraft) => {
     setSortConfig({
       key,
-      direction: sortConfig.key === key && sortConfig.direction === 'asc' ? 'desc' : 'asc'
+      direction:
+        sortConfig.key === key && sortConfig.direction === "asc"
+          ? "desc"
+          : "asc",
     });
   };
 
@@ -63,7 +81,7 @@ export const AircraftTable = ({ aircraftData, onEditAircraft, onDeleteAircraft, 
     if (sortConfig.key === columnName) {
       return (
         <span className="ml-1 text-white">
-          {sortConfig.direction === 'asc' ? '↑' : '↓'}
+          {sortConfig.direction === "asc" ? "↑" : "↓"}
         </span>
       );
     }
@@ -71,9 +89,11 @@ export const AircraftTable = ({ aircraftData, onEditAircraft, onDeleteAircraft, 
   };
 
   const handleServiceOrder = (registration: string) => {
-    // Open service order page in a new window with pre-filled aircraft registration
-    const serviceOrderUrl = `/service-order?aircraft=${encodeURIComponent(registration)}`;
-    window.open(serviceOrderUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+    // Open service order page in a new tab with pre-filled aircraft registration
+    const serviceOrderUrl = `/service-order?aircraft=${encodeURIComponent(
+      registration
+    )}`;
+    window.open(serviceOrderUrl, "_blank");
   };
 
   return (
@@ -81,70 +101,91 @@ export const AircraftTable = ({ aircraftData, onEditAircraft, onDeleteAircraft, 
       <Table>
         <TableHeader className="bg-slate-800">
           <TableRow>
-            <TableHead 
+            <TableHead
               className="text-lg uppercase px-4 py-3 text-white font-bold cursor-pointer"
-              onClick={() => handleSort('registration')}
+              onClick={() => handleSort("registration")}
             >
               <div className="flex items-center">
                 A/C
                 <ArrowUpDown className="h-4 w-4 ml-2" />
-                {getSortIndicator('registration')}
+                {getSortIndicator("registration")}
               </div>
             </TableHead>
-            <TableHead 
+            <TableHead
               className="text-lg uppercase px-4 py-3 text-white font-bold cursor-pointer"
-              onClick={() => handleSort('type')}
+              onClick={() => handleSort("type")}
             >
               <div className="flex items-center">
                 Type
                 <ArrowUpDown className="h-4 w-4 ml-2" />
-                {getSortIndicator('type')}
+                {getSortIndicator("type")}
               </div>
             </TableHead>
-            <TableHead 
+            <TableHead
               className="text-lg uppercase px-4 py-3 text-white font-bold cursor-pointer"
-              onClick={() => handleSort('engine')}
+              onClick={() => handleSort("engine")}
             >
               <div className="flex items-center">
                 Engine
                 <ArrowUpDown className="h-4 w-4 ml-2" />
-                {getSortIndicator('engine')}
+                {getSortIndicator("engine")}
               </div>
             </TableHead>
-            <TableHead 
+            <TableHead
               className="text-lg uppercase px-4 py-3 text-white font-bold cursor-pointer"
-              onClick={() => handleSort('msn')}
+              onClick={() => handleSort("msn")}
             >
               <div className="flex items-center">
                 MSN
                 <ArrowUpDown className="h-4 w-4 ml-2" />
-                {getSortIndicator('msn')}
+                {getSortIndicator("msn")}
               </div>
             </TableHead>
-            <TableHead className="text-lg uppercase px-4 py-3 text-white font-bold">CLS</TableHead>
-            <TableHead className="text-lg uppercase px-4 py-3 text-white font-bold">WIFI</TableHead>
-            {isAdmin && <TableHead className="text-lg uppercase px-4 py-3 text-white font-bold">Actions</TableHead>}
+            <TableHead className="text-lg uppercase px-4 py-3 text-white font-bold">
+              CLS
+            </TableHead>
+            <TableHead className="text-lg uppercase px-4 py-3 text-white font-bold">
+              WIFI
+            </TableHead>
+            {isAdmin && (
+              <TableHead className="text-lg uppercase px-4 py-3 text-white font-bold">
+                Actions
+              </TableHead>
+            )}
           </TableRow>
         </TableHeader>
         <TableBody>
           {sortedData.length > 0 ? (
             sortedData.map((aircraft) => (
-              <TableRow key={aircraft.id} className="table-animation hover:bg-gray-100">
+              <TableRow
+                key={aircraft.id}
+                className="table-animation hover:bg-gray-100"
+              >
                 <TableCell className="text-slate-800 font-medium">
                   <ContextMenu>
                     <ContextMenuTrigger asChild>
-                      <span className="cursor-pointer hover:text-blue-600">{aircraft.registration}</span>
+                      <span className="cursor-pointer hover:text-blue-600">
+                        {aircraft.registration}
+                      </span>
                     </ContextMenuTrigger>
                     <ContextMenuContent>
-                      <ContextMenuItem onClick={() => handleServiceOrder(aircraft.registration)}>
+                      <ContextMenuItem
+                        onClick={() =>
+                          handleServiceOrder(aircraft.registration)
+                        }
+                      >
                         <FileText className="mr-2 h-4 w-4" />
                         Service Order
                       </ContextMenuItem>
                     </ContextMenuContent>
                   </ContextMenu>
                 </TableCell>
-                <TableCell className="text-slate-800">{aircraft.type}</TableCell>
-                <TableCell className="text-slate-800">{aircraft.engine}</TableCell>
+                <TableCell className="text-slate-800">
+                  {aircraft.type}
+                </TableCell>
+                <TableCell className="text-slate-800">
+                  {aircraft.engine}
+                </TableCell>
                 <TableCell className="text-slate-800">{aircraft.msn}</TableCell>
                 <TableCell>
                   <Checkbox checked={aircraft.cls} disabled />
@@ -155,18 +196,18 @@ export const AircraftTable = ({ aircraftData, onEditAircraft, onDeleteAircraft, 
                 {isAdmin && (
                   <TableCell>
                     <div className="flex space-x-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={() => onEditAircraft(aircraft)}
                         className="text-blue-600 border-blue-600 hover:bg-blue-50"
                       >
                         <Pencil className="h-4 w-4 mr-1" />
                         Edit
                       </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={() => onDeleteAircraft(aircraft.id)}
                         className="text-red-600 border-red-600 hover:bg-red-50"
                       >
@@ -180,8 +221,14 @@ export const AircraftTable = ({ aircraftData, onEditAircraft, onDeleteAircraft, 
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={isAdmin ? 7 : 6} className="text-center py-4 text-slate-800">
-                No aircraft data available. {isAdmin ? 'Import from Excel or add manually.' : 'Contact an administrator to add aircraft data.'}
+              <TableCell
+                colSpan={isAdmin ? 7 : 6}
+                className="text-center py-4 text-slate-800"
+              >
+                No aircraft data available.{" "}
+                {isAdmin
+                  ? "Import from Excel or add manually."
+                  : "Contact an administrator to add aircraft data."}
               </TableCell>
             </TableRow>
           )}

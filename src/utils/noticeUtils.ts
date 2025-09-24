@@ -34,9 +34,9 @@ export const addNotice = async (notice: Omit<Notice, 'id'>): Promise<string> => 
 };
 
 /**
- * Get all notices from Firestore
+ * Get all notices from Firestore (admin only - for management purposes)
  */
-export const getNotices = async (): Promise<Notice[]> => {
+export const getAllNotices = async (): Promise<Notice[]> => {
   try {
     const noticesQuery = query(
       collection(db, COLLECTION_NAME),
@@ -54,9 +54,58 @@ export const getNotices = async (): Promise<Notice[]> => {
         description: data.description,
         content: data.content,
         date: data.date,
-        author: data.author
+        author: data.author,
+        visibility: data.visibility || 'public'
       } as Notice;
     });
+  } catch (error) {
+    return [];
+  }
+};
+
+/**
+ * Get notices filtered by user permissions and visibility
+ */
+export const getNotices = async (userEmail?: string, isAdmin: boolean = false): Promise<Notice[]> => {
+  try {
+    const noticesQuery = query(
+      collection(db, COLLECTION_NAME),
+      orderBy('date', 'desc')
+    );
+    
+    const snapshot = await getDocs(noticesQuery);
+    
+    const allNotices = snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        title: data.title,
+        category: data.category,
+        description: data.description,
+        content: data.content,
+        date: data.date,
+        author: data.author,
+        visibility: data.visibility || 'public'
+      } as Notice;
+    });
+
+    // Filter notices based on visibility and user permissions
+    // Both regular users and admins follow the same visibility rules
+    const filteredNotices = allNotices.filter(notice => {
+      // Show public notices to everyone
+      if (notice.visibility === 'public') {
+        return true;
+      }
+      
+      // Show private notices only to their author (even admins can't see others' private notices)
+      if (notice.visibility === 'private' && userEmail && notice.author === userEmail) {
+        return true;
+      }
+      
+      return false;
+    });
+
+    return filteredNotices;
   } catch (error) {
     return [];
   }
@@ -79,7 +128,8 @@ export const getNoticeById = async (id: string): Promise<Notice | null> => {
         description: data.description,
         content: data.content,
         date: data.date,
-        author: data.author
+        author: data.author,
+        visibility: data.visibility || 'public'
       } as Notice;
     }
     

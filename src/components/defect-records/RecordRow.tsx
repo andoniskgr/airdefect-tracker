@@ -537,9 +537,11 @@ export const RecordRow = ({
   };
 
   const handleServiceOrder = () => {
-    // Open service order page in a new window with pre-filled aircraft registration
-    const serviceOrderUrl = `/service-order?aircraft=${encodeURIComponent(localData.registration)}`;
-    window.open(serviceOrderUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+    // Open service order page in a new tab with pre-filled aircraft registration
+    const serviceOrderUrl = `/service-order?aircraft=${encodeURIComponent(
+      localData.registration
+    )}`;
+    window.open(serviceOrderUrl, "_blank");
   };
 
   const handleManagerial = () => {
