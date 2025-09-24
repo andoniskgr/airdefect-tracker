@@ -420,3 +420,121 @@
     background-color: #bbf7d0;
   }
 }
+
+/* Print styles for better readability */
+@media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+  
+  body {
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+    color: #000 !important;
+    background: white !important;
+  }
+  
+  /* Ensure tables are readable when printed */
+  table {
+    font-size: 12px !important;
+    border-collapse: collapse !important;
+  }
+  
+  th, td {
+    font-size: 11px !important;
+    padding: 4px 6px !important;
+    border: 1px solid #000 !important;
+  }
+  
+  th {
+    background-color: #f0f0f0 !important;
+    font-weight: bold !important;
+  }
+  
+  /* Hide non-essential elements when printing */
+  .no-print,
+  button:not(.print-button),
+  .print-hide {
+    display: none !important;
+  }
+  
+  /* Ensure proper page breaks */
+  .page-break-before {
+    page-break-before: always !important;
+  }
+  
+  .page-break-after {
+    page-break-after: always !important;
+  }
+  
+  .page-break-inside-avoid {
+    page-break-inside: avoid !important;
+  }
+  
+  /* Improve header visibility */
+  h1, h2, h3, h4, h5, h6 {
+    color: #000 !important;
+    font-weight: bold !important;
+  }
+  
+  h1 { font-size: 20px !important; }
+  h2 { font-size: 18px !important; }
+  h3 { font-size: 16px !important; }
+  h4 { font-size: 14px !important; }
+  h5 { font-size: 13px !important; }
+  h6 { font-size: 12px !important; }
+  
+  /* Improve checkbox visibility when printing */
+  input[type="checkbox"] {
+    width: 12px !important;
+    height: 12px !important;
+    border: none !important;
+    background-color: white !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+    position: relative !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  input[type="checkbox"]:checked {
+    background-color: white !important;
+  }
+  
+  /* Primary checkmark with enhanced visibility */
+  input[type="checkbox"]:checked::after {
+    content: "✓" !important;
+    position: absolute !important;
+    top: -2px !important;
+    left: 1px !important;
+    color: black !important;
+    font-size: 10px !important;
+    font-weight: bold !important;
+    line-height: 1 !important;
+    text-shadow: none !important;
+  }
+  
+  /* Backup checkmark for better browser compatibility */
+  input[type="checkbox"]:checked::before {
+    content: "✓" !important;
+    position: absolute !important;
+    top: -2px !important;
+    left: 1px !important;
+    color: black !important;
+    font-size: 10px !important;
+    font-weight: bold !important;
+    line-height: 1 !important;
+    z-index: 1 !important;
+    text-shadow: none !important;
+  }
+  
+  /* Alternative approach using SVG checkmark for better visibility */
+  input[type="checkbox"]:checked {
+    background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='black' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='m13.854 3.646-7.5 7.5a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6 10.293l7.146-7.147a.5.5 0 0 1 .708.708z'/%3e%3c/svg%3e") !important;
+    background-size: 8px 8px !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+  }
+}
