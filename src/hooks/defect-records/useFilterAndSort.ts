@@ -5,6 +5,7 @@ import { DefectRecord, FilterType, VisibilityFilterType } from "../../components
 export const useFilterAndSort = () => {
   const [filter, setFilter] = useState<FilterType>('all');
   const [visibilityFilter, setVisibilityFilter] = useState<VisibilityFilterType>('both');
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' }>({
     key: 'time',
     direction: 'desc'
@@ -19,6 +20,27 @@ export const useFilterAndSort = () => {
 
   const getFilteredRecords = (defectRecords: DefectRecord[]) => {
     let records = [...defectRecords];
+    
+    // Apply search filter first
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      records = records.filter(record => {
+        const searchableFields = [
+          record.registration,
+          record.station,
+          record.defect,
+          record.remarks,
+          record.eta,
+          record.std,
+          record.upd,
+          record.time
+        ];
+        
+        return searchableFields.some(field => 
+          field && field.toString().toLowerCase().includes(query)
+        );
+      });
+    }
     
     // Apply filters based on the selected filter type
     if (filter === 'sl') {
@@ -80,6 +102,8 @@ export const useFilterAndSort = () => {
     setFilter,
     visibilityFilter,
     setVisibilityFilter,
+    searchQuery,
+    setSearchQuery,
     sortConfig,
     handleSort,
     getFilteredRecords

@@ -26,6 +26,8 @@ export const useDefectRecords = (userEmail: string | null | undefined) => {
     setFilter, 
     visibilityFilter,
     setVisibilityFilter,
+    searchQuery,
+    setSearchQuery,
     sortConfig, 
     handleSort, 
     getFilteredRecords 
@@ -75,6 +77,8 @@ export const useDefectRecords = (userEmail: string | null | undefined) => {
     setFilter,
     visibilityFilter,
     setVisibilityFilter,
+    searchQuery,
+    setSearchQuery,
     sortConfig,
     handleSort,
     handleDeleteRecord,

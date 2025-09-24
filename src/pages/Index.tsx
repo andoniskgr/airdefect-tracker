@@ -20,6 +20,8 @@ const Index = () => {
     setFilter,
     visibilityFilter,
     setVisibilityFilter,
+    searchQuery,
+    setSearchQuery,
     sortConfig,
     handleSort,
     handleDeleteRecord,
@@ -67,6 +69,8 @@ const Index = () => {
             setFilter={setFilter}
             visibilityFilter={visibilityFilter}
             setVisibilityFilter={setVisibilityFilter}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
             exportToExcel={exportToExcel}
             onAddRecord={() => setIsAddModalOpen(true)}
             records={filteredRecords}
