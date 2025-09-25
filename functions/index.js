@@ -73,7 +73,6 @@ exports.deleteUser = functions.https.onCall(async (data, context) => {
 
     return { success: true, message: "User deleted successfully" };
   } catch (error) {
-
     // Provide more specific error messages based on the error type
     if (error.code === "auth/user-not-found") {
       throw new functions.https.HttpsError(
@@ -161,7 +160,6 @@ exports.disableUser = functions.https.onCall(async (data, context) => {
 
     return { success: true, message: "User disabled successfully" };
   } catch (error) {
-
     // Provide more specific error messages based on the error type
     if (error.code === "permission-denied") {
       throw new functions.https.HttpsError(
@@ -237,7 +235,6 @@ exports.enableUser = functions.https.onCall(async (data, context) => {
 
     return { success: true, message: "User enabled successfully" };
   } catch (error) {
-
     // Provide more specific error messages based on the error type
     if (error.code === "permission-denied") {
       throw new functions.https.HttpsError(
@@ -258,6 +255,123 @@ exports.enableUser = functions.https.onCall(async (data, context) => {
       throw new functions.https.HttpsError(
         "internal",
         "Failed to enable user: " + error.message
+      );
+    }
+  }
+});
+
+/**
+ * Cloud Function to update user role
+ * This function can only be called by authenticated admin users
+ */
+exports.updateUserRole = functions.https.onCall(async (data, context) => {
+  // Check if the request is authenticated
+  if (!context.auth) {
+    throw new functions.https.HttpsError(
+      "unauthenticated",
+      "The function must be called while authenticated."
+    );
+  }
+
+  // Check if the user has admin role
+  const userDoc = await admin
+    .firestore()
+    .collection("users")
+    .doc(context.auth.uid)
+    .get();
+  if (!userDoc.exists) {
+    throw new functions.https.HttpsError("not-found", "User not found.");
+  }
+
+  const userData = userDoc.data();
+  if (userData.role !== "admin") {
+    throw new functions.https.HttpsError(
+      "permission-denied",
+      "Only admin users can change user roles."
+    );
+  }
+
+  const { userId, newRole } = data;
+  if (!userId || !newRole) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "User ID and new role are required."
+    );
+  }
+
+  // Validate role
+  if (newRole !== "user" && newRole !== "admin") {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "Invalid role. Role must be 'user' or 'admin'."
+    );
+  }
+
+  try {
+    // Prevent admin from changing their own role
+    if (userId === context.auth.uid) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "You cannot change your own role."
+      );
+    }
+
+    // Get the target user to ensure they exist
+    const targetUserDoc = await admin
+      .firestore()
+      .collection("users")
+      .doc(userId)
+      .get();
+
+    if (!targetUserDoc.exists) {
+      throw new functions.https.HttpsError(
+        "not-found",
+        "Target user not found."
+      );
+    }
+
+    const targetUserData = targetUserDoc.data();
+
+    // Prevent changing role if user is disabled
+    if (targetUserData.disabled) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "Cannot change role of a disabled user. Please enable the user first."
+      );
+    }
+
+    // Update user role in Firestore
+    await admin.firestore().collection("users").doc(userId).update({
+      role: newRole,
+      roleChangedAt: new Date(),
+      roleChangedBy: userData.email,
+    });
+
+    return {
+      success: true,
+      message: `User role updated to ${newRole} successfully`,
+    };
+  } catch (error) {
+    // Provide more specific error messages based on the error type
+    if (error.code === "permission-denied") {
+      throw new functions.https.HttpsError(
+        "permission-denied",
+        "Permission denied: " + error.message
+      );
+    } else if (error.code === "not-found") {
+      throw new functions.https.HttpsError(
+        "not-found",
+        "User not found: " + error.message
+      );
+    } else if (error.code === "unavailable") {
+      throw new functions.https.HttpsError(
+        "unavailable",
+        "Service temporarily unavailable: " + error.message
+      );
+    } else {
+      throw new functions.https.HttpsError(
+        "internal",
+        "Failed to update user role: " + error.message
       );
     }
   }

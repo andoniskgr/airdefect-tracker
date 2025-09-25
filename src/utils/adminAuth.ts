@@ -228,6 +228,76 @@ export const enableUser = async (userId: string): Promise<DeleteUserResponse> =>
 };
 
 /**
+ * Updates a user's role using Firebase Functions
+ * This function calls a Cloud Function that updates a user's role
+ * 
+ * @param userId - The UID of the user to update
+ * @param newRole - The new role ('user' or 'admin')
+ * @returns Promise<DeleteUserResponse>
+ */
+export const updateUserRole = async (userId: string, newRole: 'user' | 'admin'): Promise<DeleteUserResponse> => {
+  try {
+    
+    // Get the current user to ensure they're authenticated
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      throw new Error('No authenticated user found');
+    }
+
+    // Call the Firebase Function
+    const updateUserRoleFunction = httpsCallable(functions, 'updateUserRole');
+    const result = await updateUserRoleFunction({ userId, newRole });
+    
+    const data = result.data as { success: boolean; message?: string; error?: string };
+    
+    if (data.success) {
+      return { success: true, message: data.message };
+    } else {
+      throw new Error(data.error || 'Failed to update user role');
+    }
+  } catch (error: any) {
+    
+    // Handle Firebase Functions errors specifically
+    if (error.code === 'functions/unavailable' || error.code === 'unavailable') {
+      return { 
+        success: false, 
+        error: 'Firebase Functions are not available. Please ensure they are deployed and try again.' 
+      };
+    } else if (error.code === 'functions/not-found' || error.code === 'not-found') {
+      return { 
+        success: false, 
+        error: 'User not found.' 
+      };
+    } else if (error.code === 'functions/permission-denied' || error.code === 'permission-denied') {
+      return { 
+        success: false, 
+        error: 'Permission denied. Please ensure you have admin privileges.' 
+      };
+    } else if (error.code === 'functions/unauthenticated' || error.code === 'unauthenticated') {
+      return { 
+        success: false, 
+        error: 'Authentication required. Please log in again.' 
+      };
+    } else if (error.code === 'functions/invalid-argument' || error.code === 'invalid-argument') {
+      return { 
+        success: false, 
+        error: error.message || 'Invalid arguments provided.' 
+      };
+    } else if (error.code === 'functions/internal' || error.code === 'internal' || error.message?.includes('Internal server error')) {
+      return { 
+        success: false, 
+        error: 'Internal server error. Please check the Firebase Functions logs for details.' 
+      };
+    }
+    
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error occurred' 
+    };
+  }
+};
+
+/**
  * Gets all users using Firebase Functions (admin only)
  * This function calls a Cloud Function that returns all users
  * 

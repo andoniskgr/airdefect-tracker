@@ -31,6 +31,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   CheckCircle,
   XCircle,
   Clock,
@@ -58,11 +65,13 @@ import {
   deleteUserFromAuth,
   disableUser,
   enableUser,
+  updateUserRole,
 } from "../utils/adminAuth";
 import {
   deleteUserFallback,
   disableUserFallback,
   enableUserFallback,
+  updateUserRoleFallback,
 } from "../utils/adminAuthFallback";
 
 interface User {
@@ -77,6 +86,8 @@ interface User {
   disabled?: boolean;
   disabledAt?: any;
   disabledBy?: string | null;
+  roleChangedAt?: any;
+  roleChangedBy?: string | null;
 }
 
 const UserManagement = () => {
@@ -89,8 +100,10 @@ const UserManagement = () => {
   const [isDisableDialogOpen, setIsDisableDialogOpen] = useState(false);
   const [isEnableDialogOpen, setIsEnableDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isRoleChangeDialogOpen, setIsRoleChangeDialogOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
   const [disableReason, setDisableReason] = useState("");
+  const [newRole, setNewRole] = useState<"user" | "admin">("user");
 
   // Check if current user is admin
   const isAdmin = userData?.role === "admin";
@@ -321,6 +334,52 @@ const UserManagement = () => {
       setIsDeleteDialogOpen(false);
     } catch (error) {
       toast.error("Failed to delete user");
+    }
+  };
+
+  const handleRoleChange = async (user: User) => {
+    try {
+      // Try Firebase Functions first
+      let roleResult = await updateUserRole(user.id, newRole);
+
+      // If Firebase Functions fail, try fallback method
+      if (
+        !roleResult.success &&
+        (roleResult.error?.includes("Firebase Functions are not available") ||
+          roleResult.error?.includes("Internal server error") ||
+          roleResult.error?.includes("functions/unavailable") ||
+          roleResult.error?.includes("functions/internal") ||
+          roleResult.error?.includes("CORS policy"))
+      ) {
+        roleResult = await updateUserRoleFallback(user.id, newRole);
+      }
+
+      if (!roleResult.success) {
+        toast.error(`Failed to update user role: ${roleResult.error}`);
+        return;
+      }
+
+      // Update local state
+      setUsers(
+        users.map((u) =>
+          u.id === user.id
+            ? {
+                ...u,
+                role: newRole,
+                roleChangedAt: new Date(),
+                roleChangedBy: userData?.email || "admin",
+              }
+            : u
+        )
+      );
+
+      toast.success(
+        `User ${user.userCode} role has been updated to ${newRole}`
+      );
+      setIsRoleChangeDialogOpen(false);
+      setNewRole("user");
+    } catch (error) {
+      toast.error("Failed to update user role");
     }
   };
 
@@ -574,6 +633,28 @@ const UserManagement = () => {
                                 </>
                               )}
 
+                            {/* Role change action for approved users */}
+                            {user.status === "approved" &&
+                              user.id !== userData?.id &&
+                              !user.disabled && (
+                                <Button
+                                  size="sm"
+                                  onClick={() => {
+                                    setSelectedUser(user);
+                                    setNewRole(
+                                      user.role === "admin" ? "user" : "admin"
+                                    );
+                                    setIsRoleChangeDialogOpen(true);
+                                  }}
+                                  className="bg-purple-600 hover:bg-purple-700 text-white"
+                                >
+                                  <Shield className="w-4 h-4 mr-1" />
+                                  {user.role === "admin"
+                                    ? "Make User"
+                                    : "Make Admin"}
+                                </Button>
+                              )}
+
                             {/* Delete action for all users except current admin */}
                             {user.id !== userData?.id && (
                               <Button
@@ -824,6 +905,77 @@ const UserManagement = () => {
                 className="bg-red-600 hover:bg-red-700"
               >
                 Delete User
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Change Role Dialog */}
+        <AlertDialog
+          open={isRoleChangeDialogOpen}
+          onOpenChange={setIsRoleChangeDialogOpen}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Change User Role</AlertDialogTitle>
+              <AlertDialogDescription>
+                Select the new role for this user. This will change their
+                permissions in the application.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            {selectedUser && (
+              <div className="space-y-4">
+                <div className="bg-slate-100 p-4 rounded-lg">
+                  <p>
+                    <strong>Email:</strong> {selectedUser.email}
+                  </p>
+                  <p>
+                    <strong>User Code:</strong> {selectedUser.userCode}
+                  </p>
+                  <p>
+                    <strong>Current Role:</strong> {selectedUser.role}
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="role-select">New Role</Label>
+                  <Select
+                    value={newRole}
+                    onValueChange={(value: "user" | "admin") =>
+                      setNewRole(value)
+                    }
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Select a role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="user">User</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {newRole !== selectedUser.role && (
+                  <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg">
+                    <p className="text-blue-800 text-sm">
+                      <strong>Role Change:</strong> {selectedUser.role} →{" "}
+                      {newRole}
+                    </p>
+                    <p className="text-blue-600 text-xs mt-1">
+                      {newRole === "admin"
+                        ? "This user will gain admin privileges and access to user management."
+                        : "This user will lose admin privileges and become a regular user."}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => selectedUser && handleRoleChange(selectedUser)}
+                className="bg-purple-600 hover:bg-purple-700"
+                disabled={!selectedUser || newRole === selectedUser.role}
+              >
+                Change Role
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

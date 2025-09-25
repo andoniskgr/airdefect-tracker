@@ -30,6 +30,8 @@ type UserData = {
   disabled?: boolean;
   disabledAt?: Date | null;
   disabledBy?: string | null;
+  roleChangedAt?: Date | null;
+  roleChangedBy?: string | null;
 };
 
 type AuthContextType = {
@@ -190,8 +192,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     if (!userData && auth.currentUser) {
       try {
         userData = await getUserById(auth.currentUser.uid);
-      } catch (error) {
-      }
+      } catch (error) {}
     }
 
     // If we still don't have user data, the user is not registered in our system
@@ -271,7 +272,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         // Load user data from Firestore
         try {
           const userData = await getUserById(user.uid);
-          
+
           if (userData) {
             // Check if user is disabled and sign them out if so
             if (userData.disabled === true) {
@@ -324,13 +325,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
                   );
                 });
               }
-            } catch (error) {
-            }
+            } catch (error) {}
           }
         }
       },
-      (error) => {
-      }
+      (error) => {}
     );
 
     return unsubscribe;
