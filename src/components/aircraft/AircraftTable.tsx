@@ -13,6 +13,9 @@ import {
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
 } from "@/components/ui/context-menu";
 import { ArrowUpDown } from "lucide-react";
 import { Pencil, Trash2, FileText } from "lucide-react";
@@ -96,6 +99,22 @@ export const AircraftTable = ({
     window.open(serviceOrderUrl, "_blank");
   };
 
+  const handleDefectServiceOrder = (registration: string) => {
+    // Open service order page with Defect type pre-selected
+    const serviceOrderUrl = `/service-order?aircraft=${encodeURIComponent(
+      registration
+    )}&type=defect`;
+    window.open(serviceOrderUrl, "_blank");
+  };
+
+  const handleMELServiceOrder = (registration: string) => {
+    // Open service order page with MEL type pre-selected
+    const serviceOrderUrl = `/service-order?aircraft=${encodeURIComponent(
+      registration
+    )}&type=mel`;
+    window.open(serviceOrderUrl, "_blank");
+  };
+
   return (
     <div className="bg-white rounded-md shadow-md overflow-hidden">
       <Table>
@@ -169,14 +188,28 @@ export const AircraftTable = ({
                       </span>
                     </ContextMenuTrigger>
                     <ContextMenuContent>
-                      <ContextMenuItem
-                        onClick={() =>
-                          handleServiceOrder(aircraft.registration)
-                        }
-                      >
-                        <FileText className="mr-2 h-4 w-4" />
-                        Service Order
-                      </ContextMenuItem>
+                      <ContextMenuSub>
+                        <ContextMenuSubTrigger>
+                          <FileText className="mr-2 h-4 w-4" />
+                          Service Order
+                        </ContextMenuSubTrigger>
+                        <ContextMenuSubContent>
+                          <ContextMenuItem
+                            onClick={() =>
+                              handleDefectServiceOrder(aircraft.registration)
+                            }
+                          >
+                            Defect
+                          </ContextMenuItem>
+                          <ContextMenuItem
+                            onClick={() =>
+                              handleMELServiceOrder(aircraft.registration)
+                            }
+                          >
+                            MEL
+                          </ContextMenuItem>
+                        </ContextMenuSubContent>
+                      </ContextMenuSub>
                     </ContextMenuContent>
                   </ContextMenu>
                 </TableCell>

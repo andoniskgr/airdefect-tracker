@@ -8,6 +8,9 @@ import {
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
 } from "@/components/ui/context-menu";
 import {
   Tooltip,
@@ -544,6 +547,22 @@ export const RecordRow = ({
     window.open(serviceOrderUrl, "_blank");
   };
 
+  const handleDefectServiceOrder = () => {
+    // Open service order page with Defect type pre-selected
+    const serviceOrderUrl = `/service-order?aircraft=${encodeURIComponent(
+      localData.registration
+    )}&type=defect`;
+    window.open(serviceOrderUrl, "_blank");
+  };
+
+  const handleMELServiceOrder = () => {
+    // Open service order page with MEL type pre-selected
+    const serviceOrderUrl = `/service-order?aircraft=${encodeURIComponent(
+      localData.registration
+    )}&type=mel`;
+    window.open(serviceOrderUrl, "_blank");
+  };
+
   const handleManagerial = () => {
     // TODO: Implement managerial functionality
     toast.info("Managerial functionality coming soon!");
@@ -684,10 +703,20 @@ export const RecordRow = ({
               />
             </ContextMenuTrigger>
             <ContextMenuContent>
-              <ContextMenuItem onClick={handleServiceOrder}>
-                <FileText className="mr-2 h-4 w-4" />
-                Service Order
-              </ContextMenuItem>
+              <ContextMenuSub>
+                <ContextMenuSubTrigger>
+                  <FileText className="mr-2 h-4 w-4" />
+                  Service Order
+                </ContextMenuSubTrigger>
+                <ContextMenuSubContent>
+                  <ContextMenuItem onClick={handleDefectServiceOrder}>
+                    Defect
+                  </ContextMenuItem>
+                  <ContextMenuItem onClick={handleMELServiceOrder}>
+                    MEL
+                  </ContextMenuItem>
+                </ContextMenuSubContent>
+              </ContextMenuSub>
               <ContextMenuItem onClick={handleManagerial}>
                 <Settings className="mr-2 h-4 w-4" />
                 Managerial

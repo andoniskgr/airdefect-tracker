@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useAuth } from "../context/AuthContext";
 import { useServiceOrderForm } from "../hooks/service-order/useServiceOrderForm";
@@ -9,8 +8,9 @@ import { useSearchParams } from "react-router-dom";
 const ServiceOrder = () => {
   const { currentUser } = useAuth();
   const [searchParams] = useSearchParams();
-  const aircraftParam = searchParams.get('aircraft') || '';
-  
+  const aircraftParam = searchParams.get("aircraft") || "";
+  const typeParam = searchParams.get("type") || "";
+
   const {
     formData,
     validationErrors,
@@ -20,14 +20,17 @@ const ServiceOrder = () => {
     handleDefectTypeChange,
     handleCheckboxChange,
     handlePrepareAndCopy,
-    handleClear
-  } = useServiceOrderForm(aircraftParam);
+    handleClear,
+  } = useServiceOrderForm(aircraftParam, typeParam);
 
   return (
-    <div className="min-h-screen bg-slate-700 text-white p-0 w-full" style={{ margin: 0, maxWidth: '100%' }}>
+    <div
+      className="min-h-screen bg-slate-700 text-white p-0 w-full"
+      style={{ margin: 0, maxWidth: "100%" }}
+    >
       <Toaster position="top-right" />
       <div className="w-full max-w-full px-2" style={{ margin: 0 }}>
-        <ServiceOrderForm 
+        <ServiceOrderForm
           formData={formData}
           validationErrors={validationErrors}
           calendarOpen={calendarOpen}
