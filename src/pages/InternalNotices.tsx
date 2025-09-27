@@ -41,7 +41,7 @@ import {
   updateNotice,
   deleteNotice,
 } from "../utils/noticeUtils";
-import { PlusCircle, Edit, Trash, Eye, EyeOff } from "lucide-react";
+import { PlusCircle, Edit, Trash, Eye, EyeOff, Search } from "lucide-react";
 
 // Define the Notice type
 export interface Notice {
@@ -62,6 +62,7 @@ const InternalNotices = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const form = useForm<Omit<Notice, "id" | "date" | "author">>({
     defaultValues: {
@@ -240,6 +241,20 @@ const InternalNotices = () => {
     }
   };
 
+  // Filter notices based on search term
+  const filteredNotices = notices.filter((notice) => {
+    if (!searchTerm.trim()) return true;
+    
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      notice.title.toLowerCase().includes(searchLower) ||
+      notice.category.toLowerCase().includes(searchLower) ||
+      notice.description.toLowerCase().includes(searchLower) ||
+      notice.content.toLowerCase().includes(searchLower) ||
+      notice.author.toLowerCase().includes(searchLower)
+    );
+  });
+
   const openAddDialog = () => {
     // Check authentication status
     if (!currentUser) {
@@ -271,13 +286,32 @@ const InternalNotices = () => {
           </Button>
         </div>
 
+        {/* Search Input */}
+        <div className="mb-6">
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+            <Input
+              type="text"
+              placeholder="Search notices by title, category, description, content, or author..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 bg-card text-card-foreground border-slate-500 placeholder-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20"
+            />
+          </div>
+          {searchTerm && (
+            <p className="text-sm text-gray-400 mt-2">
+              {filteredNotices.length} notice{filteredNotices.length !== 1 ? 's' : ''} found
+            </p>
+          )}
+        </div>
+
         {isLoading && notices.length === 0 ? (
           <div className="text-center py-8">
             <p>Loading notices...</p>
           </div>
-        ) : notices.length > 0 ? (
+        ) : filteredNotices.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {notices.map((notice) => (
+            {filteredNotices.map((notice) => (
               <Card key={notice.id} className="bg-card text-card-foreground">
                 <CardHeader>
                   <div className="flex justify-between items-start">
@@ -377,6 +411,17 @@ const InternalNotices = () => {
                 </CardFooter>
               </Card>
             ))}
+          </div>
+        ) : searchTerm ? (
+          <div className="text-center py-8">
+            <p>No notices found matching "{searchTerm}".</p>
+            <Button 
+              variant="secondary" 
+              onClick={() => setSearchTerm("")} 
+              className="mt-4 bg-slate-600 text-white border-slate-500 hover:bg-slate-700 hover:text-white"
+            >
+              Clear Search
+            </Button>
           </div>
         ) : (
           <div className="text-center py-8">
