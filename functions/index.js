@@ -426,3 +426,64 @@ exports.getUsers = functions.https.onCall(async (data, context) => {
     );
   }
 });
+
+/**
+ * Cloud Function to authenticate with ARINC OpCenter
+ * This function handles the authentication proxy for ACARS access
+ */
+exports.acarsAuthenticate = functions.https.onCall(async (data, context) => {
+  // Check if the request is authenticated
+  if (!context.auth) {
+    throw new functions.https.HttpsError(
+      "unauthenticated",
+      "The function must be called while authenticated."
+    );
+  }
+
+  const { username, password } = data;
+  if (!username || !password) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "Username and password are required."
+    );
+  }
+
+  try {
+    // For now, we'll simulate the authentication process
+    // In a real implementation, you would make an HTTP request to ARINC's API
+    // or use their authentication service
+
+    // Validate credentials (in production, this would be done against ARINC's system)
+    if (username === "MAINTROLL" && password === "maintroll123") {
+      // In a real implementation, you would:
+      // 1. Make an authenticated request to ARINC's login endpoint
+      // 2. Extract session cookies or tokens
+      // 3. Return a URL that includes the session information
+
+      // For now, we'll return the direct URL
+      // In production, this would be a URL with session parameters
+      const redirectUrl =
+        "https://opcenter.arinc.eu/aegean/authentication/login";
+
+      return {
+        success: true,
+        redirectUrl: redirectUrl,
+        message: "Authentication successful",
+      };
+    } else {
+      throw new functions.https.HttpsError(
+        "permission-denied",
+        "Invalid credentials for ARINC OpCenter"
+      );
+    }
+  } catch (error) {
+    if (error.code === "permission-denied") {
+      throw error;
+    } else {
+      throw new functions.https.HttpsError(
+        "internal",
+        "Failed to authenticate with ARINC OpCenter: " + error.message
+      );
+    }
+  }
+});

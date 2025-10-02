@@ -11,7 +11,7 @@ import {
   deleteDoc,
   updateDoc
 } from "firebase/firestore";
-import { db } from "./firebaseDB";
+import { db, getUserByEmail, getUserByCode } from "./firebaseDB";
 import { Notice } from "../pages/InternalNotices";
 
 const COLLECTION_NAME = 'internalNotices';
@@ -171,5 +171,51 @@ export const deleteNotice = async (id: string): Promise<boolean> => {
     return true;
   } catch (error) {
     return false;
+  }
+};
+
+/**
+ * Get all unique categories from existing notices
+ */
+export const getNoticeCategories = async (): Promise<string[]> => {
+  try {
+    const noticesQuery = query(collection(db, COLLECTION_NAME));
+    const snapshot = await getDocs(noticesQuery);
+    
+    const categories = new Set<string>();
+    snapshot.docs.forEach(doc => {
+      const data = doc.data();
+      if (data.category && data.category.trim()) {
+        categories.add(data.category.toUpperCase());
+      }
+    });
+    
+    return Array.from(categories).sort();
+  } catch (error) {
+    return [];
+  }
+};
+
+/**
+ * Convert email address to user code
+ */
+export const getEmailToUserCode = async (email: string): Promise<string> => {
+  try {
+    const userData = await getUserByEmail(email);
+    return userData?.userCode || email; // Fallback to email if user code not found
+  } catch (error) {
+    return email; // Fallback to email if error
+  }
+};
+
+/**
+ * Convert user code to email address
+ */
+export const getUserCodeToEmail = async (userCode: string): Promise<string> => {
+  try {
+    const userData = await getUserByCode(userCode);
+    return userData?.email || userCode; // Fallback to userCode if email not found
+  } catch (error) {
+    return userCode; // Fallback to userCode if error
   }
 };

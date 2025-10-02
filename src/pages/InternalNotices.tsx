@@ -40,8 +40,10 @@ import {
   getNotices,
   updateNotice,
   deleteNotice,
+  getNoticeCategories,
+  getEmailToUserCode,
 } from "../utils/noticeUtils";
-import { PlusCircle, Edit, Trash, Eye, EyeOff } from "lucide-react";
+import { PlusCircle, Edit, Trash, Eye, EyeOff, Search } from "lucide-react";
 
 // Define the Notice type
 export interface Notice {
@@ -62,6 +64,11 @@ const InternalNotices = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [categories, setCategories] = useState<string[]>([]);
+  const [newCategory, setNewCategory] = useState("");
+  const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
+  const [emailToUserCodeMap, setEmailToUserCodeMap] = useState<Record<string, string>>({});
 
   const form = useForm<Omit<Notice, "id" | "date" | "author">>({
     defaultValues: {
@@ -96,26 +103,69 @@ const InternalNotices = () => {
     }
   }, [selectedNotice, isEditing, form]);
 
+  // Load categories
+  const loadCategories = async () => {
+    try {
+      const loadedCategories = await getNoticeCategories();
+      setCategories(loadedCategories);
+    } catch (error) {
+      console.error("Failed to load categories:", error);
+    }
+  };
+
+  // Build email to user code mapping
+  const buildEmailToUserCodeMap = async (notices: Notice[]) => {
+    const uniqueEmails = [...new Set(notices.map(notice => notice.author))];
+    const mapping: Record<string, string> = {};
+    
+    for (const email of uniqueEmails) {
+      try {
+        const userCode = await getEmailToUserCode(email);
+        mapping[email] = userCode;
+      } catch (error) {
+        console.error(`Failed to get user code for ${email}:`, error);
+        mapping[email] = email; // Fallback to email
+      }
+    }
+    
+    setEmailToUserCodeMap(mapping);
+  };
+
   useEffect(() => {
-    // Load notices on component mount
-    const loadNotices = async () => {
+    // Load notices and categories on component mount
+    const loadData = async () => {
       setIsLoading(true);
       try {
         const isAdmin = userData?.role === "admin";
-        const loadedNotices = await getNotices(
-          currentUser?.email || undefined,
-          isAdmin
-        );
+        const [loadedNotices, loadedCategories] = await Promise.all([
+          getNotices(currentUser?.email || undefined, isAdmin),
+          getNoticeCategories()
+        ]);
         setNotices(loadedNotices);
+        setCategories(loadedCategories);
+        await buildEmailToUserCodeMap(loadedNotices);
       } catch (error) {
-        toast.error("Failed to load notices");
+        toast.error("Failed to load data");
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadNotices();
+    loadData();
   }, [currentUser, userData]);
+
+  // Handle adding new category
+  const handleAddCategory = () => {
+    if (newCategory.trim()) {
+      const upperCategory = newCategory.trim().toUpperCase();
+      if (!categories.includes(upperCategory)) {
+        setCategories(prev => [...prev, upperCategory].sort());
+        form.setValue("category", upperCategory);
+      }
+      setNewCategory("");
+      setShowNewCategoryInput(false);
+    }
+  };
 
   // Handle form submission
   const onSubmit = async (values: Omit<Notice, "id" | "date" | "author">) => {
@@ -126,9 +176,10 @@ const InternalNotices = () => {
 
     // Check if user can edit this notice (for updates)
     if (isEditing && selectedNotice) {
+      const currentUserCode = userData?.userCode || currentUser?.email;
       if (
         userData?.role !== "admin" &&
-        selectedNotice.author !== currentUser?.email
+        selectedNotice.author !== currentUserCode
       ) {
         toast.error("You can only edit your own notices");
         return;
@@ -137,29 +188,39 @@ const InternalNotices = () => {
 
     setIsLoading(true);
     try {
+      // Transform title and category to uppercase
+      const transformedValues = {
+        ...values,
+        title: values.title.toUpperCase(),
+        category: values.category.toUpperCase(),
+      };
+
       if (isEditing && selectedNotice?.id) {
         // Update existing notice
-        await updateNotice(selectedNotice.id, values);
+        await updateNotice(selectedNotice.id, transformedValues);
         toast.success("Notice updated successfully");
       } else {
         // Add new notice
+        const userCode = userData?.userCode || currentUser.email;
         const newNotice: Notice = {
-          ...values,
+          ...transformedValues,
           date: new Date().toISOString(),
-          author: currentUser.email,
+          author: userCode,
         };
 
         await addNotice(newNotice);
         toast.success("Notice added successfully");
       }
 
-      // Reload notices after adding or updating
+      // Reload notices and categories after adding or updating
       const isAdmin = userData?.role === "admin";
-      const updatedNotices = await getNotices(
-        currentUser?.email || undefined,
-        isAdmin
-      );
+      const [updatedNotices, updatedCategories] = await Promise.all([
+        getNotices(currentUser?.email || undefined, isAdmin),
+        getNoticeCategories()
+      ]);
       setNotices(updatedNotices);
+      setCategories(updatedCategories);
+      await buildEmailToUserCodeMap(updatedNotices);
 
       // Reset form and close dialog
       form.reset();
@@ -240,6 +301,20 @@ const InternalNotices = () => {
     }
   };
 
+  // Filter notices based on search term
+  const filteredNotices = notices.filter((notice) => {
+    if (!searchTerm.trim()) return true;
+    
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      notice.title.toLowerCase().includes(searchLower) ||
+      notice.category.toLowerCase().includes(searchLower) ||
+      notice.description.toLowerCase().includes(searchLower) ||
+      notice.content.toLowerCase().includes(searchLower) ||
+      notice.author.toLowerCase().includes(searchLower)
+    );
+  });
+
   const openAddDialog = () => {
     // Check authentication status
     if (!currentUser) {
@@ -271,13 +346,32 @@ const InternalNotices = () => {
           </Button>
         </div>
 
+        {/* Search Input */}
+        <div className="mb-6">
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+            <Input
+              type="text"
+              placeholder="Search notices by title, category, description, content, or author..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 bg-card text-card-foreground border-slate-500 placeholder-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20"
+            />
+          </div>
+          {searchTerm && (
+            <p className="text-sm text-gray-400 mt-2">
+              {filteredNotices.length} notice{filteredNotices.length !== 1 ? 's' : ''} found
+            </p>
+          )}
+        </div>
+
         {isLoading && notices.length === 0 ? (
           <div className="text-center py-8">
             <p>Loading notices...</p>
           </div>
-        ) : notices.length > 0 ? (
+        ) : filteredNotices.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {notices.map((notice) => (
+            {filteredNotices.map((notice) => (
               <Card key={notice.id} className="bg-card text-card-foreground">
                 <CardHeader>
                   <div className="flex justify-between items-start">
@@ -317,7 +411,7 @@ const InternalNotices = () => {
                     </div>
                     <div className="flex gap-2">
                       {(userData?.role === "admin" ||
-                        notice.author === currentUser?.email) && (
+                        notice.author === (userData?.userCode || currentUser?.email)) && (
                         <>
                           <Button
                             variant="ghost"
@@ -339,7 +433,7 @@ const InternalNotices = () => {
                   </div>
                   <CardDescription className="text-gray-300">
                     Posted on {new Date(notice.date).toLocaleDateString()} by{" "}
-                    {notice.author}
+                    {emailToUserCodeMap[notice.author] || notice.author}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -378,6 +472,17 @@ const InternalNotices = () => {
               </Card>
             ))}
           </div>
+        ) : searchTerm ? (
+          <div className="text-center py-8">
+            <p>No notices found matching "{searchTerm}".</p>
+            <Button 
+              variant="secondary" 
+              onClick={() => setSearchTerm("")} 
+              className="mt-4 bg-slate-600 text-white border-slate-500 hover:bg-slate-700 hover:text-white"
+            >
+              Clear Search
+            </Button>
+          </div>
         ) : (
           <div className="text-center py-8">
             <p>No notices available at this time.</p>
@@ -403,7 +508,12 @@ const InternalNotices = () => {
                   <FormItem>
                     <FormLabel>Title</FormLabel>
                     <FormControl>
-                      <Input placeholder="Notice title" {...field} />
+                      <Input 
+                        placeholder="Notice title" 
+                        {...field}
+                        onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                        style={{ textTransform: 'uppercase' }}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -417,10 +527,72 @@ const InternalNotices = () => {
                   <FormItem>
                     <FormLabel>Category</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="e.g., Maintenance, Announcement"
-                        {...field}
-                      />
+                      <div className="space-y-2">
+                        <Select
+                          onValueChange={(value) => {
+                            if (value === "__add_new__") {
+                              setShowNewCategoryInput(true);
+                            } else {
+                              field.onChange(value);
+                            }
+                          }}
+                          value={field.value}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select or create a category" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {categories.map((category) => (
+                              <SelectItem key={category} value={category}>
+                                {category}
+                              </SelectItem>
+                            ))}
+                            <SelectItem value="__add_new__">
+                              + Add new category
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {showNewCategoryInput && (
+                          <div className="flex gap-2">
+                            <Input
+                              placeholder="Enter new category"
+                              value={newCategory}
+                              onChange={(e) => setNewCategory(e.target.value.toUpperCase())}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  handleAddCategory();
+                                }
+                                if (e.key === 'Escape') {
+                                  setShowNewCategoryInput(false);
+                                  setNewCategory("");
+                                }
+                              }}
+                              style={{ textTransform: 'uppercase' }}
+                              autoFocus
+                            />
+                            <Button
+                              type="button"
+                              size="sm"
+                              onClick={handleAddCategory}
+                              disabled={!newCategory.trim()}
+                            >
+                              Add
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setShowNewCategoryInput(false);
+                                setNewCategory("");
+                              }}
+                            >
+                              Cancel
+                            </Button>
+                          </div>
+                        )}
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>

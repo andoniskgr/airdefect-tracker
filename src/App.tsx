@@ -19,6 +19,8 @@ import UserProfile from "./pages/UserProfile";
 import UserManagement from "./pages/UserManagement";
 import AdminSetup from "./pages/AdminSetup";
 import TestPage from "./pages/TestPage";
+import ACARSProxy from "./pages/ACARSProxy";
+import ARINCDataExtractor from "./pages/ARINCDataExtractor";
 import ErrorBoundary from "./components/ErrorBoundary";
 
 const queryClient = new QueryClient();
@@ -93,6 +95,22 @@ const App = () => {
                   element={
                     <ProtectedRoute>
                       <UserProfile />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/acars"
+                  element={
+                    <ProtectedRoute>
+                      <ACARSProxy />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/arinc-data"
+                  element={
+                    <ProtectedRoute>
+                      <ARINCDataExtractor />
                     </ProtectedRoute>
                   }
                 />
