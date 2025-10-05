@@ -12,8 +12,6 @@ import {
   FileText,
   Bell,
   Archive,
-  Radio,
-  Database,
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
@@ -82,20 +80,6 @@ const Navbar = () => {
               >
                 <Settings className="h-4 w-4" />
                 <span>Admin Aircraft</span>
-              </Link>
-              <Link
-                to="/acars"
-                className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
-              >
-                <Radio className="h-4 w-4" />
-                <span>ACARS</span>
-              </Link>
-              <Link
-                to="/arinc-data"
-                className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
-              >
-                <Database className="h-4 w-4" />
-                <span>ARINC Data</span>
               </Link>
             </div>
           )}
@@ -192,22 +176,6 @@ const Navbar = () => {
             >
               <User className="h-5 w-5" />
               <span className="text-base">Profile</span>
-            </Link>
-            <Link
-              to="/acars"
-              className="flex items-center gap-3 text-blue-600 hover:text-blue-800 transition-colors py-2"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              <Radio className="h-5 w-5" />
-              <span className="text-base">ACARS</span>
-            </Link>
-            <Link
-              to="/arinc-data"
-              className="flex items-center gap-3 text-blue-600 hover:text-blue-800 transition-colors py-2"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              <Database className="h-5 w-5" />
-              <span className="text-base">ARINC Data</span>
             </Link>
             <div className="pt-3 border-t border-border">
               <div className="text-sm text-muted-foreground font-mono mb-3">
