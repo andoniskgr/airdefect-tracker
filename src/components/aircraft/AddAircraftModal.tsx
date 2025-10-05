@@ -16,6 +16,7 @@ interface AddAircraftModalProps {
   onOpenChange: (open: boolean) => void;
   aircraftForm: Omit<Aircraft, "id">;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleBlur: (e: React.FocusEvent<HTMLInputElement>) => void;
   handleCheckboxChange: (name: string, checked: boolean) => void;
   handleSelectChange: (name: string, value: string) => void;
   existingTypes: string[];
@@ -28,6 +29,7 @@ export const AddAircraftModal = ({
   onOpenChange,
   aircraftForm,
   handleInputChange,
+  handleBlur,
   handleCheckboxChange,
   handleSelectChange,
   existingTypes,
@@ -52,6 +54,7 @@ export const AddAircraftModal = ({
         <AircraftForm
           aircraftForm={aircraftForm}
           handleInputChange={handleInputChange}
+          handleBlur={handleBlur}
           handleCheckboxChange={handleCheckboxChange}
           handleSelectChange={handleSelectChange}
           existingTypes={existingTypes}

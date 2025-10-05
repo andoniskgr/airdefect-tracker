@@ -272,9 +272,11 @@ export const RecordRow = ({
     event?: React.ChangeEvent<HTMLInputElement>
   ) => {
     // Only update local state, don't auto-save on every keystroke
-    // Convert to uppercase for remarks and defect fields
+    // Convert to uppercase for remarks, defect, and registration fields
     const processedValue =
-      field === "remarks" || field === "defect" ? value.toUpperCase() : value;
+      field === "remarks" || field === "defect" || field === "registration"
+        ? value.toUpperCase()
+        : value;
 
     // Store cursor position for specific fields
     if (event) {
@@ -313,9 +315,11 @@ export const RecordRow = ({
 
   const handleTextBlur = (field: keyof DefectRecord, value: string) => {
     // Only save if the value actually changed
-    // Convert to uppercase for remarks and defect fields
+    // Convert to uppercase for remarks, defect, and registration fields
     const processedValue =
-      field === "remarks" || field === "defect" ? value.toUpperCase() : value;
+      field === "remarks" || field === "defect" || field === "registration"
+        ? value.toUpperCase()
+        : value;
     if (processedValue !== record[field]) {
       const updates = { [field]: processedValue };
       setLocalData((prev) => ({ ...prev, ...updates }));

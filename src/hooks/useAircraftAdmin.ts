@@ -100,6 +100,19 @@ export const useAircraftAdmin = () => {
     }));
   };
 
+  // Handle form field blur events
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    // Convert to uppercase for text fields on blur
+    const processedValue = ['registration', 'type', 'engine', 'msn'].includes(name) 
+      ? value.toUpperCase() 
+      : value;
+    setAircraftForm(prev => ({
+      ...prev,
+      [name]: processedValue,
+    }));
+  };
+
   // Handle checkbox changes
   const handleCheckboxChange = (name: string, checked: boolean) => {
     setAircraftForm(prev => ({
@@ -146,7 +159,6 @@ export const useAircraftAdmin = () => {
 
   // Open edit modal with aircraft data
   const openEditModal = (aircraft: Aircraft) => {
-    console.log("Opening edit modal for aircraft:", aircraft);
     setAircraftForm({
       registration: aircraft.registration,
       type: aircraft.type,
@@ -174,12 +186,20 @@ export const useAircraftAdmin = () => {
     }
 
     try {
+      // Force normalization of form data before submission
+      const forceNormalizedForm = {
+        ...aircraftForm,
+        registration: aircraftForm.registration.toUpperCase(),
+        type: aircraftForm.type.toUpperCase(),
+        engine: aircraftForm.engine.toUpperCase(),
+      };
+      
       // Add to Firestore
-      const docRef = await addDoc(collection(db, COLLECTION_NAME), aircraftForm);
+      const docRef = await addDoc(collection(db, COLLECTION_NAME), forceNormalizedForm);
       
       // Add to local state with Firestore ID
       const newAircraftWithId: Aircraft = {
-        ...aircraftForm,
+        ...forceNormalizedForm,
         id: docRef.id,
       };
       
@@ -221,28 +241,27 @@ export const useAircraftAdmin = () => {
       return;
     }
 
-    console.log("Editing aircraft with ID:", editAircraftId);
-    console.log("Aircraft form data:", aircraftForm);
+    // Force normalization of form data before submission
+    const forceNormalizedForm = {
+      ...aircraftForm,
+      registration: aircraftForm.registration.toUpperCase(),
+      type: aircraftForm.type.toUpperCase(),
+      engine: aircraftForm.engine.toUpperCase(),
+    };
 
     try {
-      // Update in Firestore
+      // Update in Firestore using the force normalized form
       const aircraftRef = doc(db, COLLECTION_NAME, editAircraftId);
-      console.log("Updating document reference:", aircraftRef.path);
-      console.log("Update data:", aircraftForm);
-      await updateDoc(aircraftRef, aircraftForm);
+      await updateDoc(aircraftRef, forceNormalizedForm);
       
       // Update in local state
       setAircraftData(prev => {
-        console.log("Current aircraft data before update:", prev);
-        console.log("Looking for aircraft with ID:", editAircraftId);
         const updated = prev.map(aircraft => {
           if (aircraft.id === editAircraftId) {
-            console.log("Found aircraft to update:", aircraft);
-            return { ...aircraftForm, id: editAircraftId };
+            return { ...forceNormalizedForm, id: editAircraftId };
           }
           return aircraft;
         });
-        console.log("Updated aircraft data:", updated);
         return updated;
       });
       
@@ -347,9 +366,9 @@ export const useAircraftAdmin = () => {
         
         // Map JSON data to our Aircraft type
         const importedData = jsonData.map((row: any) => ({
-          registration: row['A/C'] || row['Registration'] || row['registration'] || '',
-          type: row['Type'] || row['type'] || row['TYPE'] || '',
-          engine: row['Engine'] || row['engine'] || row['ENGINE'] || '',
+          registration: (row['A/C'] || row['Registration'] || row['registration'] || '').toString().toUpperCase(),
+          type: (row['Type'] || row['type'] || row['TYPE'] || '').toString().toUpperCase(),
+          engine: (row['Engine'] || row['engine'] || row['ENGINE'] || '').toString().toUpperCase(),
           msn: row['MSN'] || row['msn'] || '',
           cls: Boolean(row['CLS'] || row['cls'] || false),
           wifi: Boolean(row['WIFI'] || row['wifi'] || false),
@@ -409,6 +428,7 @@ export const useAircraftAdmin = () => {
     setIsEditModalOpen,
     aircraftForm,
     handleInputChange,
+    handleBlur,
     handleCheckboxChange,
     handleSelectChange,
     existingTypes: getExistingTypes(),

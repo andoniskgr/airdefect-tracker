@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 interface AircraftFormProps {
   aircraftForm: Omit<Aircraft, "id">;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleBlur: (e: React.FocusEvent<HTMLInputElement>) => void;
   handleCheckboxChange: (name: string, checked: boolean) => void;
   handleSelectChange: (name: string, value: string) => void;
   existingTypes: string[];
@@ -25,6 +26,7 @@ interface AircraftFormProps {
 export const AircraftForm = ({
   aircraftForm,
   handleInputChange,
+  handleBlur,
   handleCheckboxChange,
   handleSelectChange,
   existingTypes,
@@ -59,6 +61,7 @@ export const AircraftForm = ({
           name="registration"
           value={aircraftForm.registration}
           onChange={handleInputChange}
+          onBlur={handleBlur}
           className={cn(isMobile ? "h-12 text-base" : "col-span-3")}
           placeholder="e.g. SX-DGT"
         />
@@ -79,9 +82,11 @@ export const AircraftForm = ({
           {isCustomType ? (
             <div>
               <Input
+                id={`${idPrefix}type`}
                 placeholder="Enter custom aircraft type"
                 value={aircraftForm.type}
                 onChange={(e) => handleSelectChange("type", e.target.value)}
+                onBlur={handleBlur}
                 autoFocus
                 className={cn(isMobile && "h-12 text-base")}
               />
@@ -107,7 +112,10 @@ export const AircraftForm = ({
                 }
               }}
             >
-              <SelectTrigger className={cn(isMobile && "h-12 text-base")}>
+              <SelectTrigger
+                id={`${idPrefix}type`}
+                className={cn(isMobile && "h-12 text-base")}
+              >
                 <SelectValue placeholder="Select aircraft type or add custom" />
               </SelectTrigger>
               <SelectContent>
@@ -138,9 +146,11 @@ export const AircraftForm = ({
           {isCustomEngine ? (
             <div>
               <Input
+                id={`${idPrefix}engine`}
                 placeholder="Enter custom engine type"
                 value={aircraftForm.engine}
                 onChange={(e) => handleSelectChange("engine", e.target.value)}
+                onBlur={handleBlur}
                 autoFocus
                 className={cn(isMobile && "h-12 text-base")}
               />
@@ -166,7 +176,10 @@ export const AircraftForm = ({
                 }
               }}
             >
-              <SelectTrigger className={cn(isMobile && "h-12 text-base")}>
+              <SelectTrigger
+                id={`${idPrefix}engine`}
+                className={cn(isMobile && "h-12 text-base")}
+              >
                 <SelectValue placeholder="Select engine type or add custom" />
               </SelectTrigger>
               <SelectContent>
@@ -198,6 +211,7 @@ export const AircraftForm = ({
           name="msn"
           value={aircraftForm.msn}
           onChange={handleInputChange}
+          onBlur={handleBlur}
           className={cn(isMobile ? "h-12 text-base" : "col-span-3")}
           placeholder="e.g. 3162"
         />

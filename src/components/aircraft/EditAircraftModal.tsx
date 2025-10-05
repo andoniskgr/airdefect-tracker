@@ -3,6 +3,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,7 @@ interface EditAircraftModalProps {
   onOpenChange: (open: boolean) => void;
   aircraftForm: Omit<Aircraft, "id">;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleBlur: (e: React.FocusEvent<HTMLInputElement>) => void;
   handleCheckboxChange: (name: string, checked: boolean) => void;
   handleSelectChange: (name: string, value: string) => void;
   existingTypes: string[];
@@ -26,6 +28,7 @@ export const EditAircraftModal = ({
   onOpenChange,
   aircraftForm,
   handleInputChange,
+  handleBlur,
   handleCheckboxChange,
   handleSelectChange,
   existingTypes,
@@ -37,10 +40,14 @@ export const EditAircraftModal = ({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Edit Aircraft</DialogTitle>
+          <DialogDescription>
+            Update the aircraft information below.
+          </DialogDescription>
         </DialogHeader>
         <AircraftForm
           aircraftForm={aircraftForm}
           handleInputChange={handleInputChange}
+          handleBlur={handleBlur}
           handleCheckboxChange={handleCheckboxChange}
           handleSelectChange={handleSelectChange}
           existingTypes={existingTypes}

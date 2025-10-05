@@ -21,7 +21,7 @@ import { useState } from "react";
 const AircraftAdmin = () => {
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
   const { userData } = useAuth();
-  
+
   const {
     aircraftData,
     isLoading,
@@ -31,6 +31,7 @@ const AircraftAdmin = () => {
     setIsEditModalOpen,
     aircraftForm,
     handleInputChange,
+    handleBlur,
     handleCheckboxChange,
     handleSelectChange,
     existingTypes,
@@ -45,7 +46,7 @@ const AircraftAdmin = () => {
   } = useAircraftAdmin();
 
   // Check if current user is admin
-  const isAdmin = userData?.role === 'admin';
+  const isAdmin = userData?.role === "admin";
 
   return (
     <div className="min-h-screen bg-slate-700 text-white p-4">
@@ -56,10 +57,12 @@ const AircraftAdmin = () => {
           <div className="mb-6 p-4 bg-yellow-600/20 border border-yellow-500/30 rounded-lg flex items-center">
             <Shield className="mr-3 h-5 w-5 text-yellow-400" />
             <div>
-              <h3 className="font-semibold text-yellow-200">Read-Only Access</h3>
+              <h3 className="font-semibold text-yellow-200">
+                Read-Only Access
+              </h3>
               <p className="text-yellow-300 text-sm">
-                You can view aircraft data but cannot add, edit, or delete records. 
-                Contact an administrator for management permissions.
+                You can view aircraft data but cannot add, edit, or delete
+                records. Contact an administrator for management permissions.
               </p>
             </div>
           </div>
@@ -76,7 +79,6 @@ const AircraftAdmin = () => {
                   <Plus className="mr-2 h-4 w-4" />
                   Add New Aircraft
                 </Button>
-
 
                 {aircraftData.length > 0 && (
                   <Button
@@ -115,6 +117,7 @@ const AircraftAdmin = () => {
             onOpenChange={setIsAddModalOpen}
             aircraftForm={aircraftForm}
             handleInputChange={handleInputChange}
+            handleBlur={handleBlur}
             handleCheckboxChange={handleCheckboxChange}
             handleSelectChange={handleSelectChange}
             existingTypes={existingTypes}
@@ -127,6 +130,7 @@ const AircraftAdmin = () => {
             onOpenChange={setIsEditModalOpen}
             aircraftForm={aircraftForm}
             handleInputChange={handleInputChange}
+            handleBlur={handleBlur}
             handleCheckboxChange={handleCheckboxChange}
             handleSelectChange={handleSelectChange}
             existingTypes={existingTypes}
@@ -137,13 +141,16 @@ const AircraftAdmin = () => {
       )}
 
       {isAdmin && (
-        <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
+        <AlertDialog
+          open={isDeleteAlertOpen}
+          onOpenChange={setIsDeleteAlertOpen}
+        >
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
               <AlertDialogDescription>
-                This action will permanently delete all aircraft records from the
-                database. This action cannot be undone.
+                This action will permanently delete all aircraft records from
+                the database. This action cannot be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
