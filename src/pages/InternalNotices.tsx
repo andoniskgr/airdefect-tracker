@@ -339,7 +339,7 @@ const InternalNotices = () => {
     <div className="min-h-screen bg-slate-700 text-white p-4">
       <div className="w-full max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Reset Notes</h1>
+          <h1 className="text-2xl font-bold">Notes</h1>
 
           <Button className="flex items-center gap-2" onClick={openAddDialog}>
             <PlusCircle size={18} />
@@ -496,7 +496,7 @@ const InternalNotices = () => {
         <DialogContent className="sm:max-w-[560px]">
           <DialogHeader>
             <DialogTitle>
-              {isEditing ? "Edit Reset Note" : "Add New Reset Note form"}
+              {isEditing ? "Edit Note" : "Add New Note form"}
             </DialogTitle>
           </DialogHeader>
 
