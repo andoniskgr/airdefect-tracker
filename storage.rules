@@ -1,0 +1,9 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Reset note (internal notice) attachments — authenticated users only
+    match /internalNoticeAttachments/{noticeId}/{fileName} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}

@@ -42,8 +42,17 @@ import {
   deleteNotice,
   getNoticeCategories,
   getEmailToUserCode,
+  uploadNoticeFiles,
 } from "../utils/noticeUtils";
-import { PlusCircle, Edit, Trash, Eye, EyeOff, Search } from "lucide-react";
+import { PlusCircle, Edit, Trash, Eye, EyeOff, Search, Paperclip } from "lucide-react";
+
+export interface NoticeAttachment {
+  url: string;
+  name: string;
+  contentType?: string;
+  /** Present for files uploaded via this app; used to delete from Storage. */
+  storagePath?: string;
+}
 
 // Define the Notice type
 export interface Notice {
@@ -55,6 +64,7 @@ export interface Notice {
   date: string;
   author: string;
   visibility: "public" | "private";
+  attachments?: NoticeAttachment[];
 }
 
 const InternalNotices = () => {
@@ -69,6 +79,8 @@ const InternalNotices = () => {
   const [newCategory, setNewCategory] = useState("");
   const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
   const [emailToUserCodeMap, setEmailToUserCodeMap] = useState<Record<string, string>>({});
+  const [pendingAttachmentFiles, setPendingAttachmentFiles] = useState<File[]>([]);
+  const [attachmentInputKey, setAttachmentInputKey] = useState(0);
 
   const form = useForm<Omit<Notice, "id" | "date" | "author">>({
     defaultValues: {
@@ -196,8 +208,18 @@ const InternalNotices = () => {
       };
 
       if (isEditing && selectedNotice?.id) {
-        // Update existing notice
-        await updateNotice(selectedNotice.id, transformedValues);
+        let attachments = selectedNotice.attachments || [];
+        if (pendingAttachmentFiles.length > 0) {
+          const uploaded = await uploadNoticeFiles(
+            selectedNotice.id,
+            pendingAttachmentFiles
+          );
+          attachments = [...attachments, ...uploaded];
+        }
+        await updateNotice(selectedNotice.id, {
+          ...transformedValues,
+          ...(attachments.length > 0 ? { attachments } : {}),
+        });
         toast.success("Notice updated successfully");
       } else {
         // Add new notice
@@ -208,7 +230,7 @@ const InternalNotices = () => {
           author: userCode,
         };
 
-        await addNotice(newNotice);
+        await addNotice(newNotice, pendingAttachmentFiles);
         toast.success("Notice added successfully");
       }
 
@@ -226,6 +248,8 @@ const InternalNotices = () => {
       form.reset();
       setIsEditing(false);
       setSelectedNotice(null);
+      setPendingAttachmentFiles([]);
+      setAttachmentInputKey((k) => k + 1);
       setDialogOpen(false);
     } catch (error) {
       console.error("Error in onSubmit:", error);
@@ -260,6 +284,8 @@ const InternalNotices = () => {
       return;
     }
 
+    setPendingAttachmentFiles([]);
+    setAttachmentInputKey((k) => k + 1);
     setIsEditing(true);
     setSelectedNotice(notice);
     setDialogOpen(true);
@@ -311,7 +337,10 @@ const InternalNotices = () => {
       notice.category.toLowerCase().includes(searchLower) ||
       notice.description.toLowerCase().includes(searchLower) ||
       notice.content.toLowerCase().includes(searchLower) ||
-      notice.author.toLowerCase().includes(searchLower)
+      notice.author.toLowerCase().includes(searchLower) ||
+      (notice.attachments || []).some((a) =>
+        a.name.toLowerCase().includes(searchLower)
+      )
     );
   });
 
@@ -324,6 +353,8 @@ const InternalNotices = () => {
 
     setIsEditing(false);
     setSelectedNotice(null);
+    setPendingAttachmentFiles([]);
+    setAttachmentInputKey((k) => k + 1);
     form.reset({
       title: "",
       category: "",
@@ -342,7 +373,7 @@ const InternalNotices = () => {
 
           <Button className="flex items-center gap-2" onClick={openAddDialog}>
             <PlusCircle size={18} />
-            <span>Add Notice</span>
+            <span>Add Note</span>
           </Button>
         </div>
 
@@ -378,6 +409,13 @@ const InternalNotices = () => {
                     <div>
                       <CardTitle className="flex items-center gap-2">
                         {notice.title}
+                        {(notice.attachments?.length ?? 0) > 0 && (
+                          <Paperclip
+                            size={16}
+                            className="text-muted-foreground shrink-0"
+                            aria-hidden
+                          />
+                        )}
                         {notice.visibility === "private" ? (
                           <EyeOff
                             size={16}
@@ -465,6 +503,27 @@ const InternalNotices = () => {
                         <div className="mt-4 whitespace-pre-wrap">
                           {notice.content}
                         </div>
+                        {(notice.attachments?.length ?? 0) > 0 && (
+                          <div className="mt-6 border-t border-border pt-4">
+                            <p className="text-sm font-medium text-foreground mb-2">
+                              Attachments
+                            </p>
+                            <ul className="list-disc list-inside space-y-1 text-sm">
+                              {notice.attachments!.map((a) => (
+                                <li key={a.url}>
+                                  <a
+                                    href={a.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-primary underline"
+                                  >
+                                    {a.name}
+                                  </a>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
                       </div>
                     </DialogContent>
                   </Dialog>
@@ -491,11 +550,20 @@ const InternalNotices = () => {
       </div>
 
       {/* Add/Edit Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+      <Dialog
+        open={dialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) {
+            setPendingAttachmentFiles([]);
+            setAttachmentInputKey((k) => k + 1);
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-[560px]">
           <DialogHeader>
             <DialogTitle>
-              {isEditing ? "Edit Reset Note" : "Add New Reset Note"}
+              {isEditing ? "Edit Reset Note" : "Add New Reset Note form"}
             </DialogTitle>
           </DialogHeader>
 
@@ -509,7 +577,7 @@ const InternalNotices = () => {
                     <FormLabel>Title</FormLabel>
                     <FormControl>
                       <Input 
-                        placeholder="Notice title" 
+                        placeholder="Note title" 
                         {...field}
                         onChange={(e) => field.onChange(e.target.value.toUpperCase())}
                         style={{ textTransform: 'uppercase' }}
@@ -662,6 +730,46 @@ const InternalNotices = () => {
                   </FormItem>
                 )}
               />
+
+              <div className="space-y-2">
+                <FormLabel>Attachments</FormLabel>
+                <Input
+                  key={attachmentInputKey}
+                  type="file"
+                  multiple
+                  className="bg-background text-foreground cursor-pointer"
+                  onChange={(e) =>
+                    setPendingAttachmentFiles(
+                      Array.from(e.target.files ?? [])
+                    )
+                  }
+                />
+                {isEditing &&
+                  selectedNotice &&
+                  (selectedNotice.attachments?.length ?? 0) > 0 && (
+                    <ul className="text-sm text-muted-foreground space-y-1">
+                      {selectedNotice.attachments!.map((a) => (
+                        <li key={a.url}>
+                          <a
+                            href={a.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary underline"
+                          >
+                            {a.name}
+                          </a>{" "}
+                          <span className="text-xs">(saved)</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                {pendingAttachmentFiles.length > 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    {pendingAttachmentFiles.length} new file
+                    {pendingAttachmentFiles.length !== 1 ? "s" : ""} selected
+                  </p>
+                )}
+              </div>
 
               <div className="flex justify-end gap-2">
                 <Button
