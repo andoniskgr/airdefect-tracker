@@ -82,6 +82,24 @@ const InternalNotices = () => {
   const [pendingAttachmentFiles, setPendingAttachmentFiles] = useState<File[]>([]);
   const [attachmentInputKey, setAttachmentInputKey] = useState(0);
 
+  const withTimeout = async <T,>(
+    promise: Promise<T>,
+    ms: number,
+    message: string
+  ): Promise<T> => {
+    let timeoutId: number | undefined;
+    try {
+      return await Promise.race([
+        promise,
+        new Promise<T>((_, reject) => {
+          timeoutId = window.setTimeout(() => reject(new Error(message)), ms);
+        }),
+      ]);
+    } finally {
+      if (timeoutId) window.clearTimeout(timeoutId);
+    }
+  };
+
   const form = useForm<Omit<Notice, "id" | "date" | "author">>({
     defaultValues: {
       title: "",
@@ -200,6 +218,22 @@ const InternalNotices = () => {
 
     setIsLoading(true);
     try {
+      // Basic attachment guardrails to avoid "frozen" UX on huge files
+      if (pendingAttachmentFiles.length > 0) {
+        const totalBytes = pendingAttachmentFiles.reduce((sum, f) => sum + f.size, 0);
+        const maxTotalBytes = 15 * 1024 * 1024; // 15MB
+        const maxSingleBytes = 10 * 1024 * 1024; // 10MB
+        const tooBig = pendingAttachmentFiles.find((f) => f.size > maxSingleBytes);
+        if (tooBig) {
+          toast.error(`File too large: ${tooBig.name} (max 10MB)`);
+          return;
+        }
+        if (totalBytes > maxTotalBytes) {
+          toast.error("Total attachments too large (max 15MB)");
+          return;
+        }
+      }
+
       // Transform title and category to uppercase
       const transformedValues = {
         ...values,
@@ -210,16 +244,26 @@ const InternalNotices = () => {
       if (isEditing && selectedNotice?.id) {
         let attachments = selectedNotice.attachments || [];
         if (pendingAttachmentFiles.length > 0) {
-          const uploaded = await uploadNoticeFiles(
-            selectedNotice.id,
-            pendingAttachmentFiles
-          );
-          attachments = [...attachments, ...uploaded];
+          const toastId = toast.loading("Uploading attachments...");
+          try {
+            const uploaded = await withTimeout(
+              uploadNoticeFiles(selectedNotice.id, pendingAttachmentFiles),
+              60_000,
+              "Attachment upload timed out. Please try a smaller file or check your connection."
+            );
+            attachments = [...attachments, ...uploaded];
+          } finally {
+            toast.dismiss(toastId);
+          }
         }
-        await updateNotice(selectedNotice.id, {
-          ...transformedValues,
-          ...(attachments.length > 0 ? { attachments } : {}),
-        });
+        await withTimeout(
+          updateNotice(selectedNotice.id, {
+            ...transformedValues,
+            ...(attachments.length > 0 ? { attachments } : {}),
+          }),
+          30_000,
+          "Update timed out. Please try again."
+        );
         toast.success("Notice updated successfully");
       } else {
         // Add new notice
@@ -230,19 +274,22 @@ const InternalNotices = () => {
           author: userCode,
         };
 
-        await addNotice(newNotice, pendingAttachmentFiles);
+        if (pendingAttachmentFiles.length > 0) {
+          const toastId = toast.loading("Uploading attachments...");
+          try {
+            await withTimeout(
+              addNotice(newNotice, pendingAttachmentFiles),
+              60_000,
+              "Attachment upload timed out. Please try a smaller file or check your connection."
+            );
+          } finally {
+            toast.dismiss(toastId);
+          }
+        } else {
+          await withTimeout(addNotice(newNotice), 30_000, "Save timed out. Please try again.");
+        }
         toast.success("Notice added successfully");
       }
-
-      // Reload notices and categories after adding or updating
-      const isAdmin = userData?.role === "admin";
-      const [updatedNotices, updatedCategories] = await Promise.all([
-        getNotices(currentUser?.email || undefined, isAdmin),
-        getNoticeCategories()
-      ]);
-      setNotices(updatedNotices);
-      setCategories(updatedCategories);
-      await buildEmailToUserCodeMap(updatedNotices);
 
       // Reset form and close dialog
       form.reset();
@@ -251,6 +298,18 @@ const InternalNotices = () => {
       setPendingAttachmentFiles([]);
       setAttachmentInputKey((k) => k + 1);
       setDialogOpen(false);
+
+      // Refresh list in background (prevents "freeze" feeling after clicking Update)
+      const isAdmin = userData?.role === "admin";
+      void (async () => {
+        const [updatedNotices, updatedCategories] = await Promise.all([
+          getNotices(currentUser?.email || undefined, isAdmin),
+          getNoticeCategories(),
+        ]);
+        setNotices(updatedNotices);
+        setCategories(updatedCategories);
+        await buildEmailToUserCodeMap(updatedNotices);
+      })();
     } catch (error) {
       console.error("Error in onSubmit:", error);
 
