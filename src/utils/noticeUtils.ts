@@ -11,7 +11,12 @@ import {
   setDoc,
   type DocumentData,
 } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
+import {
+  ref,
+  getDownloadURL,
+  deleteObject,
+  uploadBytesResumable,
+} from "firebase/storage";
 import { db, storage, getUserByEmail, getUserByCode } from "./firebaseDB";
 import { Notice, NoticeAttachment } from "../pages/InternalNotices";
 
@@ -26,15 +31,44 @@ function sanitizeFileName(name: string): string {
  */
 export const uploadNoticeFiles = async (
   noticeId: string,
-  files: File[]
+  files: File[],
+  opts?: {
+    onProgress?: (info: {
+      fileName: string;
+      transferredBytes: number;
+      totalBytes: number;
+      percent: number;
+    }) => void;
+  }
 ): Promise<NoticeAttachment[]> => {
   const out: NoticeAttachment[] = [];
   for (const file of files) {
     const safe = sanitizeFileName(file.name);
     const storagePath = `internalNoticeAttachments/${noticeId}/${Date.now()}_${safe}`;
     const storageRef = ref(storage, storagePath);
-    await uploadBytes(storageRef, file, {
-      contentType: file.type || "application/octet-stream",
+    const task = uploadBytesResumable(
+      storageRef,
+      file,
+      { contentType: file.type || "application/octet-stream" }
+    );
+    await new Promise<void>((resolve, reject) => {
+      task.on(
+        "state_changed",
+        (snap) => {
+          const percent =
+            snap.totalBytes > 0
+              ? Math.round((snap.bytesTransferred / snap.totalBytes) * 100)
+              : 0;
+          opts?.onProgress?.({
+            fileName: file.name,
+            transferredBytes: snap.bytesTransferred,
+            totalBytes: snap.totalBytes,
+            percent,
+          });
+        },
+        (err) => reject(err),
+        () => resolve()
+      );
     });
     const url = await getDownloadURL(storageRef);
     out.push({
@@ -66,14 +100,15 @@ function toNotice(id: string, data: DocumentData): Notice {
  */
 export const addNotice = async (
   notice: Omit<Notice, "id">,
-  files: File[] = []
+  files: File[] = [],
+  opts?: Parameters<typeof uploadNoticeFiles>[2]
 ): Promise<string> => {
   const { attachments: _a, ...rest } = notice;
   const noticeRef = doc(collection(db, COLLECTION_NAME));
   const id = noticeRef.id;
 
   const uploaded =
-    files.length > 0 ? await uploadNoticeFiles(id, files) : [];
+    files.length > 0 ? await uploadNoticeFiles(id, files, opts) : [];
 
   await setDoc(noticeRef, {
     ...rest,

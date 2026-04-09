@@ -247,8 +247,14 @@ const InternalNotices = () => {
           const toastId = toast.loading("Uploading attachments...");
           try {
             const uploaded = await withTimeout(
-              uploadNoticeFiles(selectedNotice.id, pendingAttachmentFiles),
-              60_000,
+              uploadNoticeFiles(selectedNotice.id, pendingAttachmentFiles, {
+                onProgress: ({ fileName, percent }) => {
+                  toast.loading(`Uploading ${fileName}… ${percent}%`, {
+                    id: toastId,
+                  });
+                },
+              }),
+              10 * 60_000,
               "Attachment upload timed out. Please try a smaller file or check your connection."
             );
             attachments = [...attachments, ...uploaded];
@@ -278,8 +284,14 @@ const InternalNotices = () => {
           const toastId = toast.loading("Uploading attachments...");
           try {
             await withTimeout(
-              addNotice(newNotice, pendingAttachmentFiles),
-              60_000,
+              addNotice(newNotice, pendingAttachmentFiles, {
+                onProgress: ({ fileName, percent }) => {
+                  toast.loading(`Uploading ${fileName}… ${percent}%`, {
+                    id: toastId,
+                  });
+                },
+              }),
+              10 * 60_000,
               "Attachment upload timed out. Please try a smaller file or check your connection."
             );
           } finally {
@@ -315,6 +327,18 @@ const InternalNotices = () => {
 
       // Provide more specific error messages
       if (error instanceof Error) {
+        // Common Firebase Storage errors surface as message strings
+        if (error.message.includes("storage/unauthorized")) {
+          toast.error(
+            "Storage permission denied. Deploy Storage rules (`firebase deploy --only storage`) and ensure you're logged in."
+          );
+        } else if (error.message.includes("storage/canceled")) {
+          toast.error("Upload canceled.");
+        } else if (error.message.includes("storage/retry-limit-exceeded")) {
+          toast.error("Upload failed after retries. Please try again.");
+        } else if (error.message.includes("storage/unknown")) {
+          toast.error("Upload failed (unknown Storage error). Please try again.");
+        } else
         if (error.message.includes("ERR_BLOCKED_BY_CLIENT")) {
           toast.error(
             "Network request blocked. Please check your browser extensions or firewall settings."
