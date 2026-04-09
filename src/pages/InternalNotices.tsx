@@ -137,9 +137,9 @@ const InternalNotices = () => {
       setIsLoading(true);
       try {
         const isAdmin = userData?.role === "admin";
-        const currentUserCode = userData?.userCode || currentUser?.email || undefined;
+        const identity = { userCode: userData?.userCode, email: currentUser?.email || undefined };
         const [loadedNotices, loadedCategories] = await Promise.all([
-          getNotices(currentUserCode, isAdmin),
+          getNotices(identity, isAdmin),
           getNoticeCategories()
         ]);
         setNotices(loadedNotices);
@@ -222,7 +222,7 @@ const InternalNotices = () => {
       const isAdmin = userData?.role === "admin";
       void (async () => {
         const [updatedNotices, updatedCategories] = await Promise.all([
-          getNotices(userData?.userCode || currentUser?.email || undefined, isAdmin),
+          getNotices({ userCode: userData?.userCode, email: currentUser?.email || undefined }, isAdmin),
           getNoticeCategories(),
         ]);
         setNotices(updatedNotices);
@@ -257,7 +257,10 @@ const InternalNotices = () => {
 
   const handleEdit = (notice: Notice) => {
     // Check if user can edit this notice
-    if (notice.author !== (userData?.userCode || currentUser?.email)) {
+    if (
+      notice.author !== userData?.userCode &&
+      notice.author !== currentUser?.email
+    ) {
       toast.error("You can only edit your own notices");
       return;
     }
@@ -276,7 +279,10 @@ const InternalNotices = () => {
     }
 
     // Check if user can delete this notice
-    if (notice.author !== (userData?.userCode || currentUser?.email)) {
+    if (
+      notice.author !== userData?.userCode &&
+      notice.author !== currentUser?.email
+    ) {
       toast.error("You can only delete your own notices");
       return;
     }
@@ -412,7 +418,8 @@ const InternalNotices = () => {
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      {notice.author === (userData?.userCode || currentUser?.email) && (
+                      {(notice.author === userData?.userCode ||
+                        notice.author === currentUser?.email) && (
                         <>
                           <Button
                             variant="ghost"
