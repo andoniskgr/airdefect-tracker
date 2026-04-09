@@ -137,8 +137,9 @@ const InternalNotices = () => {
       setIsLoading(true);
       try {
         const isAdmin = userData?.role === "admin";
+        const currentUserCode = userData?.userCode || currentUser?.email || undefined;
         const [loadedNotices, loadedCategories] = await Promise.all([
-          getNotices(currentUser?.email || undefined, isAdmin),
+          getNotices(currentUserCode, isAdmin),
           getNoticeCategories()
         ]);
         setNotices(loadedNotices);
@@ -221,7 +222,7 @@ const InternalNotices = () => {
       const isAdmin = userData?.role === "admin";
       void (async () => {
         const [updatedNotices, updatedCategories] = await Promise.all([
-          getNotices(currentUser?.email || undefined, isAdmin),
+          getNotices(userData?.userCode || currentUser?.email || undefined, isAdmin),
           getNoticeCategories(),
         ]);
         setNotices(updatedNotices);
@@ -256,7 +257,7 @@ const InternalNotices = () => {
 
   const handleEdit = (notice: Notice) => {
     // Check if user can edit this notice
-    if (userData?.role !== "admin" && notice.author !== currentUser?.email) {
+    if (notice.author !== (userData?.userCode || currentUser?.email)) {
       toast.error("You can only edit your own notices");
       return;
     }
@@ -275,7 +276,7 @@ const InternalNotices = () => {
     }
 
     // Check if user can delete this notice
-    if (userData?.role !== "admin" && notice.author !== currentUser?.email) {
+    if (notice.author !== (userData?.userCode || currentUser?.email)) {
       toast.error("You can only delete your own notices");
       return;
     }
@@ -288,7 +289,7 @@ const InternalNotices = () => {
         // Reload notices after deletion
         const isAdmin = userData?.role === "admin";
         const updatedNotices = await getNotices(
-          currentUser?.email || undefined,
+          userData?.userCode || currentUser?.email || undefined,
           isAdmin
         );
         setNotices(updatedNotices);
@@ -411,8 +412,7 @@ const InternalNotices = () => {
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      {(userData?.role === "admin" ||
-                        notice.author === (userData?.userCode || currentUser?.email)) && (
+                      {notice.author === (userData?.userCode || currentUser?.email) && (
                         <>
                           <Button
                             variant="ghost"

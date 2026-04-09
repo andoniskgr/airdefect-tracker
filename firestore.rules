@@ -34,10 +34,10 @@ service cloud.firestore {
       // Allow all authenticated users to create notices
       allow create: if request.auth != null;
       
-      // Allow users to update/delete their own notices, or admins to update/delete any notice
-      allow update, delete: if request.auth != null && 
-        (resource.data.author == request.auth.token.email ||
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+      // Allow users to update/delete only their own notes (author stored as userCode)
+      allow update, delete: if request.auth != null &&
+        resource.data.author ==
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.userCode;
     }
     
     // Allow queries on internal notices collection for all authenticated users

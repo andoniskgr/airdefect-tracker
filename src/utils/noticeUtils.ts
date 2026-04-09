@@ -63,7 +63,7 @@ export const getAllNotices = async (): Promise<Notice[]> => {
 /**
  * Get notices filtered by user permissions and visibility
  */
-export const getNotices = async (userEmail?: string, isAdmin: boolean = false): Promise<Notice[]> => {
+export const getNotices = async (userCodeOrEmail?: string, isAdmin: boolean = false): Promise<Notice[]> => {
   try {
     const noticesQuery = query(
       collection(db, COLLECTION_NAME),
@@ -94,8 +94,8 @@ export const getNotices = async (userEmail?: string, isAdmin: boolean = false): 
         return true;
       }
       
-      // Show private notices only to their author (even admins can't see others' private notices)
-      if (notice.visibility === 'private' && userEmail && notice.author === userEmail) {
+      // Show private notices only to their author
+      if (notice.visibility === 'private' && userCodeOrEmail && notice.author === userCodeOrEmail) {
         return true;
       }
       
