@@ -42,17 +42,8 @@ import {
   deleteNotice,
   getNoticeCategories,
   getEmailToUserCode,
-  uploadNoticeFiles,
 } from "../utils/noticeUtils";
-import { PlusCircle, Edit, Trash, Eye, EyeOff, Search, Paperclip } from "lucide-react";
-
-export interface NoticeAttachment {
-  url: string;
-  name: string;
-  contentType?: string;
-  /** Present for files uploaded via this app; used to delete from Storage. */
-  storagePath?: string;
-}
+import { PlusCircle, Edit, Trash, Eye, EyeOff, Search } from "lucide-react";
 
 // Define the Notice type
 export interface Notice {
@@ -64,7 +55,6 @@ export interface Notice {
   date: string;
   author: string;
   visibility: "public" | "private";
-  attachments?: NoticeAttachment[];
 }
 
 const InternalNotices = () => {
@@ -79,26 +69,6 @@ const InternalNotices = () => {
   const [newCategory, setNewCategory] = useState("");
   const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
   const [emailToUserCodeMap, setEmailToUserCodeMap] = useState<Record<string, string>>({});
-  const [pendingAttachmentFiles, setPendingAttachmentFiles] = useState<File[]>([]);
-  const [attachmentInputKey, setAttachmentInputKey] = useState(0);
-
-  const withTimeout = async <T,>(
-    promise: Promise<T>,
-    ms: number,
-    message: string
-  ): Promise<T> => {
-    let timeoutId: number | undefined;
-    try {
-      return await Promise.race([
-        promise,
-        new Promise<T>((_, reject) => {
-          timeoutId = window.setTimeout(() => reject(new Error(message)), ms);
-        }),
-      ]);
-    } finally {
-      if (timeoutId) window.clearTimeout(timeoutId);
-    }
-  };
 
   const form = useForm<Omit<Notice, "id" | "date" | "author">>({
     defaultValues: {
@@ -218,22 +188,6 @@ const InternalNotices = () => {
 
     setIsLoading(true);
     try {
-      // Basic attachment guardrails to avoid "frozen" UX on huge files
-      if (pendingAttachmentFiles.length > 0) {
-        const totalBytes = pendingAttachmentFiles.reduce((sum, f) => sum + f.size, 0);
-        const maxTotalBytes = 15 * 1024 * 1024; // 15MB
-        const maxSingleBytes = 10 * 1024 * 1024; // 10MB
-        const tooBig = pendingAttachmentFiles.find((f) => f.size > maxSingleBytes);
-        if (tooBig) {
-          toast.error(`File too large: ${tooBig.name} (max 10MB)`);
-          return;
-        }
-        if (totalBytes > maxTotalBytes) {
-          toast.error("Total attachments too large (max 15MB)");
-          return;
-        }
-      }
-
       // Transform title and category to uppercase
       const transformedValues = {
         ...values,
@@ -242,34 +196,7 @@ const InternalNotices = () => {
       };
 
       if (isEditing && selectedNotice?.id) {
-        let attachments = selectedNotice.attachments || [];
-        if (pendingAttachmentFiles.length > 0) {
-          const toastId = toast.loading("Uploading attachments...");
-          try {
-            const uploaded = await withTimeout(
-              uploadNoticeFiles(selectedNotice.id, pendingAttachmentFiles, {
-                onProgress: ({ fileName, percent }) => {
-                  toast.loading(`Uploading ${fileName}… ${percent}%`, {
-                    id: toastId,
-                  });
-                },
-              }),
-              10 * 60_000,
-              "Attachment upload timed out. Please try a smaller file or check your connection."
-            );
-            attachments = [...attachments, ...uploaded];
-          } finally {
-            toast.dismiss(toastId);
-          }
-        }
-        await withTimeout(
-          updateNotice(selectedNotice.id, {
-            ...transformedValues,
-            ...(attachments.length > 0 ? { attachments } : {}),
-          }),
-          30_000,
-          "Update timed out. Please try again."
-        );
+        await updateNotice(selectedNotice.id, transformedValues);
         toast.success("Notice updated successfully");
       } else {
         // Add new notice
@@ -280,26 +207,7 @@ const InternalNotices = () => {
           author: userCode,
         };
 
-        if (pendingAttachmentFiles.length > 0) {
-          const toastId = toast.loading("Uploading attachments...");
-          try {
-            await withTimeout(
-              addNotice(newNotice, pendingAttachmentFiles, {
-                onProgress: ({ fileName, percent }) => {
-                  toast.loading(`Uploading ${fileName}… ${percent}%`, {
-                    id: toastId,
-                  });
-                },
-              }),
-              10 * 60_000,
-              "Attachment upload timed out. Please try a smaller file or check your connection."
-            );
-          } finally {
-            toast.dismiss(toastId);
-          }
-        } else {
-          await withTimeout(addNotice(newNotice), 30_000, "Save timed out. Please try again.");
-        }
+        await addNotice(newNotice);
         toast.success("Notice added successfully");
       }
 
@@ -307,8 +215,6 @@ const InternalNotices = () => {
       form.reset();
       setIsEditing(false);
       setSelectedNotice(null);
-      setPendingAttachmentFiles([]);
-      setAttachmentInputKey((k) => k + 1);
       setDialogOpen(false);
 
       // Refresh list in background (prevents "freeze" feeling after clicking Update)
@@ -327,18 +233,6 @@ const InternalNotices = () => {
 
       // Provide more specific error messages
       if (error instanceof Error) {
-        // Common Firebase Storage errors surface as message strings
-        if (error.message.includes("storage/unauthorized")) {
-          toast.error(
-            "Storage permission denied. Deploy Storage rules (`firebase deploy --only storage`) and ensure you're logged in."
-          );
-        } else if (error.message.includes("storage/canceled")) {
-          toast.error("Upload canceled.");
-        } else if (error.message.includes("storage/retry-limit-exceeded")) {
-          toast.error("Upload failed after retries. Please try again.");
-        } else if (error.message.includes("storage/unknown")) {
-          toast.error("Upload failed (unknown Storage error). Please try again.");
-        } else
         if (error.message.includes("ERR_BLOCKED_BY_CLIENT")) {
           toast.error(
             "Network request blocked. Please check your browser extensions or firewall settings."
@@ -367,8 +261,6 @@ const InternalNotices = () => {
       return;
     }
 
-    setPendingAttachmentFiles([]);
-    setAttachmentInputKey((k) => k + 1);
     setIsEditing(true);
     setSelectedNotice(notice);
     setDialogOpen(true);
@@ -420,10 +312,7 @@ const InternalNotices = () => {
       notice.category.toLowerCase().includes(searchLower) ||
       notice.description.toLowerCase().includes(searchLower) ||
       notice.content.toLowerCase().includes(searchLower) ||
-      notice.author.toLowerCase().includes(searchLower) ||
-      (notice.attachments || []).some((a) =>
-        a.name.toLowerCase().includes(searchLower)
-      )
+      notice.author.toLowerCase().includes(searchLower)
     );
   });
 
@@ -492,13 +381,6 @@ const InternalNotices = () => {
                     <div>
                       <CardTitle className="flex items-center gap-2">
                         {notice.title}
-                        {(notice.attachments?.length ?? 0) > 0 && (
-                          <Paperclip
-                            size={16}
-                            className="text-muted-foreground shrink-0"
-                            aria-hidden
-                          />
-                        )}
                         {notice.visibility === "private" ? (
                           <EyeOff
                             size={16}
@@ -586,27 +468,6 @@ const InternalNotices = () => {
                         <div className="mt-4 whitespace-pre-wrap">
                           {notice.content}
                         </div>
-                        {(notice.attachments?.length ?? 0) > 0 && (
-                          <div className="mt-6 border-t border-border pt-4">
-                            <p className="text-sm font-medium text-foreground mb-2">
-                              Attachments
-                            </p>
-                            <ul className="list-disc list-inside space-y-1 text-sm">
-                              {notice.attachments!.map((a) => (
-                                <li key={a.url}>
-                                  <a
-                                    href={a.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-primary underline"
-                                  >
-                                    {a.name}
-                                  </a>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
                       </div>
                     </DialogContent>
                   </Dialog>
@@ -633,16 +494,7 @@ const InternalNotices = () => {
       </div>
 
       {/* Add/Edit Dialog */}
-      <Dialog
-        open={dialogOpen}
-        onOpenChange={(open) => {
-          setDialogOpen(open);
-          if (!open) {
-            setPendingAttachmentFiles([]);
-            setAttachmentInputKey((k) => k + 1);
-          }
-        }}
-      >
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-[560px]">
           <DialogHeader>
             <DialogTitle>
@@ -813,46 +665,6 @@ const InternalNotices = () => {
                   </FormItem>
                 )}
               />
-
-              <div className="space-y-2">
-                <FormLabel>Attachments</FormLabel>
-                <Input
-                  key={attachmentInputKey}
-                  type="file"
-                  multiple
-                  className="bg-background text-foreground cursor-pointer"
-                  onChange={(e) =>
-                    setPendingAttachmentFiles(
-                      Array.from(e.target.files ?? [])
-                    )
-                  }
-                />
-                {isEditing &&
-                  selectedNotice &&
-                  (selectedNotice.attachments?.length ?? 0) > 0 && (
-                    <ul className="text-sm text-muted-foreground space-y-1">
-                      {selectedNotice.attachments!.map((a) => (
-                        <li key={a.url}>
-                          <a
-                            href={a.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-primary underline"
-                          >
-                            {a.name}
-                          </a>{" "}
-                          <span className="text-xs">(saved)</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                {pendingAttachmentFiles.length > 0 && (
-                  <p className="text-sm text-muted-foreground">
-                    {pendingAttachmentFiles.length} new file
-                    {pendingAttachmentFiles.length !== 1 ? "s" : ""} selected
-                  </p>
-                )}
-              </div>
 
               <div className="flex justify-end gap-2">
                 <Button

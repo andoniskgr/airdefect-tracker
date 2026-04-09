@@ -1,5 +1,6 @@
 import {
   collection,
+  addDoc,
   getDocs,
   query,
   orderBy,
@@ -8,116 +9,25 @@ import {
   doc,
   deleteDoc,
   updateDoc,
-  setDoc,
-  type DocumentData,
 } from "firebase/firestore";
-import {
-  ref,
-  getDownloadURL,
-  deleteObject,
-  uploadBytesResumable,
-} from "firebase/storage";
-import { db, storage, getUserByEmail, getUserByCode } from "./firebaseDB";
-import { Notice, NoticeAttachment } from "../pages/InternalNotices";
+import { db, getUserByEmail, getUserByCode } from "./firebaseDB";
+import { Notice } from "../pages/InternalNotices";
 
 const COLLECTION_NAME = "internalNotices";
 
-function sanitizeFileName(name: string): string {
-  return name.replace(/[^a-zA-Z0-9._-]/g, "_");
-}
-
 /**
- * Upload files to Storage for an existing notice id and return attachment metadata.
- */
-export const uploadNoticeFiles = async (
-  noticeId: string,
-  files: File[],
-  opts?: {
-    onProgress?: (info: {
-      fileName: string;
-      transferredBytes: number;
-      totalBytes: number;
-      percent: number;
-    }) => void;
-  }
-): Promise<NoticeAttachment[]> => {
-  const out: NoticeAttachment[] = [];
-  for (const file of files) {
-    const safe = sanitizeFileName(file.name);
-    const storagePath = `internalNoticeAttachments/${noticeId}/${Date.now()}_${safe}`;
-    const storageRef = ref(storage, storagePath);
-    const task = uploadBytesResumable(
-      storageRef,
-      file,
-      { contentType: file.type || "application/octet-stream" }
-    );
-    await new Promise<void>((resolve, reject) => {
-      task.on(
-        "state_changed",
-        (snap) => {
-          const percent =
-            snap.totalBytes > 0
-              ? Math.round((snap.bytesTransferred / snap.totalBytes) * 100)
-              : 0;
-          opts?.onProgress?.({
-            fileName: file.name,
-            transferredBytes: snap.bytesTransferred,
-            totalBytes: snap.totalBytes,
-            percent,
-          });
-        },
-        (err) => reject(err),
-        () => resolve()
-      );
-    });
-    const url = await getDownloadURL(storageRef);
-    out.push({
-      url,
-      name: file.name,
-      contentType: file.type || undefined,
-      storagePath,
-    });
-  }
-  return out;
-};
-
-function toNotice(id: string, data: DocumentData): Notice {
-  return {
-    id,
-    title: data.title,
-    category: data.category,
-    description: data.description,
-    content: data.content,
-    date: data.date,
-    author: data.author,
-    visibility: data.visibility || "public",
-    attachments: Array.isArray(data.attachments) ? data.attachments : [],
-  } as Notice;
-}
-
-/**
- * Add a new notice to Firestore (optional file attachments uploaded to Storage).
+ * Add a new notice to Firestore
  */
 export const addNotice = async (
-  notice: Omit<Notice, "id">,
-  files: File[] = [],
-  opts?: Parameters<typeof uploadNoticeFiles>[2]
+  notice: Omit<Notice, "id">
 ): Promise<string> => {
-  const { attachments: _a, ...rest } = notice;
-  const noticeRef = doc(collection(db, COLLECTION_NAME));
-  const id = noticeRef.id;
-
-  const uploaded =
-    files.length > 0 ? await uploadNoticeFiles(id, files, opts) : [];
-
-  await setDoc(noticeRef, {
-    ...rest,
-    ...(uploaded.length > 0 ? { attachments: uploaded } : {}),
+  const docRef = await addDoc(collection(db, COLLECTION_NAME), {
+    ...notice,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
 
-  return id;
+  return docRef.id;
 };
 
 /**
@@ -132,7 +42,19 @@ export const getAllNotices = async (): Promise<Notice[]> => {
     
     const snapshot = await getDocs(noticesQuery);
     
-    return snapshot.docs.map((d) => toNotice(d.id, d.data()));
+    return snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        title: data.title,
+        category: data.category,
+        description: data.description,
+        content: data.content,
+        date: data.date,
+        author: data.author,
+        visibility: data.visibility || 'public'
+      } as Notice;
+    });
   } catch (error) {
     return [];
   }
@@ -150,7 +72,19 @@ export const getNotices = async (userEmail?: string, isAdmin: boolean = false): 
     
     const snapshot = await getDocs(noticesQuery);
     
-    const allNotices = snapshot.docs.map((d) => toNotice(d.id, d.data()));
+    const allNotices = snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        title: data.title,
+        category: data.category,
+        description: data.description,
+        content: data.content,
+        date: data.date,
+        author: data.author,
+        visibility: data.visibility || 'public'
+      } as Notice;
+    });
 
     // Filter notices based on visibility and user permissions
     // Both regular users and admins follow the same visibility rules
@@ -183,7 +117,17 @@ export const getNoticeById = async (id: string): Promise<Notice | null> => {
     const docSnap = await getDoc(docRef);
     
     if (docSnap.exists()) {
-      return toNotice(docSnap.id, docSnap.data());
+      const data = docSnap.data();
+      return {
+        id: docSnap.id,
+        title: data.title,
+        category: data.category,
+        description: data.description,
+        content: data.content,
+        date: data.date,
+        author: data.author,
+        visibility: data.visibility || 'public'
+      } as Notice;
     }
     
     return null;
@@ -219,22 +163,6 @@ export const updateNotice = async (id: string, notice: Partial<Notice>): Promise
 export const deleteNotice = async (id: string): Promise<boolean> => {
   try {
     const docRef = doc(db, COLLECTION_NAME, id);
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-      const attachments: NoticeAttachment[] = Array.isArray(data.attachments)
-        ? data.attachments
-        : [];
-      for (const a of attachments) {
-        if (a.storagePath) {
-          try {
-            await deleteObject(ref(storage, a.storagePath));
-          } catch {
-            // ignore missing or already deleted files
-          }
-        }
-      }
-    }
     await deleteDoc(docRef);
 
     return true;

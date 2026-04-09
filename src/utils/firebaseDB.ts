@@ -17,7 +17,6 @@ import {
   arrayUnion
 } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
-import { getStorage } from "firebase/storage";
 
 // Firebase configuration
 const firebaseConfig = {
@@ -33,7 +32,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
-const storage = getStorage(app);
 const COLLECTION_NAME = 'defectRecords';
 
 // Get all records
@@ -517,5 +515,5 @@ export const getUserByEmail = async (email: string) => {
   }
 };
 
-// Export db, auth, and storage
-export { db, auth, storage };
+// Export db and auth
+export { db, auth };
