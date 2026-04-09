@@ -295,10 +295,11 @@ const InternalNotices = () => {
         // Reload notices after deletion
         const isAdmin = userData?.role === "admin";
         const updatedNotices = await getNotices(
-          userData?.userCode || currentUser?.email || undefined,
+          { userCode: userData?.userCode, email: currentUser?.email || undefined },
           isAdmin
         );
         setNotices(updatedNotices);
+        await buildEmailToUserCodeMap(updatedNotices);
 
         toast.success("Notice deleted successfully");
       } catch (error) {
