@@ -325,8 +325,6 @@ const InternalNotices = () => {
 
     setIsEditing(false);
     setSelectedNotice(null);
-    setPendingAttachmentFiles([]);
-    setAttachmentInputKey((k) => k + 1);
     form.reset({
       title: "",
       category: "",
