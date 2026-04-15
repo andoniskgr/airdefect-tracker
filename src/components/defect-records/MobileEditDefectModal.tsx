@@ -107,8 +107,7 @@ export const MobileEditDefectModal = ({
       <DialogContent
         className={cn(
           "sm:max-w-md",
-          isMobile &&
-            "flex h-[95vh] max-h-[95vh] w-[95vw] flex-col gap-4 overflow-hidden p-6"
+          isMobile && "max-h-[95vh] w-[95vw] overflow-y-auto overscroll-contain"
         )}
         onOpenAutoFocus={(e) => {
           e.preventDefault();
@@ -119,7 +118,7 @@ export const MobileEditDefectModal = ({
           }, 100);
         }}
       >
-        <DialogHeader className={cn(isMobile && "shrink-0")}>
+        <DialogHeader>
           <DialogTitle
             className={cn("uppercase", isMobile ? "text-xl" : "text-2xl")}
           >
@@ -127,13 +126,7 @@ export const MobileEditDefectModal = ({
           </DialogTitle>
         </DialogHeader>
 
-        <div
-          className={cn(
-            "grid gap-4 py-4",
-            isMobile &&
-              "min-h-0 flex-1 gap-6 overflow-y-auto overscroll-contain py-0"
-          )}
-        >
+        <div className={cn("grid gap-4 py-4", isMobile && "gap-6 pb-6")}>
           <DateTimeSection
             date={formData.date}
             time={formData.time}
@@ -193,9 +186,6 @@ export const MobileEditDefectModal = ({
             }
           />
 
-        </div>
-
-        <div className="shrink-0 border-t bg-background pt-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.08)]">
           <ActionButtons
             onClear={handleClear}
             onCancel={handleCancel}
