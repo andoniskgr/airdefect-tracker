@@ -122,7 +122,8 @@ export const AddDefectModal = ({
       <DialogContent
         className={cn(
           "sm:max-w-md",
-          isMobile && "w-[95vw] h-[90vh] max-h-[90vh] overflow-y-auto"
+          isMobile &&
+            "flex h-[90vh] max-h-[90vh] w-[95vw] flex-col gap-4 overflow-hidden p-6"
         )}
         onOpenAutoFocus={(e) => {
           e.preventDefault();
@@ -133,7 +134,7 @@ export const AddDefectModal = ({
           }, 100);
         }}
       >
-        <DialogHeader>
+        <DialogHeader className={cn(isMobile && "shrink-0")}>
           <DialogTitle
             className={cn("uppercase", isMobile ? "text-xl" : "text-2xl")}
           >
@@ -146,7 +147,8 @@ export const AddDefectModal = ({
         <div
           className={cn(
             "grid gap-4 py-4",
-            isMobile && "gap-6 mobile-form-container"
+            isMobile &&
+              "min-h-0 flex-1 gap-6 overflow-y-auto overscroll-contain py-0"
           )}
         >
           <DateTimeSection
@@ -208,18 +210,17 @@ export const AddDefectModal = ({
             }
           />
 
-          {isMobile && (
-            <div className="mobile-action-buttons">
-              <ActionButtons
-                onClear={handleClear}
-                onCancel={() => onOpenChange(false)}
-                onSave={validateAndSubmit}
-              />
-            </div>
-          )}
         </div>
 
-        {!isMobile && (
+        {isMobile ? (
+          <div className="shrink-0 border-t bg-background pt-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.08)]">
+            <ActionButtons
+              onClear={handleClear}
+              onCancel={() => onOpenChange(false)}
+              onSave={validateAndSubmit}
+            />
+          </div>
+        ) : (
           <ActionButtons
             onClear={handleClear}
             onCancel={() => onOpenChange(false)}
