@@ -86,6 +86,7 @@ const InternalNotices = () => {
   const [renameTarget, setRenameTarget] = useState<string | null>(null);
   const [renameNewValue, setRenameNewValue] = useState("");
   const [deleteTargetCategory, setDeleteTargetCategory] = useState<string | null>(null);
+  const [manageNewCategory, setManageNewCategory] = useState("");
 
   const form = useForm<Omit<Notice, "id" | "date" | "author">>({
     defaultValues: {
@@ -197,6 +198,21 @@ const InternalNotices = () => {
       setNewCategory("");
       setShowNewCategoryInput(false);
     }
+  };
+
+  const handleManageCreateCategory = () => {
+    const raw = manageNewCategory.trim();
+    if (!raw) return;
+    const upper = raw.toUpperCase();
+    if (categories.includes(upper)) {
+      toast.message("That category already exists.");
+      return;
+    }
+    setCategories((prev) => [...prev, upper].sort());
+    setManageNewCategory("");
+    toast.success(
+      "Category added. It stays in the list after reload once a note uses it."
+    );
   };
 
   const handleConfirmRenameCategory = async () => {
@@ -610,6 +626,7 @@ const InternalNotices = () => {
           if (!open) {
             setRenameTarget(null);
             setRenameNewValue("");
+            setManageNewCategory("");
           }
         }}
       >
@@ -622,6 +639,39 @@ const InternalNotices = () => {
             label only; notes are kept (they appear as uncategorized until you
             assign a category again).
           </p>
+          <div className="space-y-2 rounded-md border border-border p-3">
+            <p className="text-sm font-medium">Create category</p>
+            <p className="text-xs text-muted-foreground">
+              It appears in this list and in the note form. It persists after a
+              refresh once at least one note uses it.
+            </p>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <Input
+                value={manageNewCategory}
+                onChange={(e) =>
+                  setManageNewCategory(e.target.value.toUpperCase())
+                }
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleManageCreateCategory();
+                  }
+                }}
+                style={{ textTransform: "uppercase" }}
+                placeholder="Category name"
+                className="bg-card sm:flex-1"
+              />
+              <Button
+                type="button"
+                variant="secondary"
+                className="shrink-0"
+                disabled={!manageNewCategory.trim()}
+                onClick={handleManageCreateCategory}
+              >
+                Add category
+              </Button>
+            </div>
+          </div>
           {renameTarget && (
             <div className="space-y-2 rounded-md border border-slate-500 p-3 bg-slate-800/50">
               <p className="text-sm font-medium text-white">
