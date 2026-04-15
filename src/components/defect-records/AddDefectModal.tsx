@@ -120,10 +120,7 @@ export const AddDefectModal = ({
       }}
     >
       <DialogContent
-        className={cn(
-          "sm:max-w-md",
-          isMobile && "max-h-[90vh] w-[95vw] overflow-y-auto overscroll-contain"
-        )}
+        className={cn("sm:max-w-md", isMobile && "min-h-0 w-[95vw]")}
         onOpenAutoFocus={(e) => {
           e.preventDefault();
           setTimeout(() => {
@@ -133,83 +130,92 @@ export const AddDefectModal = ({
           }, 100);
         }}
       >
-        <DialogHeader>
-          <DialogTitle
-            className={cn("uppercase", isMobile ? "text-xl" : "text-2xl")}
-          >
-            Record Aircraft Defect
-          </DialogTitle>
-          <DialogDescription className="sr-only">
-            Enter defect details below
-          </DialogDescription>
-        </DialogHeader>
+        {/* Global mobile CSS sets [role=dialog] to overflow:hidden + flex; this inner
+            region must scroll so fields and action buttons stay reachable. */}
         <div
-          className={cn("grid gap-4 py-4", isMobile && "gap-6 pb-6")}
+          className={cn(
+            isMobile &&
+              "flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch]"
+          )}
         >
-          <DateTimeSection
-            date={formData.date}
-            time={formData.time}
-            onDateChange={(value) => handleFieldChange("date", value)}
-            onTimeChange={(value) => handleFieldChange("time", value)}
-            validationErrors={validationErrors}
-          />
+          <DialogHeader>
+            <DialogTitle
+              className={cn("uppercase", isMobile ? "text-xl" : "text-2xl")}
+            >
+              Record Aircraft Defect
+            </DialogTitle>
+            <DialogDescription className="sr-only">
+              Enter defect details below
+            </DialogDescription>
+          </DialogHeader>
+          <div
+            className={cn("grid gap-4 py-4", isMobile && "gap-6 pb-8")}
+          >
+            <DateTimeSection
+              date={formData.date}
+              time={formData.time}
+              onDateChange={(value) => handleFieldChange("date", value)}
+              onTimeChange={(value) => handleFieldChange("time", value)}
+              validationErrors={validationErrors}
+            />
 
-          <RegistrationStationSection
-            registration={formData.registration}
-            station={formData.station}
-            onRegistrationChange={(value) =>
-              handleFieldChange("registration", value)
-            }
-            onStationChange={(value) => handleFieldChange("station", value)}
-            registrationRef={registrationRef}
-            stationRef={stationRef}
-            validationErrors={validationErrors}
-            handleKeyDown={handleKeyDown}
-          />
+            <RegistrationStationSection
+              registration={formData.registration}
+              station={formData.station}
+              onRegistrationChange={(value) =>
+                handleFieldChange("registration", value)
+              }
+              onStationChange={(value) => handleFieldChange("station", value)}
+              registrationRef={registrationRef}
+              stationRef={stationRef}
+              validationErrors={validationErrors}
+              handleKeyDown={handleKeyDown}
+            />
 
-          <DescriptionSection
-            defect={formData.defect}
-            remarks={formData.remarks}
-            onDefectChange={(value) => handleFieldChange("defect", value)}
-            onRemarksChange={(value) => handleFieldChange("remarks", value)}
-            defectRef={defectRef}
-            remarksRef={remarksRef}
-            validationErrors={validationErrors}
-            handleKeyDown={handleKeyDown}
-          />
+            <DescriptionSection
+              defect={formData.defect}
+              remarks={formData.remarks}
+              onDefectChange={(value) => handleFieldChange("defect", value)}
+              onRemarksChange={(value) => handleFieldChange("remarks", value)}
+              defectRef={defectRef}
+              remarksRef={remarksRef}
+              validationErrors={validationErrors}
+              handleKeyDown={handleKeyDown}
+            />
 
-          <TimingSection
-            eta={formData.eta}
-            std={formData.std}
-            upd={formData.upd}
-            onEtaChange={(value) => handleFieldChange("eta", value)}
-            onStdChange={(value) => handleFieldChange("std", value)}
-            onUpdChange={(value) => handleFieldChange("upd", value)}
-            onEnterPressEta={() => defectRef.current?.focus()}
-            onEnterPressStd={() => remarksRef.current?.focus()}
-            onEnterPressUpd={() => defectRef.current?.focus()}
-          />
+            <TimingSection
+              eta={formData.eta}
+              std={formData.std}
+              upd={formData.upd}
+              onEtaChange={(value) => handleFieldChange("eta", value)}
+              onStdChange={(value) => handleFieldChange("std", value)}
+              onUpdChange={(value) => handleFieldChange("upd", value)}
+              onEnterPressEta={() => defectRef.current?.focus()}
+              onEnterPressStd={() => remarksRef.current?.focus()}
+              onEnterPressUpd={() => defectRef.current?.focus()}
+            />
 
-          <CheckboxGroup
-            values={{
-              nxs: formData.nxs,
-              rst: formData.rst,
-              dly: formData.dly,
-              pln: formData.pln,
-              sl: formData.sl,
-              ok: formData.ok,
-              isPublic: formData.isPublic,
-            }}
-            onCheckedChange={(field, checked) =>
-              handleFieldChange(field, checked)
-            }
-          />
+            <CheckboxGroup
+              values={{
+                nxs: formData.nxs,
+                rst: formData.rst,
+                dly: formData.dly,
+                pln: formData.pln,
+                sl: formData.sl,
+                ok: formData.ok,
+                isPublic: formData.isPublic,
+              }}
+              onCheckedChange={(field, checked) =>
+                handleFieldChange(field, checked)
+              }
+            />
 
-          <ActionButtons
-            onClear={handleClear}
-            onCancel={() => onOpenChange(false)}
-            onSave={validateAndSubmit}
-          />
+            <ActionButtons
+              onClear={handleClear}
+              onCancel={() => onOpenChange(false)}
+              onSave={validateAndSubmit}
+            />
+          </div>
         </div>
       </DialogContent>
     </Dialog>
