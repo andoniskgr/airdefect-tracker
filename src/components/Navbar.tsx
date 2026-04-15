@@ -60,13 +60,15 @@ const Navbar = () => {
                 <FileText className="h-4 w-4" />
                 <span>Service Order</span>
               </a>
-              <Link
-                to="/internal-notices"
+              <a
+                href="/internal-notices"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
               >
                 <Bell className="h-4 w-4" />
                 <span>Notes</span>
-              </Link>
+              </a>
               <Link
                 to="/archive-records"
                 className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
