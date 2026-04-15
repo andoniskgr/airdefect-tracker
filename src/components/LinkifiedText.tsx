@@ -23,7 +23,7 @@ export function LinkifiedText({ text, className }: LinkifiedTextProps) {
           href={part}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-primary underline underline-offset-2 break-all hover:opacity-90"
+            className="text-blue-600 underline underline-offset-2 break-all hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
         >
           {part}
         </a>
