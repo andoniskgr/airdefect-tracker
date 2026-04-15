@@ -44,6 +44,7 @@ import {
   getEmailToUserCode,
 } from "../utils/noticeUtils";
 import { PlusCircle, Edit, Trash, Eye, EyeOff, Search } from "lucide-react";
+import { LinkifiedText } from "@/components/LinkifiedText";
 
 // Define the Notice type
 export interface Notice {
@@ -471,8 +472,8 @@ const InternalNotices = () => {
                           Posted on {new Date(notice.date).toLocaleDateString()}{" "}
                           by {notice.author}
                         </div>
-                        <div className="mt-4 whitespace-pre-wrap">
-                          {notice.content}
+                        <div className="mt-4 whitespace-pre-wrap break-words">
+                          <LinkifiedText text={notice.content} />
                         </div>
                       </div>
                     </DialogContent>
