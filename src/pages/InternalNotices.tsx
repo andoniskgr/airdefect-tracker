@@ -459,17 +459,15 @@ const InternalNotices = () => {
           <h1 className="text-2xl font-bold">Notes</h1>
 
           <div className="flex items-center gap-2">
-            {userData?.role === "admin" && (
-              <Button
-                type="button"
-                variant="secondary"
-                className="flex items-center gap-2 bg-slate-600 text-white border-slate-500 hover:bg-slate-500 hover:text-white"
-                onClick={() => setManageCategoriesOpen(true)}
-              >
-                <Tags size={18} />
-                <span>Categories</span>
-              </Button>
-            )}
+            <Button
+              type="button"
+              variant="secondary"
+              className="flex items-center gap-2 bg-slate-600 text-white border-slate-500 hover:bg-slate-500 hover:text-white"
+              onClick={() => setManageCategoriesOpen(true)}
+            >
+              <Tags size={18} />
+              <span>Categories</span>
+            </Button>
             <Button className="flex items-center gap-2" onClick={openAddDialog}>
               <PlusCircle size={18} />
               <span>Add Note</span>
@@ -644,11 +642,21 @@ const InternalNotices = () => {
           <DialogHeader>
             <DialogTitle>Manage categories</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-muted-foreground">
-            Rename updates every note that uses the category. Delete removes the
-            label only; notes are kept (they appear as uncategorized until you
-            assign a category again).
-          </p>
+          {userData?.role === "admin" && (
+            <p className="text-sm text-muted-foreground">
+              Rename updates every note that uses the category. Delete removes
+              the label only; notes are kept (they appear as uncategorized until
+              you assign a category again).
+            </p>
+          )}
+          {userData?.role !== "admin" && (
+            <p className="text-sm text-muted-foreground">
+              Browse categories in use. You can add a name below to use when
+              writing a note; it appears in the list after reload once a note
+              uses it. Only admins can rename or remove a category from all
+              notes.
+            </p>
+          )}
           <div className="space-y-2 rounded-md border border-border p-3">
             <p className="text-sm font-medium">Create category</p>
             <p className="text-xs text-muted-foreground">
@@ -682,7 +690,7 @@ const InternalNotices = () => {
               </Button>
             </div>
           </div>
-          {renameTarget && (
+          {userData?.role === "admin" && renameTarget && (
             <div className="space-y-2 rounded-md border border-slate-500 p-3 bg-slate-800/50">
               <p className="text-sm font-medium text-white">
                 Rename &quot;{renameTarget}&quot;
@@ -734,31 +742,33 @@ const InternalNotices = () => {
                   className="flex items-center justify-between gap-2 rounded-md bg-muted/30 px-3 py-2"
                 >
                   <span className="truncate text-sm font-medium">{cat}</span>
-                  <div className="flex shrink-0 gap-1">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-foreground hover:bg-muted hover:text-foreground"
-                      onClick={() => {
-                        setRenameTarget(cat);
-                        setRenameNewValue(cat);
-                      }}
-                      title="Rename category"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-muted"
-                      onClick={() => setDeleteTargetCategory(cat)}
-                      title="Remove category from all notes"
-                    >
-                      <Trash className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  {userData?.role === "admin" && (
+                    <div className="flex shrink-0 gap-1">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-foreground hover:bg-muted hover:text-foreground"
+                        onClick={() => {
+                          setRenameTarget(cat);
+                          setRenameNewValue(cat);
+                        }}
+                        title="Rename category"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive hover:text-destructive hover:bg-muted"
+                        onClick={() => setDeleteTargetCategory(cat)}
+                        title="Remove category from all notes"
+                      >
+                        <Trash className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
                 </li>
               ))
             )}
