@@ -9,6 +9,7 @@ import {
   doc,
   deleteDoc,
   updateDoc,
+  writeBatch,
 } from "firebase/firestore";
 import { db, getUserByEmail, getUserByCode } from "./firebaseDB";
 import { Notice } from "../pages/InternalNotices";
@@ -196,6 +197,78 @@ export const getNoticeCategories = async (): Promise<string[]> => {
   } catch (error) {
     return [];
   }
+};
+
+const normalizeCategory = (value: string) => value.trim().toUpperCase();
+
+/**
+ * Rename a category on every notice that uses it (admin bulk update).
+ */
+export const renameNoticeCategoryEverywhere = async (
+  fromCategory: string,
+  toCategory: string
+): Promise<{ updated: number }> => {
+  const from = normalizeCategory(fromCategory);
+  const to = normalizeCategory(toCategory);
+  if (!from || !to || from === to) {
+    return { updated: 0 };
+  }
+
+  const snapshot = await getDocs(collection(db, COLLECTION_NAME));
+  const matching = snapshot.docs.filter(
+    (d) => normalizeCategory(String(d.data().category ?? "")) === from
+  );
+
+  const BATCH_LIMIT = 500;
+  let updated = 0;
+  for (let i = 0; i < matching.length; i += BATCH_LIMIT) {
+    const chunk = matching.slice(i, i + BATCH_LIMIT);
+    const batch = writeBatch(db);
+    for (const snap of chunk) {
+      batch.update(doc(db, COLLECTION_NAME, snap.id), {
+        category: to,
+        updatedAt: serverTimestamp(),
+      });
+    }
+    await batch.commit();
+    updated += chunk.length;
+  }
+
+  return { updated };
+};
+
+/**
+ * Remove a category label from every notice that uses it (notes are kept; category cleared).
+ */
+export const clearNoticeCategoryEverywhere = async (
+  category: string
+): Promise<{ updated: number }> => {
+  const cat = normalizeCategory(category);
+  if (!cat) {
+    return { updated: 0 };
+  }
+
+  const snapshot = await getDocs(collection(db, COLLECTION_NAME));
+  const matching = snapshot.docs.filter(
+    (d) => normalizeCategory(String(d.data().category ?? "")) === cat
+  );
+
+  const BATCH_LIMIT = 500;
+  let updated = 0;
+  for (let i = 0; i < matching.length; i += BATCH_LIMIT) {
+    const chunk = matching.slice(i, i + BATCH_LIMIT);
+    const batch = writeBatch(db);
+    for (const snap of chunk) {
+      batch.update(doc(db, COLLECTION_NAME, snap.id), {
+        category: "",
+        updatedAt: serverTimestamp(),
+      });
+    }
+    await batch.commit();
+    updated += chunk.length;
+  }
+
+  return { updated };
 };
 
 /**

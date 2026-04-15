@@ -35,8 +35,10 @@ service cloud.firestore {
       allow create: if request.auth != null;
       
       // Allow users to update/delete only their own notes.
+      // Admins may update/delete any note (e.g. bulk category rename/clear on Notes).
       // Backwards compatible: older notes stored author as email, newer as userCode.
       allow update, delete: if request.auth != null && (
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
         resource.data.author == request.auth.token.email ||
         resource.data.author ==
           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.userCode

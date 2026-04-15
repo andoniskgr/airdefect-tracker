@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Card,
   CardContent,
@@ -42,9 +42,21 @@ import {
   deleteNotice,
   getNoticeCategories,
   getEmailToUserCode,
+  renameNoticeCategoryEverywhere,
+  clearNoticeCategoryEverywhere,
 } from "../utils/noticeUtils";
-import { PlusCircle, Edit, Trash, Eye, EyeOff, Search } from "lucide-react";
+import { PlusCircle, Edit, Trash, Eye, EyeOff, Search, Tags, Pencil } from "lucide-react";
 import { LinkifiedText } from "@/components/LinkifiedText";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 // Define the Notice type
 export interface Notice {
@@ -70,6 +82,10 @@ const InternalNotices = () => {
   const [newCategory, setNewCategory] = useState("");
   const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
   const [emailToUserCodeMap, setEmailToUserCodeMap] = useState<Record<string, string>>({});
+  const [manageCategoriesOpen, setManageCategoriesOpen] = useState(false);
+  const [renameTarget, setRenameTarget] = useState<string | null>(null);
+  const [renameNewValue, setRenameNewValue] = useState("");
+  const [deleteTargetCategory, setDeleteTargetCategory] = useState<string | null>(null);
 
   const form = useForm<Omit<Notice, "id" | "date" | "author">>({
     defaultValues: {
@@ -132,6 +148,20 @@ const InternalNotices = () => {
     setEmailToUserCodeMap(mapping);
   };
 
+  const reloadNoticesAndCategories = useCallback(async () => {
+    const isAdmin = userData?.role === "admin";
+    const [updatedNotices, updatedCategories] = await Promise.all([
+      getNotices(
+        { userCode: userData?.userCode, email: currentUser?.email || undefined },
+        isAdmin
+      ),
+      getNoticeCategories(),
+    ]);
+    setNotices(updatedNotices);
+    setCategories(updatedCategories);
+    await buildEmailToUserCodeMap(updatedNotices);
+  }, [currentUser, userData]);
+
   useEffect(() => {
     // Load notices and categories on component mount
     const loadData = async () => {
@@ -141,7 +171,7 @@ const InternalNotices = () => {
         const identity = { userCode: userData?.userCode, email: currentUser?.email || undefined };
         const [loadedNotices, loadedCategories] = await Promise.all([
           getNotices(identity, isAdmin),
-          getNoticeCategories()
+          getNoticeCategories(),
         ]);
         setNotices(loadedNotices);
         setCategories(loadedCategories);
@@ -166,6 +196,61 @@ const InternalNotices = () => {
       }
       setNewCategory("");
       setShowNewCategoryInput(false);
+    }
+  };
+
+  const handleConfirmRenameCategory = async () => {
+    if (!renameTarget) return;
+    const next = renameNewValue.trim().toUpperCase();
+    if (!next) {
+      toast.error("Enter a new category name");
+      return;
+    }
+    if (next === renameTarget.trim().toUpperCase()) {
+      toast.error("New name must be different from the current one");
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const { updated } = await renameNoticeCategoryEverywhere(renameTarget, next);
+      if (updated === 0) {
+        toast.message("No notes used that category.");
+      } else {
+        toast.success(
+          `Renamed category on ${updated} note${updated === 1 ? "" : "s"}.`
+        );
+      }
+      setRenameTarget(null);
+      setRenameNewValue("");
+      await reloadNoticesAndCategories();
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to rename category.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleConfirmDeleteCategory = async () => {
+    if (!deleteTargetCategory) return;
+    setIsLoading(true);
+    try {
+      const { updated } = await clearNoticeCategoryEverywhere(deleteTargetCategory);
+      if (updated === 0) {
+        toast.message("No notes had that category.");
+      } else {
+        toast.success(
+          `Removed category from ${updated} note${updated === 1 ? "" : "s"}.`
+        );
+      }
+      setDeleteTargetCategory(null);
+      setManageCategoriesOpen(false);
+      await reloadNoticesAndCategories();
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to remove category.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -318,7 +403,7 @@ const InternalNotices = () => {
     const searchLower = searchTerm.toLowerCase();
     return (
       notice.title.toLowerCase().includes(searchLower) ||
-      notice.category.toLowerCase().includes(searchLower) ||
+      (notice.category || "").toLowerCase().includes(searchLower) ||
       notice.description.toLowerCase().includes(searchLower) ||
       notice.content.toLowerCase().includes(searchLower) ||
       notice.author.toLowerCase().includes(searchLower)
@@ -350,10 +435,23 @@ const InternalNotices = () => {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Notes</h1>
 
-          <Button className="flex items-center gap-2" onClick={openAddDialog}>
-            <PlusCircle size={18} />
-            <span>Add Note</span>
-          </Button>
+          <div className="flex items-center gap-2">
+            {userData?.role === "admin" && (
+              <Button
+                type="button"
+                variant="secondary"
+                className="flex items-center gap-2 bg-slate-600 text-white border-slate-500 hover:bg-slate-500 hover:text-white"
+                onClick={() => setManageCategoriesOpen(true)}
+              >
+                <Tags size={18} />
+                <span>Categories</span>
+              </Button>
+            )}
+            <Button className="flex items-center gap-2" onClick={openAddDialog}>
+              <PlusCircle size={18} />
+              <span>Add Note</span>
+            </Button>
+          </div>
         </div>
 
         {/* Search Input */}
@@ -404,7 +502,9 @@ const InternalNotices = () => {
                       </CardTitle>
                       <div className="flex gap-2 mt-2">
                         <div className="inline-block px-2 py-1 rounded-full bg-primary/10 text-primary text-xs">
-                          {notice.category}
+                          {notice.category?.trim()
+                            ? notice.category
+                            : "Uncategorized"}
                         </div>
                         <div
                           className={`inline-block px-2 py-1 rounded-full text-xs ${
@@ -466,7 +566,10 @@ const InternalNotices = () => {
                       </DialogHeader>
                       <div className="flex flex-col gap-2">
                         <div className="text-sm text-muted-foreground">
-                          Category: {notice.category}
+                          Category:{" "}
+                          {notice.category?.trim()
+                            ? notice.category
+                            : "Uncategorized"}
                         </div>
                         <div className="text-sm text-muted-foreground">
                           Posted on {new Date(notice.date).toLocaleDateString()}{" "}
@@ -499,6 +602,136 @@ const InternalNotices = () => {
           </div>
         )}
       </div>
+
+      <Dialog
+        open={manageCategoriesOpen}
+        onOpenChange={(open) => {
+          setManageCategoriesOpen(open);
+          if (!open) {
+            setRenameTarget(null);
+            setRenameNewValue("");
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-[480px] text-card-foreground">
+          <DialogHeader>
+            <DialogTitle>Manage categories</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Rename updates every note that uses the category. Delete removes the
+            label only; notes are kept (they appear as uncategorized until you
+            assign a category again).
+          </p>
+          {renameTarget && (
+            <div className="space-y-2 rounded-md border border-slate-500 p-3 bg-slate-800/50">
+              <p className="text-sm font-medium text-white">
+                Rename &quot;{renameTarget}&quot;
+              </p>
+              <Input
+                value={renameNewValue}
+                onChange={(e) =>
+                  setRenameNewValue(e.target.value.toUpperCase())
+                }
+                style={{ textTransform: "uppercase" }}
+                placeholder="New category name"
+                className="bg-card"
+              />
+              <div className="flex justify-end gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setRenameTarget(null);
+                    setRenameNewValue("");
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => void handleConfirmRenameCategory()}
+                  disabled={
+                    isLoading ||
+                    !renameNewValue.trim() ||
+                    renameNewValue.trim().toUpperCase() ===
+                      renameTarget.trim().toUpperCase()
+                  }
+                >
+                  Save
+                </Button>
+              </div>
+            </div>
+          )}
+          <ul className="max-h-[50vh] space-y-2 overflow-y-auto">
+            {categories.length === 0 ? (
+              <li className="text-sm text-muted-foreground">No categories yet.</li>
+            ) : (
+              categories.map((cat) => (
+                <li
+                  key={cat}
+                  className="flex items-center justify-between gap-2 rounded-md bg-muted/30 px-3 py-2"
+                >
+                  <span className="truncate text-sm font-medium">{cat}</span>
+                  <div className="flex shrink-0 gap-1">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-foreground hover:bg-muted hover:text-foreground"
+                      onClick={() => {
+                        setRenameTarget(cat);
+                        setRenameNewValue(cat);
+                      }}
+                      title="Rename category"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-muted"
+                      onClick={() => setDeleteTargetCategory(cat)}
+                      title="Remove category from all notes"
+                    >
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </li>
+              ))
+            )}
+          </ul>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog
+        open={deleteTargetCategory !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTargetCategory(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove category?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This removes the &quot;{deleteTargetCategory}&quot; label from
+              every note that uses it. No notes are deleted.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isLoading}>Cancel</AlertDialogCancel>
+            <Button
+              variant="destructive"
+              disabled={isLoading}
+              onClick={() => void handleConfirmDeleteCategory()}
+            >
+              {isLoading ? "Working…" : "Remove category"}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Add/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
