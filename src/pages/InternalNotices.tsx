@@ -599,7 +599,10 @@ const InternalNotices = () => {
                           by {notice.author}
                         </div>
                         <div className="mt-4 whitespace-pre-wrap break-words">
-                          <LinkifiedText text={notice.content} />
+                          <LinkifiedText
+                            text={notice.content}
+                            zoomableImages
+                          />
                         </div>
                       </div>
                     </DialogContent>
