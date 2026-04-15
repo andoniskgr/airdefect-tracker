@@ -2,6 +2,7 @@
 import { useState, useCallback } from "react";
 import { DefectRecord } from "../components/defect-records/DefectRecord.types";
 import { saveRecord } from "../utils/firebaseDB";
+import { notifyDefectRecordChange } from "../utils/defectNotifications";
 import { createInitialHistory, trackFieldChanges } from "../utils/historyUtils";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -58,7 +59,8 @@ export const useDefectForm = (currentUserEmail: string | null | undefined) => {
       // Create initial history for the new record
       newRecord.history = createInitialHistory(newRecord, userEmail);
       
-      await saveRecord(newRecord);
+      const id = await saveRecord(newRecord);
+      notifyDefectRecordChange({ ...newRecord, id }, id, "created");
       
       toast.success("Record added successfully!");
       setIsAddModalOpen(false);
@@ -97,6 +99,7 @@ export const useDefectForm = (currentUserEmail: string | null | undefined) => {
       }
       
       await saveRecord(updatedRecord);
+      notifyDefectRecordChange(updatedRecord, updatedRecord.id, "updated");
       
       toast.success("Record updated successfully!");
       setIsEditModalOpen(false);

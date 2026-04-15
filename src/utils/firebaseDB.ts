@@ -105,8 +105,8 @@ export const recordExists = async (id: string): Promise<boolean> => {
   }
 };
 
-// Save a single record
-export const saveRecord = async (record: DefectRecord): Promise<void> => {
+// Save a single record; returns Firestore document id
+export const saveRecord = async (record: DefectRecord): Promise<string> => {
   try {
     // Check if this is a new record or an existing one
     if (record.id && record.id.trim() !== '') {
@@ -121,6 +121,7 @@ export const saveRecord = async (record: DefectRecord): Promise<void> => {
       
       const recordRef = doc(db, COLLECTION_NAME, id);
       await updateDoc(recordRef, recordWithoutId);
+      return id;
     } else {
       // This is a new record, let Firestore generate an ID
       const newDocRef = await addDoc(collection(db, COLLECTION_NAME), 
@@ -129,6 +130,7 @@ export const saveRecord = async (record: DefectRecord): Promise<void> => {
           Object.entries(record).filter(([key]) => key !== 'id')
         )
       );
+      return newDocRef.id;
     }
   } catch (error) {
     

@@ -1,6 +1,7 @@
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { deleteRecord, deleteRecordsByDate, deleteRecordsByDates, deleteAllRecords, saveArchivedDate, removeArchivedDate, getUserArchivedDates, saveRecord } from "../../utils/firebaseDB";
+import { notifyDefectRecordChange } from "../../utils/defectNotifications";
 import { DefectRecord } from "../../components/defect-records/DefectRecord.types";
 import { trackFieldChanges, createInitialHistory } from "../../utils/historyUtils";
 import { Dispatch, SetStateAction, useEffect } from "react";
@@ -67,6 +68,7 @@ export const useRecordOperations = (
       }
 
       await saveRecord(updatedRecord);
+      notifyDefectRecordChange(updatedRecord, updatedRecord.id, "updated");
       
       const visibilityText = newVisibility ? 'public' : 'private';
       toast.success(`Record is now ${visibilityText}!`);
@@ -95,6 +97,7 @@ export const useRecordOperations = (
       }
       
       await saveRecord(updatedRecord);
+      notifyDefectRecordChange(updatedRecord, updatedRecord.id, "updated");
       // Toast messages are handled by the calling component
     } catch (error) {
       throw error; // Re-throw to let the calling component handle the error
