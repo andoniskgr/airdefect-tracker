@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   Card,
   CardContent,
@@ -22,6 +22,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormDescription,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -47,6 +48,11 @@ import {
 } from "../utils/noticeUtils";
 import { PlusCircle, Edit, Trash, Eye, EyeOff, Search, Tags, Pencil } from "lucide-react";
 import { LinkifiedText } from "@/components/LinkifiedText";
+import {
+  getImageBlobFromClipboard,
+  imageBlobToCompressedJpegDataUrl,
+  NOTE_CONTENT_MAX_CHARS,
+} from "@/utils/noteClipboardImage";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -87,6 +93,7 @@ const InternalNotices = () => {
   const [renameNewValue, setRenameNewValue] = useState("");
   const [deleteTargetCategory, setDeleteTargetCategory] = useState<string | null>(null);
   const [manageNewCategory, setManageNewCategory] = useState("");
+  const contentTextareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const form = useForm<Omit<Notice, "id" | "date" | "author">>({
     defaultValues: {
@@ -944,11 +951,62 @@ const InternalNotices = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Full Content</FormLabel>
+                    <FormDescription>
+                      Paste text as usual. To add a picture, copy it to the
+                      clipboard and press Ctrl+V (or ⌘V) while this field is
+                      focused; the image is stored in the note.
+                    </FormDescription>
                     <FormControl>
                       <Textarea
                         placeholder="Paste the full email content here"
                         className="min-h-[200px]"
-                        {...field}
+                        name={field.name}
+                        ref={(el) => {
+                          field.ref(el);
+                          contentTextareaRef.current = el;
+                        }}
+                        value={field.value}
+                        onBlur={field.onBlur}
+                        onChange={field.onChange}
+                        onPaste={(e) => {
+                          void (async () => {
+                            const blob = getImageBlobFromClipboard(
+                              e.nativeEvent
+                            );
+                            if (!blob) return;
+                            e.preventDefault();
+                            const ta = e.currentTarget;
+                            const start = ta.selectionStart;
+                            const end = ta.selectionEnd;
+                            const v = field.value ?? "";
+                            try {
+                              const dataUrl =
+                                await imageBlobToCompressedJpegDataUrl(blob);
+                              const insert = `\n${dataUrl}\n`;
+                              const newV =
+                                v.slice(0, start) + insert + v.slice(end);
+                              if (newV.length > NOTE_CONTENT_MAX_CHARS) {
+                                toast.error(
+                                  "That image makes the note too large to save. Try a smaller screenshot."
+                                );
+                                return;
+                              }
+                              field.onChange(newV);
+                              const caret = start + insert.length;
+                              setTimeout(() => {
+                                contentTextareaRef.current?.focus();
+                                contentTextareaRef.current?.setSelectionRange(
+                                  caret,
+                                  caret
+                                );
+                              }, 0);
+                            } catch {
+                              toast.error(
+                                "Could not paste image from clipboard."
+                              );
+                            }
+                          })();
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
