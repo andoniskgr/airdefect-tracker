@@ -15,6 +15,7 @@ import { ActionButtons } from "./form-components/ActionButtons";
 import { useDefectValidation } from "@/hooks/defect-records/useDefectValidation";
 import { useDefectKeyboardNavigation } from "@/hooks/defect-records/useDefectKeyboardNavigation";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useMobileFormScrollViewport } from "@/hooks/useMobileFormScrollViewport";
 import { cn } from "@/lib/utils";
 
 interface MobileEditDefectModalProps {
@@ -40,6 +41,7 @@ export const MobileEditDefectModal = ({
   const defectRef = useRef<HTMLInputElement>(null);
   const remarksRef = useRef<HTMLInputElement>(null);
   const timeRef = useRef<HTMLInputElement>(null);
+  const mobileScrollRef = useRef<HTMLDivElement>(null);
 
   const { validationErrors, setValidationErrors, validateField, validateForm } =
     useDefectValidation();
@@ -48,6 +50,11 @@ export const MobileEditDefectModal = ({
     refs: { registrationRef, stationRef, defectRef, remarksRef },
     validateAndSubmit: () => {},
   });
+
+  const { bottomInsetPx, maxHeightPx } = useMobileFormScrollViewport(
+    isOpen && isMobile,
+    mobileScrollRef
+  );
 
   // Update form data when record prop changes
   useEffect(() => {
@@ -116,10 +123,29 @@ export const MobileEditDefectModal = ({
         }}
       >
         <div
+          ref={mobileScrollRef}
           className={cn(
             isMobile &&
               "flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch]"
           )}
+          style={
+            isMobile
+              ? {
+                  maxHeight:
+                    maxHeightPx != null ? `${maxHeightPx}px` : undefined,
+                  paddingBottom: Math.max(48, 36 + bottomInsetPx),
+                }
+              : undefined
+          }
+          onFocusCapture={(e) => {
+            if (!isMobile) return;
+            const root = e.currentTarget;
+            const t = e.target as HTMLElement;
+            if (t === root || !root.contains(t)) return;
+            requestAnimationFrame(() => {
+              t.scrollIntoView({ block: "nearest", inline: "nearest" });
+            });
+          }}
         >
           <DialogHeader>
             <DialogTitle
@@ -129,7 +155,7 @@ export const MobileEditDefectModal = ({
             </DialogTitle>
           </DialogHeader>
 
-          <div className={cn("grid gap-4 py-4", isMobile && "gap-6 pb-8")}>
+          <div className={cn("grid gap-4 py-4", isMobile && "gap-6")}>
             <DateTimeSection
               date={formData.date}
               time={formData.time}
