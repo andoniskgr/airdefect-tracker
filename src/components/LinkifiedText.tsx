@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 
@@ -13,23 +13,52 @@ type LinkifiedTextProps = {
   zoomableImages?: boolean;
 };
 
+function getDataImageSources(text: string): string[] {
+  const parts = text.split(URL_OR_DATA_IMAGE);
+  const out: string[] = [];
+  for (const part of parts) {
+    if (/^data:image\//i.test(part)) out.push(part);
+  }
+  return out;
+}
+
 function ImageLightbox({
-  src,
+  sources,
+  index,
+  onNavigate,
   onClose,
 }: {
-  src: string;
+  sources: string[];
+  index: number;
+  onNavigate: (next: number) => void;
   onClose: () => void;
 }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "Escape") return;
-      e.preventDefault();
-      e.stopPropagation();
-      onClose();
+      if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        onClose();
+        return;
+      }
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        e.stopPropagation();
+        if (index > 0) onNavigate(index - 1);
+        return;
+      }
+      if (e.key === "ArrowRight") {
+        e.preventDefault();
+        e.stopPropagation();
+        if (index < sources.length - 1) onNavigate(index + 1);
+        return;
+      }
     };
     window.addEventListener("keydown", onKey, true);
     return () => window.removeEventListener("keydown", onKey, true);
-  }, [onClose]);
+  }, [onClose, onNavigate, index, sources.length]);
+
+  const src = sources[index] ?? "";
 
   return createPortal(
     <div
@@ -37,6 +66,12 @@ function ImageLightbox({
       onClick={onClose}
       role="presentation"
     >
+      {sources.length > 1 && (
+        <div className="pointer-events-none absolute bottom-6 left-1/2 z-[201] -translate-x-1/2 rounded-full bg-black/65 px-3 py-1.5 text-sm tabular-nums text-white shadow-lg">
+          {index + 1} / {sources.length}
+          <span className="ml-2 text-white/70">← →</span>
+        </div>
+      )}
       <img
         src={src}
         alt=""
@@ -56,9 +91,23 @@ export function LinkifiedText({
   className,
   zoomableImages = false,
 }: LinkifiedTextProps) {
-  const [zoomSrc, setZoomSrc] = useState<string | null>(null);
+  const [zoomIndex, setZoomIndex] = useState<number | null>(null);
+  const imageSrcs = useMemo(() => getDataImageSources(text), [text]);
+
+  useEffect(() => {
+    if (zoomIndex === null) return;
+    if (imageSrcs.length === 0) {
+      setZoomIndex(null);
+      return;
+    }
+    if (zoomIndex >= imageSrcs.length) {
+      setZoomIndex(imageSrcs.length - 1);
+    }
+  }, [imageSrcs.length, zoomIndex, text]);
+
   const parts = text.split(URL_OR_DATA_IMAGE);
   const nodes: ReactNode[] = [];
+  let imgSerial = 0;
 
   for (let i = 0; i < parts.length; i++) {
     const part = parts[i];
@@ -75,6 +124,7 @@ export function LinkifiedText({
         </a>
       );
     } else if (/^data:image\//i.test(part)) {
+      const imgIndex = imgSerial++;
       nodes.push(
         <img
           key={i}
@@ -86,14 +136,14 @@ export function LinkifiedText({
               "cursor-zoom-in transition-opacity hover:opacity-90"
           )}
           onClick={
-            zoomableImages ? () => setZoomSrc(part) : undefined
+            zoomableImages ? () => setZoomIndex(imgIndex) : undefined
           }
           onKeyDown={
             zoomableImages
               ? (e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
-                    setZoomSrc(part);
+                    setZoomIndex(imgIndex);
                   }
                 }
               : undefined
@@ -112,8 +162,13 @@ export function LinkifiedText({
       <span className={cn("whitespace-pre-wrap break-words", className)}>
         {nodes}
       </span>
-      {zoomSrc ? (
-        <ImageLightbox src={zoomSrc} onClose={() => setZoomSrc(null)} />
+      {zoomIndex !== null && imageSrcs.length > 0 ? (
+        <ImageLightbox
+          sources={imageSrcs}
+          index={zoomIndex}
+          onNavigate={setZoomIndex}
+          onClose={() => setZoomIndex(null)}
+        />
       ) : null}
     </>
   );
