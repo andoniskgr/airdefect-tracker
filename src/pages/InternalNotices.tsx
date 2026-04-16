@@ -63,6 +63,18 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+
+const HIDE_PRIVATE_NOTES_STORAGE_KEY = "internalNotices.hidePrivateNotes";
+
+function readHidePrivateNotesPreference(): boolean {
+  try {
+    return localStorage.getItem(HIDE_PRIVATE_NOTES_STORAGE_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
 
 // Define the Notice type
 export interface Notice {
@@ -94,6 +106,20 @@ const InternalNotices = () => {
   const [deleteTargetCategory, setDeleteTargetCategory] = useState<string | null>(null);
   const [manageNewCategory, setManageNewCategory] = useState("");
   const contentTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const [hidePrivateNotes, setHidePrivateNotes] = useState(
+    readHidePrivateNotesPreference
+  );
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        HIDE_PRIVATE_NOTES_STORAGE_KEY,
+        hidePrivateNotes ? "true" : "false"
+      );
+    } catch {
+      /* ignore quota / private mode */
+    }
+  }, [hidePrivateNotes]);
 
   const form = useForm<Omit<Notice, "id" | "date" | "author">>({
     defaultValues: {
@@ -419,10 +445,13 @@ const InternalNotices = () => {
     }
   };
 
-  // Filter notices based on search term
+  // Filter notices (optional hide private) and search term
   const filteredNotices = notices.filter((notice) => {
+    if (hidePrivateNotes && notice.visibility === "private") {
+      return false;
+    }
     if (!searchTerm.trim()) return true;
-    
+
     const searchLower = searchTerm.toLowerCase();
     return (
       notice.title.toLowerCase().includes(searchLower) ||
@@ -475,23 +504,44 @@ const InternalNotices = () => {
           </div>
         </div>
 
-        {/* Search Input */}
-        <div className="mb-6">
-          <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-            <Input
-              type="text"
-              placeholder="Search notices by title, category, description, content, or author..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-card text-card-foreground border-slate-500 placeholder-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20"
-            />
+        {/* Search + view options */}
+        <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="w-full max-w-md flex-1">
+            <div className="relative">
+              <Search
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                size={18}
+              />
+              <Input
+                type="text"
+                placeholder="Search notices by title, category, description, content, or author..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 bg-card text-card-foreground border-slate-500 placeholder-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20"
+              />
+            </div>
+            {searchTerm && (
+              <p className="text-sm text-gray-400 mt-2">
+                {filteredNotices.length} notice
+                {filteredNotices.length !== 1 ? "s" : ""} found
+              </p>
+            )}
           </div>
-          {searchTerm && (
-            <p className="text-sm text-gray-400 mt-2">
-              {filteredNotices.length} notice{filteredNotices.length !== 1 ? 's' : ''} found
-            </p>
-          )}
+          <div className="flex items-center gap-3 rounded-md border border-slate-500 bg-slate-600 px-3 py-2 shrink-0 text-white transition-colors hover:bg-slate-500">
+            <Switch
+              id="hide-private-notes"
+              checked={hidePrivateNotes}
+              onCheckedChange={setHidePrivateNotes}
+              className="h-7 w-[3.25rem] border-2 border-slate-500 bg-slate-700 shadow-[inset_0_2px_4px_rgba(0,0,0,0.25)] transition-colors data-[state=checked]:border-slate-400 data-[state=checked]:bg-slate-500 data-[state=unchecked]:border-slate-500 data-[state=unchecked]:bg-slate-700 focus-visible:ring-2 focus-visible:ring-slate-300/80 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-600"
+              thumbClassName="h-6 w-6 border border-slate-300/40 bg-gradient-to-b from-white to-slate-200 shadow-sm data-[state=checked]:!translate-x-7 data-[state=unchecked]:!translate-x-0.5 data-[state=unchecked]:from-white data-[state=unchecked]:to-slate-200"
+            />
+            <Label
+              htmlFor="hide-private-notes"
+              className="cursor-pointer text-sm font-medium text-white leading-snug"
+            >
+              Hide private notes
+            </Label>
+          </div>
         </div>
 
         {isLoading && notices.length === 0 ? (
@@ -618,6 +668,21 @@ const InternalNotices = () => {
               className="mt-4 bg-slate-600 text-white border-slate-500 hover:bg-slate-700 hover:text-white"
             >
               Clear Search
+            </Button>
+          </div>
+        ) : notices.length > 0 ? (
+          <div className="text-center py-8 max-w-md mx-auto">
+            <p>
+              Nothing to show with the current filters. Private notes are hidden
+              from this list.
+            </p>
+            <Button
+              type="button"
+              variant="secondary"
+              className="mt-4 bg-slate-600 text-white border-slate-500 hover:bg-slate-700 hover:text-white"
+              onClick={() => setHidePrivateNotes(false)}
+            >
+              Show private notes
             </Button>
           </div>
         ) : (
