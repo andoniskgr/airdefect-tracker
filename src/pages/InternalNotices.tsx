@@ -8,6 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useAuth } from "../context/AuthContext";
 import {
   Dialog,
@@ -46,7 +47,17 @@ import {
   renameNoticeCategoryEverywhere,
   clearNoticeCategoryEverywhere,
 } from "../utils/noticeUtils";
-import { PlusCircle, Edit, Trash, Eye, EyeOff, Search, Tags, Pencil } from "lucide-react";
+import {
+  PlusCircle,
+  Edit,
+  Trash,
+  Eye,
+  EyeOff,
+  Search,
+  Tags,
+  Pencil,
+  X,
+} from "lucide-react";
 import { LinkifiedText } from "@/components/LinkifiedText";
 import {
   getImageBlobFromClipboard,
@@ -81,11 +92,24 @@ export interface Notice {
   id?: string;
   title: string;
   category: string;
-  description: string;
+  /** Searchable labels; stored in Firestore as `tags` (legacy brief text lives in `description` until migrated on edit). */
+  tags: string[];
   content: string;
   date: string;
   author: string;
   visibility: "public" | "private";
+}
+
+function normalizeTagsList(tags: string[]): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const raw of tags) {
+    const t = raw.trim().toUpperCase();
+    if (!t || seen.has(t)) continue;
+    seen.add(t);
+    out.push(t);
+  }
+  return out;
 }
 
 const InternalNotices = () => {
@@ -106,6 +130,7 @@ const InternalNotices = () => {
   const [deleteTargetCategory, setDeleteTargetCategory] = useState<string | null>(null);
   const [manageNewCategory, setManageNewCategory] = useState("");
   const contentTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const [tagDraft, setTagDraft] = useState("");
   const [hidePrivateNotes, setHidePrivateNotes] = useState(
     readHidePrivateNotesPreference
   );
@@ -125,7 +150,7 @@ const InternalNotices = () => {
     defaultValues: {
       title: "",
       category: "",
-      description: "",
+      tags: [],
       content: "",
       visibility: "public" as const,
     },
@@ -138,7 +163,7 @@ const InternalNotices = () => {
       form.reset({
         title: selectedNotice.title,
         category: selectedNotice.category,
-        description: selectedNotice.description,
+        tags: [...(selectedNotice.tags ?? [])],
         content: selectedNotice.content,
         visibility: selectedNotice.visibility,
       });
@@ -147,12 +172,28 @@ const InternalNotices = () => {
       form.reset({
         title: "",
         category: "",
-        description: "",
+        tags: [],
         content: "",
         visibility: "public" as const,
       });
     }
+    setTagDraft("");
   }, [selectedNotice, isEditing, form]);
+
+  const appendTag = useCallback(
+    (raw: string) => {
+      const t = raw.trim().toUpperCase();
+      if (!t) return;
+      const current = form.getValues("tags") ?? [];
+      if (current.includes(t)) {
+        toast.message("That tag is already added.");
+        return;
+      }
+      form.setValue("tags", [...current, t], { shouldDirty: true });
+      setTagDraft("");
+    },
+    [form]
+  );
 
   // Load categories
   const loadCategories = async () => {
@@ -329,6 +370,7 @@ const InternalNotices = () => {
         ...values,
         title: values.title.toUpperCase(),
         category: values.category.toUpperCase(),
+        tags: normalizeTagsList(values.tags ?? []),
       };
 
       if (isEditing && selectedNotice?.id) {
@@ -348,6 +390,7 @@ const InternalNotices = () => {
       }
 
       // Reset form and close dialog
+      setTagDraft("");
       form.reset();
       setIsEditing(false);
       setSelectedNotice(null);
@@ -456,7 +499,9 @@ const InternalNotices = () => {
     return (
       notice.title.toLowerCase().includes(searchLower) ||
       (notice.category || "").toLowerCase().includes(searchLower) ||
-      notice.description.toLowerCase().includes(searchLower) ||
+      (notice.tags ?? []).some((tag) =>
+        tag.toLowerCase().includes(searchLower)
+      ) ||
       notice.content.toLowerCase().includes(searchLower) ||
       notice.author.toLowerCase().includes(searchLower)
     );
@@ -474,10 +519,11 @@ const InternalNotices = () => {
     form.reset({
       title: "",
       category: "",
-      description: "",
+      tags: [],
       content: "",
       visibility: "public" as const,
     });
+    setTagDraft("");
     setDialogOpen(true);
   };
 
@@ -514,7 +560,7 @@ const InternalNotices = () => {
               />
               <Input
                 type="text"
-                placeholder="Search notices by title, category, description, content, or author..."
+                placeholder="Search by title, category, tags, content, or author..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 bg-card text-card-foreground border-slate-500 placeholder-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20"
@@ -618,7 +664,21 @@ const InternalNotices = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <p>{notice.description}</p>
+                  {(notice.tags ?? []).length > 0 ? (
+                    <div className="flex flex-wrap gap-1.5">
+                      {(notice.tags ?? []).map((tag) => (
+                        <Badge
+                          key={tag}
+                          variant="secondary"
+                          className="text-xs font-normal"
+                        >
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No tags</p>
+                  )}
                 </CardContent>
                 <CardFooter className="flex justify-end">
                   <Dialog>
@@ -646,6 +706,19 @@ const InternalNotices = () => {
                           Posted on {new Date(notice.date).toLocaleDateString()}{" "}
                           by {notice.author}
                         </div>
+                        {(notice.tags ?? []).length > 0 && (
+                          <div className="mt-2 flex flex-wrap gap-1.5">
+                            {(notice.tags ?? []).map((tag) => (
+                              <Badge
+                                key={tag}
+                                variant="secondary"
+                                className="text-xs font-normal"
+                              >
+                                {tag}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
                         <div className="mt-4 whitespace-pre-wrap break-words">
                           <LinkifiedText
                             text={notice.content}
@@ -1008,16 +1081,67 @@ const InternalNotices = () => {
 
               <FormField
                 control={form.control}
-                name="description"
+                name="tags"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Brief Description</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Short description for the notice card"
-                        {...field}
-                      />
-                    </FormControl>
+                    <FormLabel>Tags</FormLabel>
+                    <FormDescription>
+                      Add one or more tags to make this note easier to find when
+                      you search.
+                    </FormDescription>
+                    <div className="flex flex-col gap-2">
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="e.g. ENGINE"
+                          value={tagDraft}
+                          onChange={(e) =>
+                            setTagDraft(e.target.value.toUpperCase())
+                          }
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              appendTag(tagDraft);
+                            }
+                          }}
+                          style={{ textTransform: "uppercase" }}
+                          className="bg-card flex-1"
+                        />
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          className="shrink-0"
+                          disabled={!tagDraft.trim()}
+                          onClick={() => appendTag(tagDraft)}
+                        >
+                          Add
+                        </Button>
+                      </div>
+                      {field.value && field.value.length > 0 ? (
+                        <div className="flex flex-wrap gap-2">
+                          {field.value.map((tag) => (
+                            <Badge
+                              key={tag}
+                              variant="secondary"
+                              className="flex items-center gap-1 pr-1 font-normal"
+                            >
+                              {tag}
+                              <button
+                                type="button"
+                                className="rounded-full p-0.5 hover:bg-muted"
+                                onClick={() =>
+                                  field.onChange(
+                                    field.value.filter((x) => x !== tag)
+                                  )
+                                }
+                                aria-label={`Remove ${tag}`}
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </Badge>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -1099,6 +1223,7 @@ const InternalNotices = () => {
                   onClick={() => {
                     setDialogOpen(false);
                     setIsEditing(false);
+                    setTagDraft("");
                     form.reset();
                   }}
                 >

@@ -8,6 +8,7 @@ import {
   getDoc,
   doc,
   deleteDoc,
+  deleteField,
   updateDoc,
   writeBatch,
 } from "firebase/firestore";
@@ -15,6 +16,24 @@ import { db, getUserByEmail, getUserByCode } from "./firebaseDB";
 import { Notice } from "../pages/InternalNotices";
 
 const COLLECTION_NAME = "internalNotices";
+
+function parseTagsFromDoc(data: {
+  tags?: unknown;
+  description?: unknown;
+}): string[] {
+  if (Array.isArray(data.tags)) {
+    const list = data.tags
+      .filter((t): t is string => typeof t === "string")
+      .map((t) => t.trim())
+      .filter(Boolean)
+      .map((t) => t.toUpperCase());
+    return [...new Set(list)];
+  }
+  if (typeof data.description === "string" && data.description.trim()) {
+    return [data.description.trim().toUpperCase()];
+  }
+  return [];
+}
 
 /**
  * Add a new notice to Firestore
@@ -49,7 +68,7 @@ export const getAllNotices = async (): Promise<Notice[]> => {
         id: doc.id,
         title: data.title,
         category: data.category,
-        description: data.description,
+        tags: parseTagsFromDoc(data),
         content: data.content,
         date: data.date,
         author: data.author,
@@ -82,7 +101,7 @@ export const getNotices = async (
         id: doc.id,
         title: data.title,
         category: data.category,
-        description: data.description,
+        tags: parseTagsFromDoc(data),
         content: data.content,
         date: data.date,
         author: data.author,
@@ -128,7 +147,7 @@ export const getNoticeById = async (id: string): Promise<Notice | null> => {
         id: docSnap.id,
         title: data.title,
         category: data.category,
-        description: data.description,
+        tags: parseTagsFromDoc(data),
         content: data.content,
         date: data.date,
         author: data.author,
@@ -151,11 +170,16 @@ export const updateNotice = async (id: string, notice: Partial<Notice>): Promise
     
     // Don't include updatedAt in the notice object to prevent it from overriding serverTimestamp()
     const { id: _, ...noticeData } = notice as any;
-    
-    await updateDoc(docRef, {
+
+    const payload: Record<string, unknown> = {
       ...noticeData,
-      updatedAt: serverTimestamp()
-    });
+      updatedAt: serverTimestamp(),
+    };
+    if (Object.prototype.hasOwnProperty.call(notice, "tags")) {
+      payload.description = deleteField();
+    }
+
+    await updateDoc(docRef, payload);
     
     return true;
   } catch (error) {
