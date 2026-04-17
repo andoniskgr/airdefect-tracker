@@ -3,7 +3,6 @@ import {
   addDoc,
   getDocs,
   query,
-  orderBy,
   serverTimestamp,
   getDoc,
   doc,
@@ -35,6 +34,15 @@ function parseTagsFromDoc(data: {
   return [];
 }
 
+function sortNoticesByTitle(notices: Notice[]): Notice[] {
+  return [...notices].sort((a, b) =>
+    (a.title || "").localeCompare(b.title || "", undefined, {
+      sensitivity: "base",
+      numeric: true,
+    })
+  );
+}
+
 /**
  * Add a new notice to Firestore
  */
@@ -55,14 +63,9 @@ export const addNotice = async (
  */
 export const getAllNotices = async (): Promise<Notice[]> => {
   try {
-    const noticesQuery = query(
-      collection(db, COLLECTION_NAME),
-      orderBy('date', 'desc')
-    );
-    
-    const snapshot = await getDocs(noticesQuery);
-    
-    return snapshot.docs.map(doc => {
+    const snapshot = await getDocs(collection(db, COLLECTION_NAME));
+
+    const notices = snapshot.docs.map((doc) => {
       const data = doc.data();
       return {
         id: doc.id,
@@ -72,9 +75,11 @@ export const getAllNotices = async (): Promise<Notice[]> => {
         content: data.content,
         date: data.date,
         author: data.author,
-        visibility: data.visibility || 'public'
+        visibility: data.visibility || "public",
       } as Notice;
     });
+
+    return sortNoticesByTitle(notices);
   } catch (error) {
     return [];
   }
@@ -88,14 +93,9 @@ export const getNotices = async (
   isAdmin: boolean = false
 ): Promise<Notice[]> => {
   try {
-    const noticesQuery = query(
-      collection(db, COLLECTION_NAME),
-      orderBy('date', 'desc')
-    );
-    
-    const snapshot = await getDocs(noticesQuery);
-    
-    const allNotices = snapshot.docs.map(doc => {
+    const snapshot = await getDocs(collection(db, COLLECTION_NAME));
+
+    const allNotices = snapshot.docs.map((doc) => {
       const data = doc.data();
       return {
         id: doc.id,
@@ -105,13 +105,13 @@ export const getNotices = async (
         content: data.content,
         date: data.date,
         author: data.author,
-        visibility: data.visibility || 'public'
+        visibility: data.visibility || "public",
       } as Notice;
     });
 
     // Filter notices based on visibility and user permissions
     // Both regular users and admins follow the same visibility rules
-    const filteredNotices = allNotices.filter(notice => {
+    const filteredNotices = allNotices.filter((notice) => {
       // Show public notices to everyone
       if (notice.visibility === 'public') {
         return true;
@@ -127,7 +127,7 @@ export const getNotices = async (
       return false;
     });
 
-    return filteredNotices;
+    return sortNoticesByTitle(filteredNotices);
   } catch (error) {
     return [];
   }
