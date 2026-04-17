@@ -1,6 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import {
+  DEFECT_FIELD_MAX_LENGTH,
+  REMARKS_FIELD_MAX_LENGTH,
+} from "@/components/defect-records/DefectRecord.types";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface DescriptionSectionProps {
@@ -107,6 +111,7 @@ export const DescriptionSection = ({
           onChange={handleDefectChange}
           onKeyDown={(e) => handleKeyDown(e, "defect")}
           placeholder="DESCRIPTION"
+          maxLength={DEFECT_FIELD_MAX_LENGTH}
           className={cn(
             "uppercase",
             isMobile ? "h-12 text-base" : "text-lg",
@@ -130,6 +135,7 @@ export const DescriptionSection = ({
           onChange={handleRemarksChange}
           onKeyDown={(e) => handleKeyDown(e, "remarks")}
           placeholder="REMARKS"
+          maxLength={REMARKS_FIELD_MAX_LENGTH}
           className={cn("uppercase", isMobile ? "h-12 text-base" : "text-lg")}
         />
       </div>

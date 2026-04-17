@@ -27,7 +27,11 @@ import {
   Globe,
   Lock,
 } from "lucide-react";
-import { DefectRecord } from "./DefectRecord.types";
+import {
+  DefectRecord,
+  DEFECT_FIELD_MAX_LENGTH,
+  REMARKS_FIELD_MAX_LENGTH,
+} from "./DefectRecord.types";
 import { HistoryModal } from "./HistoryModal";
 import { toast } from "sonner";
 import { useState, useRef, useEffect } from "react";
@@ -602,9 +606,17 @@ export const RecordRow = ({
   };
 
   const getBgColor = () => {
+    if (localData.nxs) return "bg-cyan-200 text-slate-800";
     if (localData.ok) return "bg-green-200 text-slate-800";
     if (localData.sl) return "bg-yellow-200 text-slate-800";
     return "bg-white text-slate-800";
+  };
+
+  const getRowHoverClass = () => {
+    if (localData.nxs) return "hover:bg-cyan-300";
+    if (localData.ok) return "hover:bg-green-300";
+    if (localData.sl) return "hover:bg-yellow-300";
+    return "hover:bg-slate-50";
   };
 
   const copyToTeams = () => {
@@ -660,7 +672,7 @@ export const RecordRow = ({
     <>
       <TableRow
         key={record.id}
-        className={`table-animation ${getBgColor()} hover:bg-slate-50 ${
+        className={`table-animation ${getBgColor()} ${getRowHoverClass()} ${
           isSaving ? "opacity-75" : ""
         }`}
         style={{ height: "auto" }}
@@ -746,7 +758,7 @@ export const RecordRow = ({
           />
         </TableCell>
 
-        {/* Defect - 50 characters */}
+        {/* Defect */}
         <TableCell
           className="px-0 py-3 align-top"
           style={{ verticalAlign: "top", height: "auto", width: "20%" }}
@@ -758,7 +770,7 @@ export const RecordRow = ({
             onBlur={(e) => handleTextareaBlur("defect", e.target.value)}
             onKeyDown={(e) => handleTextareaKeyDown(e, "defect")}
             onFocus={handleTextareaFocus}
-            maxLength={50}
+            maxLength={DEFECT_FIELD_MAX_LENGTH}
             className="text-sm uppercase font-medium min-h-[32px] border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300 w-full resize-none overflow-hidden leading-tight"
             rows={1}
             style={{ height: "auto", minHeight: "32px" }}
@@ -768,7 +780,7 @@ export const RecordRow = ({
           />
         </TableCell>
 
-        {/* Remarks - 40 characters */}
+        {/* Remarks */}
         <TableCell
           className="px-0 py-3 align-top"
           style={{ verticalAlign: "top", height: "auto", width: "20%" }}
@@ -780,7 +792,7 @@ export const RecordRow = ({
             onBlur={(e) => handleTextareaBlur("remarks", e.target.value)}
             onKeyDown={(e) => handleTextareaKeyDown(e, "remarks")}
             onFocus={handleTextareaFocus}
-            maxLength={40}
+            maxLength={REMARKS_FIELD_MAX_LENGTH}
             className="text-sm uppercase font-medium min-h-[32px] border-0 bg-transparent focus:bg-white focus:border focus:border-blue-300 w-full resize-none overflow-hidden leading-tight"
             rows={1}
             style={{ height: "auto", minHeight: "32px" }}

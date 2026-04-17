@@ -1,3 +1,6 @@
+/** Max characters for defect / remarks in the records table and add/edit forms. */
+export const DEFECT_FIELD_MAX_LENGTH = 100;
+export const REMARKS_FIELD_MAX_LENGTH = 100;
 
 export interface RecordHistoryEntry {
   id: string;

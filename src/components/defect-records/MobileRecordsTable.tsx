@@ -70,7 +70,7 @@ export const MobileRecordsTable = ({
   };
 
   const getRowColorClass = (record: DefectRecord) => {
-    // Only show yellow for SL and green for OK, same logic as desktop
+    if (record.nxs) return "bg-cyan-200 text-slate-800";
     if (record.ok) return "bg-green-200 text-slate-800";
     if (record.sl) return "bg-yellow-200 text-slate-800";
     return "bg-white text-slate-800";
