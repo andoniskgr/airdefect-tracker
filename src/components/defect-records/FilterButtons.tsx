@@ -415,6 +415,7 @@ export const FilterButtons = ({
                 setFiltersOpen(false);
               }}
               variant={filter === "nxs" ? "default" : "outline"}
+              title="Rows with NXS checked"
               className={`text-sm uppercase font-semibold w-full ${
                 filter === "nxs"
                   ? "bg-slate-700 text-white"
@@ -543,6 +544,7 @@ export const FilterButtons = ({
           <Button
             onClick={() => setFilter("nxs")}
             variant={filter === "nxs" ? "default" : "outline"}
+            title="Rows with NXS checked"
             className={`text-sm uppercase font-semibold ${
               filter === "nxs"
                 ? "bg-slate-700 text-white"

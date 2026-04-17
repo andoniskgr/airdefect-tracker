@@ -54,8 +54,7 @@ export const useFilterAndSort = () => {
     } else if (filter === 'pln') {
       records = records.filter(record => record.pln === true);
     } else if (filter === 'nxs') {
-      // For "NXS" filter: show records with NXS = true AND OK = false
-      records = records.filter(record => record.nxs === true && record.ok === false);
+      records = records.filter((record) => record.nxs === true);
     }
     
     // Apply visibility filter
