@@ -16,10 +16,12 @@ import { EditAircraftModal } from "@/components/aircraft/EditAircraftModal";
 import { ImportExcel } from "@/components/aircraft/ImportExcel";
 import { useAircraftAdmin } from "@/hooks/useAircraftAdmin";
 import { useAuth } from "@/context/AuthContext";
+import { SearchInput } from "@/components/defect-records/SearchInput";
 import { useState } from "react";
 
 const AircraftAdmin = () => {
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const { userData } = useAuth();
 
   const {
@@ -96,6 +98,17 @@ const AircraftAdmin = () => {
           {isAdmin && <ImportExcel handleExcelImport={handleExcelImport} />}
         </div>
 
+        {!isLoading && aircraftData.length > 0 && (
+          <div className="mb-4">
+            <SearchInput
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              placeholder="Search by registration, type, engine, or MSN..."
+              className="max-w-md"
+            />
+          </div>
+        )}
+
         {isLoading ? (
           <div className="flex justify-center items-center h-64">
             <div className="text-white text-lg">Loading aircraft data...</div>
@@ -103,6 +116,7 @@ const AircraftAdmin = () => {
         ) : (
           <AircraftTable
             aircraftData={aircraftData}
+            searchQuery={searchQuery}
             onEditAircraft={openEditModal}
             onDeleteAircraft={handleDeleteAircraft}
             isAdmin={isAdmin}

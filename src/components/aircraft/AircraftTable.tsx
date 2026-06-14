@@ -24,6 +24,7 @@ import { useState, useEffect } from "react";
 
 interface AircraftTableProps {
   aircraftData: Aircraft[];
+  searchQuery?: string;
   onEditAircraft: (aircraft: Aircraft) => void;
   onDeleteAircraft: (id: string) => void;
   isAdmin?: boolean;
@@ -31,6 +32,7 @@ interface AircraftTableProps {
 
 export const AircraftTable = ({
   aircraftData,
+  searchQuery = "",
   onEditAircraft,
   onDeleteAircraft,
   isAdmin = false,
@@ -56,8 +58,25 @@ export const AircraftTable = ({
       return acc;
     }, []);
 
-    // Then sort the unique data
-    const sortableData = [...uniqueAircraft];
+    // Apply search filter
+    let filteredData = uniqueAircraft;
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filteredData = uniqueAircraft.filter((aircraft) => {
+        const searchableFields = [
+          aircraft.registration,
+          aircraft.type,
+          aircraft.engine,
+          aircraft.msn,
+        ];
+        return searchableFields.some((field) =>
+          field?.toString().toLowerCase().includes(query)
+        );
+      });
+    }
+
+    // Then sort the filtered data
+    const sortableData = [...filteredData];
     sortableData.sort((a, b) => {
       if (a[sortConfig.key] < b[sortConfig.key]) {
         return sortConfig.direction === "asc" ? -1 : 1;
@@ -68,7 +87,7 @@ export const AircraftTable = ({
       return 0;
     });
     setSortedData(sortableData);
-  }, [aircraftData, sortConfig]);
+  }, [aircraftData, sortConfig, searchQuery]);
 
   const handleSort = (key: keyof Aircraft) => {
     setSortConfig({
@@ -258,10 +277,13 @@ export const AircraftTable = ({
                 colSpan={isAdmin ? 7 : 6}
                 className="text-center py-4 text-slate-800"
               >
-                No aircraft data available.{" "}
-                {isAdmin
-                  ? "Import from Excel or add manually."
-                  : "Contact an administrator to add aircraft data."}
+                {searchQuery.trim()
+                  ? "No aircraft match your search."
+                  : "No aircraft data available. "}
+                {!searchQuery.trim() &&
+                  (isAdmin
+                    ? "Import from Excel or add manually."
+                    : "Contact an administrator to add aircraft data.")}
               </TableCell>
             </TableRow>
           )}
