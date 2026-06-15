@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Select,
   SelectContent,
@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, Printer } from "lucide-react";
 import { format } from "date-fns";
 import { RecordsTable } from "../components/defect-records/RecordsTable";
 import { useDefectRecords } from "../hooks/useDefectRecords";
@@ -16,7 +16,7 @@ import { useAuth } from "../context/AuthContext";
 import { toast } from "sonner";
 import { useDefectForm } from "../hooks/useDefectForm";
 import { EditDefectModal } from "../components/defect-records/EditDefectModal";
-import { DefectRecord } from "../components/defect-records/DefectRecord.types";
+import { printDefectRecords } from "../utils/printDefectRecords";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const ArchiveRecords = () => {
-  const { currentUser } = useAuth();
+  const { currentUser, getUserData } = useAuth();
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [archivedDates, setArchivedDates] = useState<string[]>([]);
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
@@ -53,6 +53,7 @@ const ArchiveRecords = () => {
     exportToExcel,
     getArchivedRecordsByDate,
     unarchiveDate,
+    unarchiveMultipleDates,
   } = useDefectRecords(currentUser?.email);
 
   const {
@@ -63,6 +64,11 @@ const ArchiveRecords = () => {
     handleEditRecord,
     handleEditSubmit,
   } = useDefectForm(currentUser?.email);
+
+  const sortedArchivedDates = useMemo(
+    () => [...archivedDates].sort((a, b) => b.localeCompare(a)),
+    [archivedDates]
+  );
 
   useEffect(() => {
     const storedArchivedDates = localStorage.getItem("archivedDates");
@@ -110,6 +116,42 @@ const ArchiveRecords = () => {
       setSelectedDates([...archivedDates]);
     } else {
       setSelectedDates([]);
+    }
+  };
+
+  const handleUnarchiveSelected = async () => {
+    if (selectedDates.length === 0) {
+      toast.error("Please select at least one date to unarchive");
+      return;
+    }
+
+    try {
+      const success = await unarchiveMultipleDates(selectedDates);
+      if (!success) return;
+
+      if (currentUser?.email) {
+        try {
+          const { getUserArchivedDates } = await import("../utils/firebaseDB");
+          const updatedDates = await getUserArchivedDates(currentUser.email);
+          setArchivedDates(updatedDates);
+          localStorage.setItem("archivedDates", JSON.stringify(updatedDates));
+
+          if (selectedDate && selectedDates.includes(selectedDate)) {
+            setSelectedDate(null);
+          }
+        } catch (error) {
+          const updatedDates = archivedDates.filter(
+            (date) => !selectedDates.includes(date)
+          );
+          setArchivedDates(updatedDates);
+          localStorage.setItem("archivedDates", JSON.stringify(updatedDates));
+        }
+      }
+
+      setSelectedDates([]);
+      setSelectAll(false);
+    } catch (error) {
+      toast.error("Failed to unarchive selected dates");
     }
   };
 
@@ -185,6 +227,21 @@ const ArchiveRecords = () => {
     ? getArchivedRecordsByDate(selectedDate)
     : [];
 
+  const handlePrint = async () => {
+    if (recordsToShow.length === 0) {
+      toast.error("No records to print");
+      return;
+    }
+
+    await printDefectRecords(recordsToShow, {
+      title: `Archived Defect Records - ${format(new Date(selectedDate!), "dd/MM/yyyy")}`,
+      getUserCode: async () => {
+        const userData = await getUserData();
+        return userData?.userCode;
+      },
+    });
+  };
+
   return (
     <div className="min-h-screen bg-slate-700 text-white p-4">
       <div className="w-full mx-auto">
@@ -222,7 +279,7 @@ const ArchiveRecords = () => {
 
                   {/* Individual Date Selection */}
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 mb-4">
-                    {archivedDates.map((date) => (
+                    {sortedArchivedDates.map((date) => (
                       <div key={date} className="flex items-center space-x-2">
                         <Checkbox
                           id={`date-${date}`}
@@ -240,6 +297,43 @@ const ArchiveRecords = () => {
 
                   {/* Bulk Action Buttons */}
                   <div className="flex flex-wrap gap-2">
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="secondary"
+                          disabled={selectedDates.length === 0}
+                        >
+                          Unarchive Selected ({selectedDates.length})
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>
+                            Unarchive Selected Dates
+                          </AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to unarchive{" "}
+                            {selectedDates.length} selected date(s)? These
+                            records will reappear on the main records page.
+                            <br />
+                            <br />
+                            Selected dates:{" "}
+                            {selectedDates
+                              .map((date) =>
+                                format(new Date(date), "dd/MM/yyyy")
+                              )
+                              .join(", ")}
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={handleUnarchiveSelected}>
+                            Unarchive Selected
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button
@@ -323,7 +417,7 @@ const ArchiveRecords = () => {
                     <SelectValue placeholder="Select a date" />
                   </SelectTrigger>
                   <SelectContent>
-                    {archivedDates.map((date) => (
+                    {sortedArchivedDates.map((date) => (
                       <SelectItem key={date} value={date}>
                         {format(new Date(date), "dd/MM/yyyy")}
                       </SelectItem>
@@ -349,9 +443,20 @@ const ArchiveRecords = () => {
 
         {selectedDate ? (
           <>
-            <h2 className="text-xl font-semibold mb-4">
-              Records from {format(new Date(selectedDate), "dd/MM/yyyy")}
-            </h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold">
+                Records from {format(new Date(selectedDate), "dd/MM/yyyy")}
+              </h2>
+              <Button
+                onClick={handlePrint}
+                variant="outline"
+                className="bg-white text-slate-800 border-slate-300 hover:bg-slate-100"
+                disabled={loading || recordsToShow.length === 0}
+              >
+                <Printer className="mr-2 h-4 w-4" />
+                Print
+              </Button>
+            </div>
 
             {loading ? (
               <div className="flex justify-center items-center h-40">

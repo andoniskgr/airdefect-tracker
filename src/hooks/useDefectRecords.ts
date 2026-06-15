@@ -1,12 +1,30 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { format } from "date-fns";
+import { toast } from "sonner";
 import { useFilterAndSort } from "./defect-records/useFilterAndSort";
 import { useRecordOperations } from "./defect-records/useRecordOperations";
 import { useFetchRecords } from "./defect-records/useFetchRecords";
 import { FilterType } from "../components/defect-records/DefectRecord.types";
 
-export const useDefectRecords = (userEmail: string | null | undefined) => {
+const getArchivePromptKey = (userEmail: string) =>
+  `archivePastDatesPrompted_${userEmail}`;
+
+const hasArchivePromptBeenAnswered = (userEmail: string) =>
+  localStorage.getItem(getArchivePromptKey(userEmail)) === "true";
+
+const markArchivePromptAnswered = (userEmail: string) => {
+  localStorage.setItem(getArchivePromptKey(userEmail), "true");
+};
+
+export const useDefectRecords = (
+  userEmail: string | null | undefined,
+  options?: { promptArchivePastDates?: boolean }
+) => {
+  const promptArchivePastDates = options?.promptArchivePastDates ?? false;
   const { defectRecords, loading } = useFetchRecords(userEmail);
   const [archivedDates, setArchivedDates] = useState<string[]>([]);
+  const [archivePastDatesDialogOpen, setArchivePastDatesDialogOpen] = useState(false);
+  const [pastDatesToArchive, setPastDatesToArchive] = useState<string[]>([]);
   
   // useRecordOperations now handles loading archived dates from Firebase
   const { 
@@ -17,9 +35,94 @@ export const useDefectRecords = (userEmail: string | null | undefined) => {
     handleDeleteMultipleDates,
     handleDeleteAllRecords, 
     archiveDate,
+    archiveDatesSilent,
     unarchiveDate,
+    unarchiveMultipleDates,
+    unarchiveDateSilent,
+    archivedDatesLoaded,
     exportToExcel 
   } = useRecordOperations(userEmail, setArchivedDates);
+
+  useEffect(() => {
+    if (
+      !promptArchivePastDates ||
+      !userEmail ||
+      loading ||
+      !archivedDatesLoaded ||
+      hasArchivePromptBeenAnswered(userEmail)
+    ) {
+      return;
+    }
+
+    const today = format(new Date(), "yyyy-MM-dd");
+    const pastDates = [
+      ...new Set(
+        defectRecords
+          .map((record) => record.date.split("T")[0])
+          .filter((date) => date !== today && !archivedDates.includes(date))
+      ),
+    ].sort((a, b) => b.localeCompare(a));
+
+    if (pastDates.length > 0) {
+      setPastDatesToArchive(pastDates);
+      setArchivePastDatesDialogOpen(true);
+    }
+  }, [
+    promptArchivePastDates,
+    userEmail,
+    loading,
+    archivedDatesLoaded,
+    defectRecords,
+    archivedDates,
+  ]);
+
+  const confirmArchivePastDates = useCallback(async () => {
+    if (pastDatesToArchive.length === 0) {
+      setArchivePastDatesDialogOpen(false);
+      return;
+    }
+
+    const today = format(new Date(), "yyyy-MM-dd");
+    let updatedArchived = [...archivedDates];
+
+    if (updatedArchived.includes(today)) {
+      const success = await unarchiveDateSilent(today);
+      if (success) {
+        updatedArchived = updatedArchived.filter((d) => d !== today);
+        setArchivedDates(updatedArchived);
+      }
+    }
+
+    const success = await archiveDatesSilent(pastDatesToArchive);
+    if (success) {
+      setArchivedDates((prev) => [...new Set([...prev, ...pastDatesToArchive])]);
+      toast.success(
+        `${pastDatesToArchive.length} past date${pastDatesToArchive.length === 1 ? "" : "s"} archived successfully`
+      );
+    } else {
+      toast.error("Failed to archive past dates");
+    }
+
+    setArchivePastDatesDialogOpen(false);
+    setPastDatesToArchive([]);
+    if (userEmail) {
+      markArchivePromptAnswered(userEmail);
+    }
+  }, [
+    archivedDates,
+    archiveDatesSilent,
+    pastDatesToArchive,
+    unarchiveDateSilent,
+    userEmail,
+  ]);
+
+  const dismissArchivePastDates = useCallback(() => {
+    setArchivePastDatesDialogOpen(false);
+    setPastDatesToArchive([]);
+    if (userEmail) {
+      markArchivePromptAnswered(userEmail);
+    }
+  }, [userEmail]);
   
   const { 
     filter, 
@@ -89,8 +192,13 @@ export const useDefectRecords = (userEmail: string | null | undefined) => {
     handleDeleteAllRecords,
     handleArchiveDate,
     unarchiveDate,
+    unarchiveMultipleDates,
     exportToExcel: exportToExcelWrapper,
     getFilteredRecords: getFilteredAndNonArchivedRecords,
-    getArchivedRecordsByDate
+    getArchivedRecordsByDate,
+    archivePastDatesDialogOpen,
+    pastDatesToArchive,
+    confirmArchivePastDates,
+    dismissArchivePastDates,
   };
 };

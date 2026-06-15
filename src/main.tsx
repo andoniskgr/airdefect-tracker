@@ -1,6 +1,13 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
+import {
+  initAppSession,
+  registerSessionLifecycleHandlers,
+} from "./utils/appStorage.ts";
+
+initAppSession();
+registerSessionLifecycleHandlers();
 
 try {
   const rootElement = document.getElementById("root");

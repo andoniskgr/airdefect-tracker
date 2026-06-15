@@ -1,29 +1,35 @@
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { deleteRecord, deleteRecordsByDate, deleteRecordsByDates, deleteAllRecords, saveArchivedDate, removeArchivedDate, getUserArchivedDates, saveRecord } from "../../utils/firebaseDB";
+import { deleteRecord, deleteRecordsByDate, deleteRecordsByDates, deleteAllRecords, saveArchivedDate, saveArchivedDates, removeArchivedDate, removeArchivedDates, getUserArchivedDates, saveRecord } from "../../utils/firebaseDB";
 import { notifyDefectRecordChange } from "../../utils/defectNotifications";
 import { DefectRecord } from "../../components/defect-records/DefectRecord.types";
 import { trackFieldChanges, createInitialHistory } from "../../utils/historyUtils";
-import { Dispatch, SetStateAction, useEffect } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
 export const useRecordOperations = (
   userEmail: string | null | undefined,
   setArchivedDates?: Dispatch<SetStateAction<string[]>>
 ) => {
+  const [archivedDatesLoaded, setArchivedDatesLoaded] = useState(false);
+
   useEffect(() => {
     if (userEmail && setArchivedDates) {
+      setArchivedDatesLoaded(false);
+
       const loadArchivedDates = async () => {
         try {
           const dates = await getUserArchivedDates(userEmail);
           setArchivedDates(dates);
-          
-          // Also update localStorage as a backup
           localStorage.setItem('archivedDates', JSON.stringify(dates));
         } catch (error) {
+        } finally {
+          setArchivedDatesLoaded(true);
         }
       };
-      
+
       loadArchivedDates();
+    } else {
+      setArchivedDatesLoaded(false);
     }
   }, [userEmail, setArchivedDates]);
 
@@ -140,6 +146,40 @@ export const useRecordOperations = (
     }
   };
 
+  const archiveDatesSilent = async (dates: string[]) => {
+    if (!userEmail || dates.length === 0) return false;
+
+    try {
+      await saveArchivedDates(userEmail, dates);
+
+      const archivedDatesJSON = localStorage.getItem('archivedDates') || '[]';
+      const storedDates = JSON.parse(archivedDatesJSON) as string[];
+      const merged = [...new Set([...storedDates, ...dates])];
+      localStorage.setItem('archivedDates', JSON.stringify(merged));
+
+      return true;
+    } catch (error) {
+      return false;
+    }
+  };
+
+  const unarchiveDateSilent = async (date: string) => {
+    if (!userEmail) return false;
+
+    try {
+      await removeArchivedDate(userEmail, date);
+
+      const archivedDatesJSON = localStorage.getItem('archivedDates') || '[]';
+      const storedDates = JSON.parse(archivedDatesJSON) as string[];
+      const updatedDates = storedDates.filter((d) => d !== date);
+      localStorage.setItem('archivedDates', JSON.stringify(updatedDates));
+
+      return true;
+    } catch (error) {
+      return false;
+    }
+  };
+
   const unarchiveDate = async (date: string) => {
     if (!userEmail) {
       toast.error("You must be logged in to unarchive dates");
@@ -165,6 +205,38 @@ export const useRecordOperations = (
       return true;
     } catch (error) {
       toast.error("Failed to unarchive date");
+      return false;
+    }
+  };
+
+  const unarchiveMultipleDates = async (dates: string[]) => {
+    if (!userEmail) {
+      toast.error("You must be logged in to unarchive dates");
+      return false;
+    }
+
+    if (dates.length === 0) {
+      toast.error("Please select at least one date to unarchive");
+      return false;
+    }
+
+    try {
+      await removeArchivedDates(userEmail, dates);
+
+      const archivedDatesJSON = localStorage.getItem('archivedDates') || '[]';
+      const archivedDates = JSON.parse(archivedDatesJSON) as string[];
+      const datesSet = new Set(dates);
+      const updatedDates = archivedDates.filter((d) => !datesSet.has(d));
+      localStorage.setItem('archivedDates', JSON.stringify(updatedDates));
+
+      if (setArchivedDates) {
+        setArchivedDates(updatedDates);
+      }
+
+      toast.success(`Successfully unarchived ${dates.length} date(s)!`);
+      return true;
+    } catch (error) {
+      toast.error("Failed to unarchive dates");
       return false;
     }
   };
@@ -249,7 +321,11 @@ export const useRecordOperations = (
     handleDeleteMultipleDates,
     handleDeleteAllRecords,
     archiveDate,
+    archiveDatesSilent,
     unarchiveDate,
+    unarchiveMultipleDates,
+    unarchiveDateSilent,
+    archivedDatesLoaded,
     exportToExcel
   };
 };

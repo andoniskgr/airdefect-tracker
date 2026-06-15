@@ -9,6 +9,16 @@ import { useDefectRecords } from "../hooks/useDefectRecords";
 import { useDefectForm } from "../hooks/useDefectForm";
 import { Toaster } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const Index = () => {
   const { currentUser } = useAuth();
@@ -31,7 +41,10 @@ const Index = () => {
     handleArchiveDate,
     exportToExcel,
     getFilteredRecords,
-  } = useDefectRecords(currentUser?.email);
+    archivePastDatesDialogOpen,
+    confirmArchivePastDates,
+    dismissArchivePastDates,
+  } = useDefectRecords(currentUser?.email, { promptArchivePastDates: true });
 
   const {
     formData,
@@ -116,6 +129,32 @@ const Index = () => {
             handleEditSubmit={handleEditSubmit}
           />
         )}
+
+        <AlertDialog
+          open={archivePastDatesDialogOpen}
+          onOpenChange={(open) => {
+            if (!open) dismissArchivePastDates();
+          }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Archive past dates?</AlertDialogTitle>
+              <AlertDialogDescription>
+                You have defect records from past dates. Archive them to show
+                only today&apos;s records on the main view. Archived records can
+                still be viewed on the Archive Records page.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={dismissArchivePastDates}>
+                Not now
+              </AlertDialogCancel>
+              <AlertDialogAction onClick={confirmArchivePastDates}>
+                Archive past dates
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );

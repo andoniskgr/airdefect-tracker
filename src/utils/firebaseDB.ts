@@ -334,6 +334,43 @@ export const deleteAllRecords = async (userEmail?: string | null): Promise<void>
 };
 
 // New functions for archived dates
+export const saveArchivedDates = async (userEmail: string, dates: string[]) => {
+  if (!userEmail) throw new Error("User email is required");
+  if (dates.length === 0) return;
+
+  const db = getFirestore();
+  const archivedDatesRef = doc(db, "archivedDates", userEmail);
+
+  try {
+    const docSnap = await getDoc(archivedDatesRef);
+    const newDates = dates.filter(
+      (date, index) => dates.indexOf(date) === index
+    );
+
+    if (docSnap.exists()) {
+      const currentDates: string[] = docSnap.data().dates || [];
+      const datesToAdd = newDates.filter((d) => !currentDates.includes(d));
+      if (datesToAdd.length > 0) {
+        await updateDoc(archivedDatesRef, {
+          dates: arrayUnion(...datesToAdd),
+          updatedAt: serverTimestamp(),
+        });
+      }
+    } else {
+      await setDoc(archivedDatesRef, {
+        email: userEmail,
+        dates: newDates,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+    }
+
+    return true;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const saveArchivedDate = async (userEmail: string, date: string) => {
   if (!userEmail) throw new Error("User email is required");
   
@@ -388,6 +425,33 @@ export const removeArchivedDate = async (userEmail: string, date: string) => {
       });
     }
     
+    return true;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const removeArchivedDates = async (userEmail: string, dates: string[]) => {
+  if (!userEmail) throw new Error("User email is required");
+  if (dates.length === 0) return;
+
+  const db = getFirestore();
+  const archivedDatesRef = doc(db, "archivedDates", userEmail);
+  const datesSet = new Set(dates);
+
+  try {
+    const docSnap = await getDoc(archivedDatesRef);
+
+    if (docSnap.exists()) {
+      const currentDates = docSnap.data().dates || [];
+      const updatedDates = currentDates.filter((d: string) => !datesSet.has(d));
+
+      await updateDoc(archivedDatesRef, {
+        dates: updatedDates,
+        updatedAt: serverTimestamp(),
+      });
+    }
+
     return true;
   } catch (error) {
     throw error;

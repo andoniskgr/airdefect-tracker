@@ -17,6 +17,7 @@ import {
 } from "../utils/firebaseDB";
 import { doc, setDoc, onSnapshot } from "firebase/firestore";
 import { emailService } from "../utils/emailService";
+import { endAppSession } from "../utils/appStorage";
 
 type UserData = {
   id: string;
@@ -228,11 +229,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const logout = async () => {
     try {
       await signOut(auth);
-      // Clear local state immediately
       setUserData(null);
     } catch (error) {
-      // Even if logout fails, clear local state
       setUserData(null);
+    } finally {
+      endAppSession();
     }
   };
 
