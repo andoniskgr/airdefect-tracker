@@ -1,11 +1,4 @@
 import { useState, useEffect, useMemo } from "react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ChevronDown, ChevronRight, Printer } from "lucide-react";
@@ -52,7 +45,6 @@ const ArchiveRecords = () => {
     handleArchiveDate,
     exportToExcel,
     getArchivedRecordsByDate,
-    unarchiveDate,
     unarchiveMultipleDates,
   } = useDefectRecords(currentUser?.email);
 
@@ -79,27 +71,12 @@ const ArchiveRecords = () => {
     }
   }, []);
 
-  const handleDateChange = (date: string) => {
-    setSelectedDate(date);
-  };
-
-  const handleUnarchive = async () => {
-    if (selectedDate) {
-      try {
-        const success = await unarchiveDate(selectedDate);
-        if (success) {
-          const updatedDates = archivedDates.filter(
-            (date) => date !== selectedDate
-          );
-          setArchivedDates(updatedDates);
-
-          // Clear selected date after unarchiving
-          setSelectedDate(null);
-        }
-      } catch (error) {
-        toast.error("Failed to unarchive date");
-      }
+  const handleViewSelected = () => {
+    if (selectedDates.length !== 1) {
+      toast.error("Please select exactly one date to view");
+      return;
     }
+    setSelectedDate(selectedDates[0]);
   };
 
   const handleDateSelection = (date: string, checked: boolean) => {
@@ -288,8 +265,16 @@ const ArchiveRecords = () => {
                             handleDateSelection(date, checked as boolean)
                           }
                         />
-                        <label htmlFor={`date-${date}`} className="text-sm">
+                        <label
+                          htmlFor={`date-${date}`}
+                          className={`text-sm cursor-pointer ${
+                            selectedDate === date
+                              ? "font-semibold text-blue-300"
+                              : ""
+                          }`}
+                        >
                           {format(new Date(date), "dd/MM/yyyy")}
+                          {selectedDate === date && " (viewing)"}
                         </label>
                       </div>
                     ))}
@@ -297,6 +282,14 @@ const ArchiveRecords = () => {
 
                   {/* Bulk Action Buttons */}
                   <div className="flex flex-wrap gap-2">
+                    <Button
+                      variant="default"
+                      disabled={selectedDates.length !== 1}
+                      onClick={handleViewSelected}
+                    >
+                      View Selected
+                    </Button>
+
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button
@@ -402,43 +395,9 @@ const ArchiveRecords = () => {
             </div>
           )}
 
-          {/* Single Date Selection */}
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="w-full md:w-1/2">
-              <label className="block text-sm font-medium mb-2">
-                Select Archived Date to View
-              </label>
-              {archivedDates.length > 0 ? (
-                <Select
-                  onValueChange={handleDateChange}
-                  value={selectedDate || undefined}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a date" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {sortedArchivedDates.map((date) => (
-                      <SelectItem key={date} value={date}>
-                        {format(new Date(date), "dd/MM/yyyy")}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              ) : (
-                <p>No archived dates found</p>
-              )}
-            </div>
-
-            <div className="flex items-end">
-              <Button
-                onClick={handleUnarchive}
-                variant="secondary"
-                disabled={!selectedDate}
-              >
-                Unarchive Selected Date
-              </Button>
-            </div>
-          </div>
+          {archivedDates.length === 0 && (
+            <p className="text-gray-400">No archived dates found</p>
+          )}
         </div>
 
         {selectedDate ? (
@@ -486,7 +445,7 @@ const ArchiveRecords = () => {
               No Date Selected
             </h2>
             <p className="text-gray-400">
-              Please select an archived date from the dropdown above to view its
+              Select a date in Bulk Actions and click View Selected to see its
               records.
             </p>
           </div>
