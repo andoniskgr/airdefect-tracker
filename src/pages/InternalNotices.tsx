@@ -528,9 +528,9 @@ const InternalNotices = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-700 text-white p-4">
-      <div className="w-full max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
+    <div className="min-h-screen bg-slate-700 text-white p-4 overflow-x-hidden">
+      <div className="w-full max-w-7xl mx-auto min-w-0">
+        <div className="flex flex-wrap justify-between items-center gap-2 mb-6">
           <h1 className="text-2xl font-bold">Notes</h1>
 
           <div className="flex items-center gap-2">
@@ -595,30 +595,35 @@ const InternalNotices = () => {
             <p>Loading notices...</p>
           </div>
         ) : filteredNotices.length > 0 ? (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {filteredNotices.map((notice) => (
-              <Card key={notice.id} className="bg-card text-card-foreground">
+              <Card
+                key={notice.id}
+                className="min-w-0 overflow-hidden bg-card text-card-foreground"
+              >
                 <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="flex items-center gap-2">
-                        {notice.title}
+                  <div className="flex justify-between items-start gap-2">
+                    <div className="min-w-0 flex-1">
+                      <CardTitle className="flex items-start gap-2 min-w-0 text-xl leading-snug sm:text-2xl">
+                        <span className="min-w-0 break-words">
+                          {notice.title}
+                        </span>
                         {notice.visibility === "private" ? (
                           <EyeOff
                             size={16}
-                            className="text-orange-500"
+                            className="mt-1 shrink-0 text-orange-500"
                             title="Private notice"
                           />
                         ) : (
                           <Eye
                             size={16}
-                            className="text-green-500"
+                            className="mt-1 shrink-0 text-green-500"
                             title="Public notice"
                           />
                         )}
                       </CardTitle>
-                      <div className="flex gap-2 mt-2">
-                        <div className="inline-block px-2 py-1 rounded-full bg-primary/10 text-primary text-xs">
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        <div className="inline-block max-w-full break-words px-2 py-1 rounded-full bg-primary/10 text-primary text-xs">
                           {notice.category?.trim()
                             ? notice.category
                             : "Uncategorized"}
@@ -636,7 +641,7 @@ const InternalNotices = () => {
                         </div>
                       </div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex shrink-0 gap-2">
                       {(notice.author === userData?.userCode ||
                         notice.author === currentUser?.email) && (
                         <>
@@ -658,7 +663,7 @@ const InternalNotices = () => {
                       )}
                     </div>
                   </div>
-                  <CardDescription className="text-gray-300">
+                  <CardDescription className="text-gray-300 break-words">
                     Posted on {new Date(notice.date).toLocaleDateString()} by{" "}
                     {emailToUserCodeMap[notice.author] || notice.author}
                   </CardDescription>
@@ -670,7 +675,7 @@ const InternalNotices = () => {
                         <Badge
                           key={tag}
                           variant="secondary"
-                          className="text-xs font-normal"
+                          className="max-w-full text-xs font-normal break-all whitespace-normal"
                         >
                           {tag}
                         </Badge>
@@ -691,18 +696,20 @@ const InternalNotices = () => {
                         Read More
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+                    <DialogContent className="max-w-[calc(100vw-2rem)] max-h-[80vh] overflow-y-auto sm:max-w-3xl">
                       <DialogHeader>
-                        <DialogTitle>{notice.title}</DialogTitle>
+                        <DialogTitle className="break-words pr-6">
+                          {notice.title}
+                        </DialogTitle>
                       </DialogHeader>
-                      <div className="flex flex-col gap-2">
-                        <div className="text-sm text-muted-foreground">
+                      <div className="flex min-w-0 flex-col gap-2">
+                        <div className="text-sm text-muted-foreground break-words">
                           Category:{" "}
                           {notice.category?.trim()
                             ? notice.category
                             : "Uncategorized"}
                         </div>
-                        <div className="text-sm text-muted-foreground">
+                        <div className="text-sm text-muted-foreground break-words">
                           Posted on {new Date(notice.date).toLocaleDateString()}{" "}
                           by {notice.author}
                         </div>
@@ -712,14 +719,14 @@ const InternalNotices = () => {
                               <Badge
                                 key={tag}
                                 variant="secondary"
-                                className="text-xs font-normal"
+                                className="max-w-full text-xs font-normal break-all whitespace-normal"
                               >
                                 {tag}
                               </Badge>
                             ))}
                           </div>
                         )}
-                        <div className="mt-4 whitespace-pre-wrap break-words">
+                        <div className="mt-4 min-w-0 whitespace-pre-wrap break-words">
                           <LinkifiedText
                             text={notice.content}
                             zoomableImages
