@@ -15,6 +15,7 @@ interface ServiceOrderFormProps {
   handleCheckboxChange: (name: string, checked: boolean) => void;
   handlePrepareAndCopy: () => void;
   handleClear: () => void;
+  isPrepareDisabled?: boolean;
 }
 
 const ServiceOrderForm: React.FC<ServiceOrderFormProps> = ({
@@ -26,10 +27,21 @@ const ServiceOrderForm: React.FC<ServiceOrderFormProps> = ({
   handleDefectTypeChange,
   handleCheckboxChange,
   handlePrepareAndCopy,
-  handleClear
+  handleClear,
+  isPrepareDisabled = false,
 }) => {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isPrepareDisabled) {
+      handlePrepareAndCopy();
+    }
+  };
+
   return (
-    <div className="bg-slate-700 rounded-lg p-4 shadow-lg w-full">
+    <form
+      onSubmit={handleSubmit}
+      className="bg-slate-700 rounded-lg p-4 shadow-lg w-full"
+    >
       <ServiceTypeHeader 
         defectType={formData.defectType}
         onDefectTypeChange={handleDefectTypeChange}
@@ -45,10 +57,10 @@ const ServiceOrderForm: React.FC<ServiceOrderFormProps> = ({
       />
       
       <ServiceOrderActions 
-        onPrepareAndCopy={handlePrepareAndCopy}
         onClear={handleClear}
+        isPrepareDisabled={isPrepareDisabled}
       />
-    </div>
+    </form>
   );
 };
 

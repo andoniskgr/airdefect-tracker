@@ -6,9 +6,19 @@ export const useServiceOrderInputs = (initialFormData: ServiceOrderData) => {
   const [formData, setFormData] = useState<ServiceOrderData>(initialFormData);
   const [validationErrors, setValidationErrors] = useState<Record<string, boolean>>({});
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [isPrepareDisabled, setIsPrepareDisabled] = useState(false);
+
+  const markFormDirty = () => {
+    setIsPrepareDisabled(false);
+  };
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
+    const target = e.target;
+    const { name, value } = target;
+    const selectionStart = target.selectionStart;
+    const selectionEnd = target.selectionEnd;
+
+    markFormDirty();
     
     // Special handling for date
     if (name === 'date' && value) {
@@ -20,6 +30,13 @@ export const useServiceOrderInputs = (initialFormData: ServiceOrderData) => {
     const upperCaseValue = value.toUpperCase();
     
     setFormData(prev => ({ ...prev, [name]: upperCaseValue }));
+
+    // Preserve caret when toUpperCase rewrites the controlled value
+    if (upperCaseValue !== value && selectionStart !== null && selectionEnd !== null) {
+      requestAnimationFrame(() => {
+        target.setSelectionRange(selectionStart, selectionEnd);
+      });
+    }
     
     // Clear validation error for this field if it exists
     if (validationErrors[name]) {
@@ -32,12 +49,14 @@ export const useServiceOrderInputs = (initialFormData: ServiceOrderData) => {
   };
 
   const handleDefectTypeChange = (value: DefectType) => {
+    markFormDirty();
     setFormData(prev => ({ ...prev, defectType: value }));
     // Clear validation errors when switching type
     setValidationErrors({});
   };
 
   const handleCheckboxChange = (name: string, checked: boolean) => {
+    markFormDirty();
     setFormData(prev => ({ ...prev, [name]: checked }));
     
     // Clear etaUtc if atDestAirport is checked
@@ -58,6 +77,7 @@ export const useServiceOrderInputs = (initialFormData: ServiceOrderData) => {
   const resetForm = (initialData: ServiceOrderData) => {
     setFormData(initialData);
     setValidationErrors({});
+    setIsPrepareDisabled(false);
   };
 
   return {
@@ -67,6 +87,8 @@ export const useServiceOrderInputs = (initialFormData: ServiceOrderData) => {
     setValidationErrors,
     calendarOpen,
     setCalendarOpen,
+    isPrepareDisabled,
+    setIsPrepareDisabled,
     handleInputChange,
     handleDefectTypeChange,
     handleCheckboxChange,

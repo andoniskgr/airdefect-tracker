@@ -4,13 +4,13 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 
 interface ServiceOrderActionsProps {
-  onPrepareAndCopy: () => void;
   onClear: () => void;
+  isPrepareDisabled?: boolean;
 }
 
 const ServiceOrderActions: React.FC<ServiceOrderActionsProps> = ({
-  onPrepareAndCopy,
   onClear,
+  isPrepareDisabled = false,
 }) => {
   const isMobile = useIsMobile();
 
@@ -22,15 +22,17 @@ const ServiceOrderActions: React.FC<ServiceOrderActionsProps> = ({
       )}
     >
       <Button
-        onClick={onPrepareAndCopy}
+        type="submit"
+        disabled={isPrepareDisabled}
         className={cn(
-          "bg-green-600 hover:bg-green-700",
+          "bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed",
           isMobile && "h-12 text-base w-full"
         )}
       >
         Prepare & Copy
       </Button>
       <Button
+        type="button"
         onClick={onClear}
         className={cn(
           "bg-red-600 hover:bg-red-700",

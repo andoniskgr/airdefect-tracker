@@ -16,6 +16,7 @@ const ServiceOrder = () => {
     validationErrors,
     calendarOpen,
     setCalendarOpen,
+    isPrepareDisabled,
     handleInputChange,
     handleDefectTypeChange,
     handleCheckboxChange,
@@ -40,6 +41,7 @@ const ServiceOrder = () => {
           handleCheckboxChange={handleCheckboxChange}
           handlePrepareAndCopy={handlePrepareAndCopy}
           handleClear={handleClear}
+          isPrepareDisabled={isPrepareDisabled}
         />
       </div>
     </div>

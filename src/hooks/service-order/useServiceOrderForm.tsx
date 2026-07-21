@@ -46,6 +46,8 @@ export const useServiceOrderForm = (
     setValidationErrors,
     calendarOpen,
     setCalendarOpen,
+    isPrepareDisabled,
+    setIsPrepareDisabled,
     handleInputChange,
     handleDefectTypeChange,
     handleCheckboxChange,
@@ -91,6 +93,7 @@ export const useServiceOrderForm = (
     const formattedText = generateFormattedText(formData, selectedAircraft);
 
     setFormData((prev) => ({ ...prev, preparedText: formattedText }));
+    setIsPrepareDisabled(true);
 
     // Copy to clipboard
     copyToClipboard(formattedText);
@@ -105,6 +108,7 @@ export const useServiceOrderForm = (
     validationErrors,
     calendarOpen,
     setCalendarOpen,
+    isPrepareDisabled,
     handleInputChange,
     handleDefectTypeChange,
     handleCheckboxChange,
