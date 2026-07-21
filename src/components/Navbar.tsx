@@ -159,6 +159,17 @@ const Navbar = () => {
       {isMobile && currentUser && isMobileMenuOpen && (
         <div className="border-t border-border bg-card">
           <div className="container mx-auto px-4 py-4 space-y-3">
+            <a
+              href="/internal-notices"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 text-blue-600 hover:text-blue-800 transition-colors py-2"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              <Bell className="h-5 w-5" />
+              <span className="text-base">Notes</span>
+            </a>
+
             {/* Admin Links */}
             {userData?.role === "admin" && (
               <Link
