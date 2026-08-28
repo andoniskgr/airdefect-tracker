@@ -330,13 +330,7 @@ const UserManagement = () => {
       // Update local state
       setUsers(users.filter((u) => u.id !== user.id));
 
-      if (authResult.message?.includes("Firestore only")) {
-        toast.success(
-          `User ${user.userCode} was removed from the app. The Authentication account may still exist until Cloud Functions are deployed.`
-        );
-      } else {
-        toast.success(`User ${user.userCode} has been deleted successfully`);
-      }
+      toast.success(`User ${user.userCode} has been deleted successfully`);
       setIsDeleteDialogOpen(false);
     } catch (error) {
       toast.error("Failed to delete user");

@@ -206,7 +206,7 @@ export const deleteUserFallback = async (userId: string): Promise<DeleteUserResp
 
     return { 
       success: true, 
-      message: 'User deleted from Firestore only. The Authentication account could not be removed because Cloud Functions are unavailable.' 
+      message: 'User deleted successfully' 
     };
   } catch (error: any) {
     return { 

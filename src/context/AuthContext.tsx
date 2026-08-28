@@ -111,8 +111,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
           if (!reclaimed.success) {
             throw new Error(
-              reclaimed.error ||
-                "This email was previously registered. Please contact the administrator."
+              "This email still has a previous login. Use the original password, or reset it from the login page and then sign up again with the new password."
             );
           }
 

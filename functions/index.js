@@ -1,17 +1,11 @@
-const { onCall, HttpsError } = require("firebase-functions/v2/https");
+const functions = require("firebase-functions/v1");
 const admin = require("firebase-admin");
 
 admin.initializeApp();
 
-const callableOptions = {
-  cors: true,
-  region: "us-central1",
-  invoker: "public",
-};
-
-const requireAdmin = async (request) => {
-  if (!request.auth) {
-    throw new HttpsError(
+const requireAdmin = async (context) => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError(
       "unauthenticated",
       "The function must be called while authenticated."
     );
@@ -20,16 +14,16 @@ const requireAdmin = async (request) => {
   const userDoc = await admin
     .firestore()
     .collection("users")
-    .doc(request.auth.uid)
+    .doc(context.auth.uid)
     .get();
 
   if (!userDoc.exists) {
-    throw new HttpsError("not-found", "User not found.");
+    throw new functions.https.HttpsError("not-found", "User not found.");
   }
 
   const userData = userDoc.data();
   if (userData.role !== "admin") {
-    throw new HttpsError(
+    throw new functions.https.HttpsError(
       "permission-denied",
       "Only admin users can perform this action."
     );
@@ -62,22 +56,48 @@ const deleteAuthUser = async (userId, email) => {
   }
 };
 
+const rethrowHttpsError = (error, fallbackMessage) => {
+  if (error instanceof functions.https.HttpsError) {
+    throw error;
+  }
+
+  throw new functions.https.HttpsError(
+    "internal",
+    fallbackMessage + error.message
+  );
+};
+
+/**
+ * Whenever a user document is removed from Firestore, also remove the
+ * matching Firebase Authentication account. This covers admin deletes from
+ * the app even if the callable function is unavailable.
+ */
+exports.removeAuthWhenUserDeleted = functions.firestore
+  .document("users/{userId}")
+  .onDelete(async (snap, context) => {
+    const email = snap.data()?.email;
+    await deleteAuthUser(context.params.userId, email);
+  });
+
 /**
  * Delete a user from Firebase Authentication and Firestore.
  * Callable only by authenticated admin users.
  */
-exports.deleteUser = onCall(callableOptions, async (request) => {
-  await requireAdmin(request);
+exports.deleteUser = functions.https.onCall(async (data, context) => {
+  await requireAdmin(context);
 
-  const userId = request.data?.userId;
-  const email = request.data?.email;
+  const userId = data?.userId;
+  const email = data?.email;
 
   if (!userId) {
-    throw new HttpsError("invalid-argument", "User ID is required.");
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "User ID is required."
+    );
   }
 
-  if (userId === request.auth.uid) {
-    throw new HttpsError(
+  if (userId === context.auth.uid) {
+    throw new functions.https.HttpsError(
       "invalid-argument",
       "You cannot delete your own account."
     );
@@ -99,14 +119,7 @@ exports.deleteUser = onCall(callableOptions, async (request) => {
 
     return { success: true, message: "User deleted successfully" };
   } catch (error) {
-    if (error instanceof HttpsError) {
-      throw error;
-    }
-
-    throw new HttpsError(
-      "internal",
-      "Failed to delete user: " + error.message
-    );
+    rethrowHttpsError(error, "Failed to delete user: ");
   }
 });
 
@@ -114,29 +127,29 @@ exports.deleteUser = onCall(callableOptions, async (request) => {
  * If an email exists in Authentication but not in Firestore (left behind after
  * a previous delete), remove that Auth user and create a fresh account.
  */
-exports.reclaimOrphanedAuthUser = onCall(callableOptions, async (request) => {
-  const email = String(request.data?.email || "").trim();
-  const password = request.data?.password;
-  const userCode = String(request.data?.userCode || "")
+exports.reclaimOrphanedAuthUser = functions.https.onCall(async (data) => {
+  const email = String(data?.email || "").trim();
+  const password = data?.password;
+  const userCode = String(data?.userCode || "")
     .trim()
     .toUpperCase();
 
   if (!email || !password || !userCode) {
-    throw new HttpsError(
+    throw new functions.https.HttpsError(
       "invalid-argument",
       "Email, password, and user code are required."
     );
   }
 
   if (!/^[A-Z0-9]{4}$/.test(userCode)) {
-    throw new HttpsError(
+    throw new functions.https.HttpsError(
       "invalid-argument",
       "User code must be exactly 4 letters or numbers."
     );
   }
 
   if (typeof password !== "string" || password.length < 6) {
-    throw new HttpsError(
+    throw new functions.https.HttpsError(
       "invalid-argument",
       "Password must be at least 6 characters."
     );
@@ -151,7 +164,7 @@ exports.reclaimOrphanedAuthUser = onCall(callableOptions, async (request) => {
       .get();
 
     if (!emailSnap.empty) {
-      throw new HttpsError(
+      throw new functions.https.HttpsError(
         "already-exists",
         "This email is already registered."
       );
@@ -165,7 +178,7 @@ exports.reclaimOrphanedAuthUser = onCall(callableOptions, async (request) => {
       .get();
 
     if (!codeSnap.empty) {
-      throw new HttpsError(
+      throw new functions.https.HttpsError(
         "already-exists",
         "User code already exists. Please choose a different code."
       );
@@ -188,7 +201,7 @@ exports.reclaimOrphanedAuthUser = onCall(callableOptions, async (request) => {
         .get();
 
       if (existingProfile.exists) {
-        throw new HttpsError(
+        throw new functions.https.HttpsError(
           "already-exists",
           "This email is already registered."
         );
@@ -214,32 +227,28 @@ exports.reclaimOrphanedAuthUser = onCall(callableOptions, async (request) => {
 
     return { success: true, uid: newUser.uid };
   } catch (error) {
-    if (error instanceof HttpsError) {
-      throw error;
-    }
-
-    throw new HttpsError(
-      "internal",
-      "Failed to recreate account: " + error.message
-    );
+    rethrowHttpsError(error, "Failed to recreate account: ");
   }
 });
 
 /**
  * Disable a user. Callable only by authenticated admin users.
  */
-exports.disableUser = onCall(callableOptions, async (request) => {
-  const adminData = await requireAdmin(request);
-  const userId = request.data?.userId;
-  const reason = request.data?.reason;
+exports.disableUser = functions.https.onCall(async (data, context) => {
+  const adminData = await requireAdmin(context);
+  const userId = data?.userId;
+  const reason = data?.reason;
 
   if (!userId) {
-    throw new HttpsError("invalid-argument", "User ID is required.");
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "User ID is required."
+    );
   }
 
   try {
-    if (userId === request.auth.uid) {
-      throw new HttpsError(
+    if (userId === context.auth.uid) {
+      throw new functions.https.HttpsError(
         "invalid-argument",
         "You cannot disable your own account."
       );
@@ -262,26 +271,22 @@ exports.disableUser = onCall(callableOptions, async (request) => {
 
     return { success: true, message: "User disabled successfully" };
   } catch (error) {
-    if (error instanceof HttpsError) {
-      throw error;
-    }
-
-    throw new HttpsError(
-      "internal",
-      "Failed to disable user: " + error.message
-    );
+    rethrowHttpsError(error, "Failed to disable user: ");
   }
 });
 
 /**
  * Enable a user. Callable only by authenticated admin users.
  */
-exports.enableUser = onCall(callableOptions, async (request) => {
-  await requireAdmin(request);
-  const userId = request.data?.userId;
+exports.enableUser = functions.https.onCall(async (data, context) => {
+  await requireAdmin(context);
+  const userId = data?.userId;
 
   if (!userId) {
-    throw new HttpsError("invalid-argument", "User ID is required.");
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "User ID is required."
+    );
   }
 
   try {
@@ -302,42 +307,35 @@ exports.enableUser = onCall(callableOptions, async (request) => {
 
     return { success: true, message: "User enabled successfully" };
   } catch (error) {
-    if (error instanceof HttpsError) {
-      throw error;
-    }
-
-    throw new HttpsError(
-      "internal",
-      "Failed to enable user: " + error.message
-    );
+    rethrowHttpsError(error, "Failed to enable user: ");
   }
 });
 
 /**
  * Update a user's role. Callable only by authenticated admin users.
  */
-exports.updateUserRole = onCall(callableOptions, async (request) => {
-  const adminData = await requireAdmin(request);
-  const userId = request.data?.userId;
-  const newRole = request.data?.newRole;
+exports.updateUserRole = functions.https.onCall(async (data, context) => {
+  const adminData = await requireAdmin(context);
+  const userId = data?.userId;
+  const newRole = data?.newRole;
 
   if (!userId || !newRole) {
-    throw new HttpsError(
+    throw new functions.https.HttpsError(
       "invalid-argument",
       "User ID and new role are required."
     );
   }
 
   if (newRole !== "user" && newRole !== "admin") {
-    throw new HttpsError(
+    throw new functions.https.HttpsError(
       "invalid-argument",
       "Invalid role. Role must be 'user' or 'admin'."
     );
   }
 
   try {
-    if (userId === request.auth.uid) {
-      throw new HttpsError(
+    if (userId === context.auth.uid) {
+      throw new functions.https.HttpsError(
         "invalid-argument",
         "You cannot change your own role."
       );
@@ -350,13 +348,13 @@ exports.updateUserRole = onCall(callableOptions, async (request) => {
       .get();
 
     if (!targetUserDoc.exists) {
-      throw new HttpsError("not-found", "Target user not found.");
+      throw new functions.https.HttpsError("not-found", "Target user not found.");
     }
 
     const targetUserData = targetUserDoc.data();
 
     if (targetUserData.disabled) {
-      throw new HttpsError(
+      throw new functions.https.HttpsError(
         "invalid-argument",
         "Cannot change role of a disabled user. Please enable the user first."
       );
@@ -373,22 +371,15 @@ exports.updateUserRole = onCall(callableOptions, async (request) => {
       message: `User role updated to ${newRole} successfully`,
     };
   } catch (error) {
-    if (error instanceof HttpsError) {
-      throw error;
-    }
-
-    throw new HttpsError(
-      "internal",
-      "Failed to update user role: " + error.message
-    );
+    rethrowHttpsError(error, "Failed to update user role: ");
   }
 });
 
 /**
  * Get all users. Callable only by authenticated admin users.
  */
-exports.getUsers = onCall(callableOptions, async (request) => {
-  await requireAdmin(request);
+exports.getUsers = functions.https.onCall(async (data, context) => {
+  await requireAdmin(context);
 
   try {
     const usersSnapshot = await admin
@@ -404,6 +395,9 @@ exports.getUsers = onCall(callableOptions, async (request) => {
 
     return { users };
   } catch (error) {
-    throw new HttpsError("internal", "Failed to fetch users: " + error.message);
+    throw new functions.https.HttpsError(
+      "internal",
+      "Failed to fetch users: " + error.message
+    );
   }
 });
