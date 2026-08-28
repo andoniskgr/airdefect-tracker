@@ -307,8 +307,8 @@ const UserManagement = () => {
         return;
       }
 
-      // Try Firebase Functions first
-      let authResult = await deleteUserFromAuth(user.id);
+      // Try Firebase Functions first so the Authentication account is removed too
+      let authResult = await deleteUserFromAuth(user.id, user.email);
 
       // If Firebase Functions fail, try fallback method
       if (
@@ -330,7 +330,13 @@ const UserManagement = () => {
       // Update local state
       setUsers(users.filter((u) => u.id !== user.id));
 
-      toast.success(`User ${user.userCode} has been deleted successfully`);
+      if (authResult.message?.includes("Firestore only")) {
+        toast.success(
+          `User ${user.userCode} was removed from the app. The Authentication account may still exist until Cloud Functions are deployed.`
+        );
+      } else {
+        toast.success(`User ${user.userCode} has been deleted successfully`);
+      }
       setIsDeleteDialogOpen(false);
     } catch (error) {
       toast.error("Failed to delete user");
@@ -879,7 +885,8 @@ const UserManagement = () => {
               <AlertDialogTitle>Delete User</AlertDialogTitle>
               <AlertDialogDescription>
                 Are you sure you want to permanently delete this user? This
-                action cannot be undone and will remove all user data.
+                removes them from the app and from Firebase Authentication so
+                the same email can be registered again.
               </AlertDialogDescription>
             </AlertDialogHeader>
             {selectedUser && (

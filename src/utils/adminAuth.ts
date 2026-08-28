@@ -2,6 +2,7 @@
 // This module provides functions to manage users in Firebase Authentication
 // using Firebase Functions with Admin SDK
 
+import { getApp } from 'firebase/app';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { auth } from './firebaseDB';
 
@@ -9,10 +10,10 @@ interface DeleteUserResponse {
   success: boolean;
   error?: string;
   message?: string;
+  uid?: string;
 }
 
-// Initialize Firebase Functions
-const functions = getFunctions();
+const functions = getFunctions(getApp(), 'us-central1');
 
 /**
  * Deletes a user from Firebase Authentication using Firebase Functions
@@ -21,7 +22,10 @@ const functions = getFunctions();
  * @param userId - The UID of the user to delete
  * @returns Promise<DeleteUserResponse>
  */
-export const deleteUserFromAuth = async (userId: string): Promise<DeleteUserResponse> => {
+export const deleteUserFromAuth = async (
+  userId: string,
+  email?: string
+): Promise<DeleteUserResponse> => {
   try {
     
     // Get the current user to ensure they're authenticated
@@ -32,7 +36,7 @@ export const deleteUserFromAuth = async (userId: string): Promise<DeleteUserResp
 
     // Call the Firebase Function
     const deleteUserFunction = httpsCallable(functions, 'deleteUser');
-    const result = await deleteUserFunction({ userId });
+    const result = await deleteUserFunction({ userId, email });
     
     const data = result.data as { success: boolean; message?: string; error?: string };
     
@@ -52,7 +56,9 @@ export const deleteUserFromAuth = async (userId: string): Promise<DeleteUserResp
     } else if (error.code === 'functions/not-found' || error.code === 'not-found') {
       return { 
         success: false, 
-        error: 'User not found in Firebase Authentication.' 
+        error: error.message?.includes('User not found')
+          ? error.message
+          : 'Firebase Functions are not available. Please ensure they are deployed and try again.' 
       };
     } else if (error.code === 'functions/permission-denied' || error.code === 'permission-denied') {
       return { 
@@ -319,6 +325,40 @@ export const getAllUsers = async (): Promise<{ users: any[] }> => {
     return data;
   } catch (error) {
     throw error;
+  }
+};
+
+/**
+ * Recreates an Authentication account that was left behind after a Firestore-only delete.
+ * Only succeeds when the email is not present in the users collection.
+ */
+export const reclaimOrphanedAuthUser = async (
+  email: string,
+  password: string,
+  userCode: string
+): Promise<DeleteUserResponse> => {
+  try {
+    const reclaimFunction = httpsCallable(functions, 'reclaimOrphanedAuthUser');
+    const result = await reclaimFunction({ email, password, userCode });
+    const data = result.data as { success: boolean; uid?: string; error?: string };
+
+    if (data.success) {
+      return { success: true, uid: data.uid };
+    }
+
+    throw new Error(data.error || 'Failed to recreate account');
+  } catch (error: any) {
+    if (error.code === 'functions/already-exists' || error.code === 'already-exists') {
+      return {
+        success: false,
+        error: error.message || 'This email is already registered. Please use the login page instead.',
+      };
+    }
+
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
+    };
   }
 };
 

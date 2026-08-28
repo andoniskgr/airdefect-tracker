@@ -3,7 +3,6 @@
 // Use this when Firebase Functions are not available (e.g., on Spark plan)
 
 import { doc, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
-import { deleteUser as deleteUserFromAuth } from 'firebase/auth';
 import { db, auth } from './firebaseDB';
 
 interface DeleteUserResponse {
@@ -207,7 +206,7 @@ export const deleteUserFallback = async (userId: string): Promise<DeleteUserResp
 
     return { 
       success: true, 
-      message: 'User deleted from Firestore successfully. Note: The user can now re-register with the same email and password, as the system will automatically reuse the existing Firebase Authentication account.' 
+      message: 'User deleted from Firestore only. The Authentication account could not be removed because Cloud Functions are unavailable.' 
     };
   } catch (error: any) {
     return { 

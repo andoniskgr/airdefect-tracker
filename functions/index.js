@@ -1,231 +1,290 @@
-const functions = require("firebase-functions");
+const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const admin = require("firebase-admin");
 
-// Initialize Firebase Admin SDK
 admin.initializeApp();
 
-/**
- * Cloud Function to delete a user from Firebase Authentication
- * This function can only be called by authenticated admin users
- */
-exports.deleteUser = functions.https.onCall(async (data, context) => {
-  // Check if the request is authenticated
-  if (!context.auth) {
-    throw new functions.https.HttpsError(
+const callableOptions = {
+  cors: true,
+  region: "us-central1",
+  invoker: "public",
+};
+
+const requireAdmin = async (request) => {
+  if (!request.auth) {
+    throw new HttpsError(
       "unauthenticated",
       "The function must be called while authenticated."
     );
   }
 
-  // Check if the user has admin role
   const userDoc = await admin
     .firestore()
     .collection("users")
-    .doc(context.auth.uid)
+    .doc(request.auth.uid)
     .get();
+
   if (!userDoc.exists) {
-    throw new functions.https.HttpsError("not-found", "User not found.");
+    throw new HttpsError("not-found", "User not found.");
   }
 
   const userData = userDoc.data();
   if (userData.role !== "admin") {
-    throw new functions.https.HttpsError(
+    throw new HttpsError(
       "permission-denied",
-      "Only admin users can delete other users."
+      "Only admin users can perform this action."
     );
   }
 
-  const { userId } = data;
+  return userData;
+};
+
+const deleteAuthUser = async (userId, email) => {
+  try {
+    await admin.auth().deleteUser(userId);
+    return;
+  } catch (error) {
+    if (error.code !== "auth/user-not-found") {
+      throw error;
+    }
+  }
+
+  if (!email) {
+    return;
+  }
+
+  try {
+    const authUser = await admin.auth().getUserByEmail(email);
+    await admin.auth().deleteUser(authUser.uid);
+  } catch (error) {
+    if (error.code !== "auth/user-not-found") {
+      throw error;
+    }
+  }
+};
+
+/**
+ * Delete a user from Firebase Authentication and Firestore.
+ * Callable only by authenticated admin users.
+ */
+exports.deleteUser = onCall(callableOptions, async (request) => {
+  await requireAdmin(request);
+
+  const userId = request.data?.userId;
+  const email = request.data?.email;
+
   if (!userId) {
-    throw new functions.https.HttpsError(
+    throw new HttpsError("invalid-argument", "User ID is required.");
+  }
+
+  if (userId === request.auth.uid) {
+    throw new HttpsError(
       "invalid-argument",
-      "User ID is required."
+      "You cannot delete your own account."
     );
   }
 
   try {
-    // Prevent admin from deleting themselves
-    if (userId === context.auth.uid) {
-      throw new functions.https.HttpsError(
-        "invalid-argument",
-        "You cannot delete your own account."
-      );
-    }
-
-    // Delete user from Firebase Authentication
-    await admin.auth().deleteUser(userId);
-
-    // Delete user document from Firestore
-    await admin.firestore().collection("users").doc(userId).delete();
-
-    // Delete all records created by this user
-    const recordsSnapshot = await admin
+    const targetDoc = await admin
       .firestore()
-      .collection("defectRecords")
-      .where("createdBy", "==", userData.email)
+      .collection("users")
+      .doc(userId)
       .get();
+    const targetEmail = email || targetDoc.data()?.email;
 
-    const batch = admin.firestore().batch();
-    recordsSnapshot.docs.forEach((doc) => {
-      batch.delete(doc.ref);
-    });
-    await batch.commit();
+    await deleteAuthUser(userId, targetEmail);
+
+    if (targetDoc.exists) {
+      await admin.firestore().collection("users").doc(userId).delete();
+    }
 
     return { success: true, message: "User deleted successfully" };
   } catch (error) {
-    // Provide more specific error messages based on the error type
-    if (error.code === "auth/user-not-found") {
-      throw new functions.https.HttpsError(
-        "not-found",
-        "User not found in Firebase Authentication"
-      );
-    } else if (error.code === "permission-denied") {
-      throw new functions.https.HttpsError(
-        "permission-denied",
-        "Permission denied: " + error.message
-      );
-    } else if (error.code === "unavailable") {
-      throw new functions.https.HttpsError(
-        "unavailable",
-        "Service temporarily unavailable: " + error.message
-      );
-    } else {
-      throw new functions.https.HttpsError(
-        "internal",
-        "Failed to delete user: " + error.message
-      );
+    if (error instanceof HttpsError) {
+      throw error;
     }
+
+    throw new HttpsError(
+      "internal",
+      "Failed to delete user: " + error.message
+    );
   }
 });
 
 /**
- * Cloud Function to disable a user
- * This function can only be called by authenticated admin users
+ * If an email exists in Authentication but not in Firestore (left behind after
+ * a previous delete), remove that Auth user and create a fresh account.
  */
-exports.disableUser = functions.https.onCall(async (data, context) => {
-  // Check if the request is authenticated
-  if (!context.auth) {
-    throw new functions.https.HttpsError(
-      "unauthenticated",
-      "The function must be called while authenticated."
-    );
-  }
+exports.reclaimOrphanedAuthUser = onCall(callableOptions, async (request) => {
+  const email = String(request.data?.email || "").trim();
+  const password = request.data?.password;
+  const userCode = String(request.data?.userCode || "")
+    .trim()
+    .toUpperCase();
 
-  // Check if the user has admin role
-  const userDoc = await admin
-    .firestore()
-    .collection("users")
-    .doc(context.auth.uid)
-    .get();
-  if (!userDoc.exists) {
-    throw new functions.https.HttpsError("not-found", "User not found.");
-  }
-
-  const userData = userDoc.data();
-  if (userData.role !== "admin") {
-    throw new functions.https.HttpsError(
-      "permission-denied",
-      "Only admin users can disable other users."
-    );
-  }
-
-  const { userId, reason } = data;
-  if (!userId) {
-    throw new functions.https.HttpsError(
+  if (!email || !password || !userCode) {
+    throw new HttpsError(
       "invalid-argument",
-      "User ID is required."
+      "Email, password, and user code are required."
+    );
+  }
+
+  if (!/^[A-Z0-9]{4}$/.test(userCode)) {
+    throw new HttpsError(
+      "invalid-argument",
+      "User code must be exactly 4 letters or numbers."
+    );
+  }
+
+  if (typeof password !== "string" || password.length < 6) {
+    throw new HttpsError(
+      "invalid-argument",
+      "Password must be at least 6 characters."
     );
   }
 
   try {
-    // Prevent admin from disabling themselves
-    if (userId === context.auth.uid) {
-      throw new functions.https.HttpsError(
+    const emailSnap = await admin
+      .firestore()
+      .collection("users")
+      .where("email", "==", email)
+      .limit(1)
+      .get();
+
+    if (!emailSnap.empty) {
+      throw new HttpsError(
+        "already-exists",
+        "This email is already registered."
+      );
+    }
+
+    const codeSnap = await admin
+      .firestore()
+      .collection("users")
+      .where("userCode", "==", userCode)
+      .limit(1)
+      .get();
+
+    if (!codeSnap.empty) {
+      throw new HttpsError(
+        "already-exists",
+        "User code already exists. Please choose a different code."
+      );
+    }
+
+    let existingAuthUser = null;
+    try {
+      existingAuthUser = await admin.auth().getUserByEmail(email);
+    } catch (error) {
+      if (error.code !== "auth/user-not-found") {
+        throw error;
+      }
+    }
+
+    if (existingAuthUser) {
+      const existingProfile = await admin
+        .firestore()
+        .collection("users")
+        .doc(existingAuthUser.uid)
+        .get();
+
+      if (existingProfile.exists) {
+        throw new HttpsError(
+          "already-exists",
+          "This email is already registered."
+        );
+      }
+
+      await admin.auth().deleteUser(existingAuthUser.uid);
+    }
+
+    const newUser = await admin.auth().createUser({
+      email,
+      password,
+    });
+
+    await admin.firestore().collection("users").doc(newUser.uid).set({
+      email,
+      userCode,
+      createdAt: new Date(),
+      status: "pending",
+      role: "user",
+      approvedAt: null,
+      approvedBy: null,
+    });
+
+    return { success: true, uid: newUser.uid };
+  } catch (error) {
+    if (error instanceof HttpsError) {
+      throw error;
+    }
+
+    throw new HttpsError(
+      "internal",
+      "Failed to recreate account: " + error.message
+    );
+  }
+});
+
+/**
+ * Disable a user. Callable only by authenticated admin users.
+ */
+exports.disableUser = onCall(callableOptions, async (request) => {
+  const adminData = await requireAdmin(request);
+  const userId = request.data?.userId;
+  const reason = request.data?.reason;
+
+  if (!userId) {
+    throw new HttpsError("invalid-argument", "User ID is required.");
+  }
+
+  try {
+    if (userId === request.auth.uid) {
+      throw new HttpsError(
         "invalid-argument",
         "You cannot disable your own account."
       );
     }
 
-    // Update user document in Firestore
-    await admin
-      .firestore()
-      .collection("users")
-      .doc(userId)
-      .update({
-        disabled: true,
-        disabledAt: new Date(),
-        disabledBy: userData.email,
-        disableReason: reason || null,
-      });
+    await admin.firestore().collection("users").doc(userId).update({
+      disabled: true,
+      disabledAt: new Date(),
+      disabledBy: adminData.email,
+      disableReason: reason || null,
+    });
+
+    try {
+      await admin.auth().updateUser(userId, { disabled: true });
+    } catch (error) {
+      if (error.code !== "auth/user-not-found") {
+        console.warn("Could not disable Authentication user:", error.message);
+      }
+    }
 
     return { success: true, message: "User disabled successfully" };
   } catch (error) {
-    // Provide more specific error messages based on the error type
-    if (error.code === "permission-denied") {
-      throw new functions.https.HttpsError(
-        "permission-denied",
-        "Permission denied: " + error.message
-      );
-    } else if (error.code === "not-found") {
-      throw new functions.https.HttpsError(
-        "not-found",
-        "User document not found: " + error.message
-      );
-    } else if (error.code === "unavailable") {
-      throw new functions.https.HttpsError(
-        "unavailable",
-        "Service temporarily unavailable: " + error.message
-      );
-    } else {
-      throw new functions.https.HttpsError(
-        "internal",
-        "Failed to disable user: " + error.message
-      );
+    if (error instanceof HttpsError) {
+      throw error;
     }
+
+    throw new HttpsError(
+      "internal",
+      "Failed to disable user: " + error.message
+    );
   }
 });
 
 /**
- * Cloud Function to enable a user
- * This function can only be called by authenticated admin users
+ * Enable a user. Callable only by authenticated admin users.
  */
-exports.enableUser = functions.https.onCall(async (data, context) => {
-  // Check if the request is authenticated
-  if (!context.auth) {
-    throw new functions.https.HttpsError(
-      "unauthenticated",
-      "The function must be called while authenticated."
-    );
-  }
+exports.enableUser = onCall(callableOptions, async (request) => {
+  await requireAdmin(request);
+  const userId = request.data?.userId;
 
-  // Check if the user has admin role
-  const userDoc = await admin
-    .firestore()
-    .collection("users")
-    .doc(context.auth.uid)
-    .get();
-  if (!userDoc.exists) {
-    throw new functions.https.HttpsError("not-found", "User not found.");
-  }
-
-  const userData = userDoc.data();
-  if (userData.role !== "admin") {
-    throw new functions.https.HttpsError(
-      "permission-denied",
-      "Only admin users can enable other users."
-    );
-  }
-
-  const { userId } = data;
   if (!userId) {
-    throw new functions.https.HttpsError(
-      "invalid-argument",
-      "User ID is required."
-    );
+    throw new HttpsError("invalid-argument", "User ID is required.");
   }
 
   try {
-    // Update user document in Firestore
     await admin.firestore().collection("users").doc(userId).update({
       disabled: false,
       disabledAt: null,
@@ -233,90 +292,57 @@ exports.enableUser = functions.https.onCall(async (data, context) => {
       disableReason: null,
     });
 
+    try {
+      await admin.auth().updateUser(userId, { disabled: false });
+    } catch (error) {
+      if (error.code !== "auth/user-not-found") {
+        console.warn("Could not enable Authentication user:", error.message);
+      }
+    }
+
     return { success: true, message: "User enabled successfully" };
   } catch (error) {
-    // Provide more specific error messages based on the error type
-    if (error.code === "permission-denied") {
-      throw new functions.https.HttpsError(
-        "permission-denied",
-        "Permission denied: " + error.message
-      );
-    } else if (error.code === "not-found") {
-      throw new functions.https.HttpsError(
-        "not-found",
-        "User document not found: " + error.message
-      );
-    } else if (error.code === "unavailable") {
-      throw new functions.https.HttpsError(
-        "unavailable",
-        "Service temporarily unavailable: " + error.message
-      );
-    } else {
-      throw new functions.https.HttpsError(
-        "internal",
-        "Failed to enable user: " + error.message
-      );
+    if (error instanceof HttpsError) {
+      throw error;
     }
+
+    throw new HttpsError(
+      "internal",
+      "Failed to enable user: " + error.message
+    );
   }
 });
 
 /**
- * Cloud Function to update user role
- * This function can only be called by authenticated admin users
+ * Update a user's role. Callable only by authenticated admin users.
  */
-exports.updateUserRole = functions.https.onCall(async (data, context) => {
-  // Check if the request is authenticated
-  if (!context.auth) {
-    throw new functions.https.HttpsError(
-      "unauthenticated",
-      "The function must be called while authenticated."
-    );
-  }
+exports.updateUserRole = onCall(callableOptions, async (request) => {
+  const adminData = await requireAdmin(request);
+  const userId = request.data?.userId;
+  const newRole = request.data?.newRole;
 
-  // Check if the user has admin role
-  const userDoc = await admin
-    .firestore()
-    .collection("users")
-    .doc(context.auth.uid)
-    .get();
-  if (!userDoc.exists) {
-    throw new functions.https.HttpsError("not-found", "User not found.");
-  }
-
-  const userData = userDoc.data();
-  if (userData.role !== "admin") {
-    throw new functions.https.HttpsError(
-      "permission-denied",
-      "Only admin users can change user roles."
-    );
-  }
-
-  const { userId, newRole } = data;
   if (!userId || !newRole) {
-    throw new functions.https.HttpsError(
+    throw new HttpsError(
       "invalid-argument",
       "User ID and new role are required."
     );
   }
 
-  // Validate role
   if (newRole !== "user" && newRole !== "admin") {
-    throw new functions.https.HttpsError(
+    throw new HttpsError(
       "invalid-argument",
       "Invalid role. Role must be 'user' or 'admin'."
     );
   }
 
   try {
-    // Prevent admin from changing their own role
-    if (userId === context.auth.uid) {
-      throw new functions.https.HttpsError(
+    if (userId === request.auth.uid) {
+      throw new HttpsError(
         "invalid-argument",
         "You cannot change your own role."
       );
     }
 
-    // Get the target user to ensure they exist
     const targetUserDoc = await admin
       .firestore()
       .collection("users")
@@ -324,27 +350,22 @@ exports.updateUserRole = functions.https.onCall(async (data, context) => {
       .get();
 
     if (!targetUserDoc.exists) {
-      throw new functions.https.HttpsError(
-        "not-found",
-        "Target user not found."
-      );
+      throw new HttpsError("not-found", "Target user not found.");
     }
 
     const targetUserData = targetUserDoc.data();
 
-    // Prevent changing role if user is disabled
     if (targetUserData.disabled) {
-      throw new functions.https.HttpsError(
+      throw new HttpsError(
         "invalid-argument",
         "Cannot change role of a disabled user. Please enable the user first."
       );
     }
 
-    // Update user role in Firestore
     await admin.firestore().collection("users").doc(userId).update({
       role: newRole,
       roleChangedAt: new Date(),
-      roleChangedBy: userData.email,
+      roleChangedBy: adminData.email,
     });
 
     return {
@@ -352,60 +373,22 @@ exports.updateUserRole = functions.https.onCall(async (data, context) => {
       message: `User role updated to ${newRole} successfully`,
     };
   } catch (error) {
-    // Provide more specific error messages based on the error type
-    if (error.code === "permission-denied") {
-      throw new functions.https.HttpsError(
-        "permission-denied",
-        "Permission denied: " + error.message
-      );
-    } else if (error.code === "not-found") {
-      throw new functions.https.HttpsError(
-        "not-found",
-        "User not found: " + error.message
-      );
-    } else if (error.code === "unavailable") {
-      throw new functions.https.HttpsError(
-        "unavailable",
-        "Service temporarily unavailable: " + error.message
-      );
-    } else {
-      throw new functions.https.HttpsError(
-        "internal",
-        "Failed to update user role: " + error.message
-      );
+    if (error instanceof HttpsError) {
+      throw error;
     }
+
+    throw new HttpsError(
+      "internal",
+      "Failed to update user role: " + error.message
+    );
   }
 });
 
 /**
- * Cloud Function to get all users (admin only)
+ * Get all users. Callable only by authenticated admin users.
  */
-exports.getUsers = functions.https.onCall(async (data, context) => {
-  // Check if the request is authenticated
-  if (!context.auth) {
-    throw new functions.https.HttpsError(
-      "unauthenticated",
-      "The function must be called while authenticated."
-    );
-  }
-
-  // Check if the user has admin role
-  const userDoc = await admin
-    .firestore()
-    .collection("users")
-    .doc(context.auth.uid)
-    .get();
-  if (!userDoc.exists) {
-    throw new functions.https.HttpsError("not-found", "User not found.");
-  }
-
-  const userData = userDoc.data();
-  if (userData.role !== "admin") {
-    throw new functions.https.HttpsError(
-      "permission-denied",
-      "Only admin users can access user data."
-    );
-  }
+exports.getUsers = onCall(callableOptions, async (request) => {
+  await requireAdmin(request);
 
   try {
     const usersSnapshot = await admin
@@ -413,6 +396,7 @@ exports.getUsers = functions.https.onCall(async (data, context) => {
       .collection("users")
       .orderBy("createdAt", "desc")
       .get();
+
     const users = usersSnapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
@@ -420,10 +404,6 @@ exports.getUsers = functions.https.onCall(async (data, context) => {
 
     return { users };
   } catch (error) {
-    throw new functions.https.HttpsError(
-      "internal",
-      "Failed to fetch users: " + error.message
-    );
+    throw new HttpsError("internal", "Failed to fetch users: " + error.message);
   }
 });
-

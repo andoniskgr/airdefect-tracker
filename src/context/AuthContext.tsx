@@ -19,6 +19,7 @@ import {
 import { doc, setDoc, onSnapshot } from "firebase/firestore";
 import { emailService } from "../utils/emailService";
 import { endAppSession } from "../utils/appStorage";
+import { reclaimOrphanedAuthUser } from "../utils/adminAuth";
 
 type UserData = {
   id: string;
@@ -76,8 +77,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
 
     let user: any;
+    let firestoreAlreadyCreated = false;
     try {
-      // Create user with Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
@@ -85,58 +86,64 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       );
       user = userCredential.user;
     } catch (error: any) {
-      // Handle Firebase Auth errors
       if (error.code === "auth/email-already-in-use") {
-        // Check if this email exists in Firestore
         const existingUserData = await getUserByEmail(email);
-        if (!existingUserData) {
-          // Email exists in Firebase Auth but not in Firestore (orphaned account)
-          // Try to sign in with the existing Firebase Auth account to reuse it
-          try {
-            const userCredential = await signInWithEmailAndPassword(
-              auth,
-              email,
-              password
-            );
-            user = userCredential.user;
-            // Sign out immediately as we just need to verify the password is correct
-            await signOut(auth);
-          } catch (signInError: any) {
-            if (signInError.code === "auth/wrong-password") {
-              throw new Error(
-                "This email was previously registered. Please use the correct password to login, or contact the administrator to reset your account."
-              );
-            } else {
-              throw new Error(
-                "This email was previously registered but there's an issue with the account. Please contact the administrator."
-              );
-            }
-          }
-        } else {
-          // Email exists in both Firebase Auth and Firestore
+        if (existingUserData) {
           throw new Error(
             "This email is already registered. Please use the login page instead."
           );
+        }
+
+        // Auth user exists without a Firestore profile (left behind after delete).
+        try {
+          const userCredential = await signInWithEmailAndPassword(
+            auth,
+            email,
+            password
+          );
+          user = userCredential.user;
+        } catch {
+          const reclaimed = await reclaimOrphanedAuthUser(
+            email,
+            password,
+            userCode
+          );
+
+          if (!reclaimed.success) {
+            throw new Error(
+              reclaimed.error ||
+                "This email was previously registered. Please contact the administrator."
+            );
+          }
+
+          firestoreAlreadyCreated = true;
+          const userCredential = await signInWithEmailAndPassword(
+            auth,
+            email,
+            password
+          );
+          user = userCredential.user;
         }
       } else if (error.code && error.code.startsWith("auth/")) {
         throw new Error(
           "Authentication error. Please check your email format and try again."
         );
+      } else {
+        throw error;
       }
-      // Re-throw other errors
-      throw error;
     }
 
-    // Save user data to Firestore with pending approval status
-    await setDoc(doc(db, "users", user.uid), {
-      email: email,
-      userCode: userCode,
-      createdAt: new Date(),
-      status: "pending", // pending, approved, rejected
-      role: "user", // user, admin
-      approvedAt: null,
-      approvedBy: null,
-    });
+    if (!firestoreAlreadyCreated) {
+      await setDoc(doc(db, "users", user.uid), {
+        email: email,
+        userCode: userCode,
+        createdAt: new Date(),
+        status: "pending",
+        role: "user",
+        approvedAt: null,
+        approvedBy: null,
+      });
+    }
 
     // Send notification to admin about new user signup
     try {
