@@ -4,6 +4,7 @@ import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
+  sendPasswordResetEmail,
   User,
 } from "firebase/auth";
 import {
@@ -40,6 +41,7 @@ type AuthContextType = {
   userData: UserData | null;
   signup: (email: string, password: string, userCode: string) => Promise<void>;
   login: (emailOrCode: string, password: string) => Promise<void>;
+  resetPassword: (emailOrCode: string) => Promise<void>;
   logout: () => Promise<void>;
   updateUserCode: (newUserCode: string) => Promise<void>;
   getUserData: () => Promise<any>;
@@ -226,6 +228,64 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  const resetPassword = async (emailOrCode: string) => {
+    const trimmed = emailOrCode.trim();
+    const isUserCode = /^[A-Z0-9]{4}$/i.test(trimmed) && !trimmed.includes("@");
+
+    let email = trimmed;
+
+    if (isUserCode) {
+      try {
+        const matchedUser = await getUserByCode(trimmed.toUpperCase());
+        if (
+          !matchedUser?.email ||
+          matchedUser.disabled === true ||
+          matchedUser.status === "rejected"
+        ) {
+          return;
+        }
+        email = String(matchedUser.email).trim();
+      } catch {
+        return;
+      }
+    }
+
+    const isIgnorable = (error: any) =>
+      error?.code === "auth/user-not-found" ||
+      error?.code === "auth/invalid-email";
+
+    const isContinueUriError = (error: any) =>
+      error?.code === "auth/unauthorized-continue-uri" ||
+      error?.code === "auth/invalid-continue-uri" ||
+      error?.code === "auth/unauthorized-domain";
+
+    try {
+      try {
+        await sendPasswordResetEmail(auth, email, {
+          url: `${window.location.origin}/login?reset=success`,
+        });
+      } catch (error: any) {
+        if (isIgnorable(error)) {
+          return;
+        }
+        if (!isContinueUriError(error)) {
+          throw error;
+        }
+        // Local hosts such as 127.0.0.1 are often not in Firebase authorized
+        // domains. Send the reset email without a continue URL instead.
+        await sendPasswordResetEmail(auth, email);
+      }
+    } catch (error: any) {
+      if (isIgnorable(error)) {
+        return;
+      }
+      if (error.code === "auth/too-many-requests") {
+        throw new Error("Too many reset attempts. Please try again later.");
+      }
+      throw new Error("Unable to send reset email. Please try again.");
+    }
+  };
+
   const logout = async () => {
     try {
       await signOut(auth);
@@ -341,6 +401,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     userData,
     signup,
     login,
+    resetPassword,
     logout,
     updateUserCode,
     getUserData,
