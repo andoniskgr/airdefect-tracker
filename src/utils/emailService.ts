@@ -20,6 +20,43 @@ export interface AdminNotificationData {
   userData: UserSignupData;
 }
 
+function getAppOrigin(): string {
+  if (typeof window !== 'undefined' && window.location?.origin) {
+    return window.location.origin;
+  }
+  return 'https://airdefect-tracker.lovable.app';
+}
+
+/**
+ * EmailJS "Contact Us" templates insert {{message}} as escaped text.
+ * Passing HTML there shows raw tags in the inbox. Always send plain text.
+ */
+function htmlToPlainText(html: string): string {
+  return html
+    .replace(/<a\s+[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi, (_match, href, label) => {
+      const text = String(label).replace(/<[^>]+>/g, '').trim();
+      return text && text !== href ? `${text}: ${href}` : href;
+    })
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/(p|div|h[1-6]|tr|li)>/gi, '\n')
+    .replace(/<li[^>]*>/gi, '• ')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .replace(/[ \t]{2,}/g, ' ')
+    .trim();
+}
+
+function resolveMessage(emailData: Pick<EmailData, 'html' | 'text'>): string {
+  return emailData.text?.trim() || htmlToPlainText(emailData.html);
+}
+
 // Email templates
 export const emailTemplates = {
   adminSignupNotification: (userData: UserSignupData, adminEmail: string) => ({
@@ -40,7 +77,7 @@ export const emailTemplates = {
         <p>Please review and approve or reject this user's access request.</p>
         
         <div style="margin: 30px 0;">
-          <a href="${typeof window !== 'undefined' ? window.location.origin : 'https://your-app.com'}/admin/users" 
+          <a href="${getAppOrigin()}/admin/users" 
              style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
             Manage Users
           </a>
@@ -51,7 +88,17 @@ export const emailTemplates = {
         </p>
       </div>
     `,
-    text: `New User Signup Request - ${userData.userCode}\n\nA new user has requested access:\nEmail: ${userData.email}\nUser Code: ${userData.userCode}\nSignup Date: ${userData.createdAt.toLocaleDateString()}\n\nPlease review at: ${typeof window !== 'undefined' ? window.location.origin : 'https://your-app.com'}/admin/users`
+    text: [
+      `New User Signup Request - ${userData.userCode}`,
+      '',
+      'A new user has requested access to the MCC Application.',
+      '',
+      `Email: ${userData.email}`,
+      `User Code: ${userData.userCode}`,
+      `Signup Date: ${userData.createdAt.toLocaleDateString()}`,
+      '',
+      `Review the request: ${getAppOrigin()}/admin/users`,
+    ].join('\n')
   }),
 
   userApprovalNotification: (userEmail: string, userCode: string) => ({
@@ -71,7 +118,7 @@ export const emailTemplates = {
         <p>You can now log in to the application using either your email address or your user code.</p>
         
         <div style="margin: 30px 0;">
-          <a href="${typeof window !== 'undefined' ? window.location.origin : 'https://your-app.com'}/login" 
+          <a href="${getAppOrigin()}/login" 
              style="background-color: #28a745; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
             Login to Application
           </a>
@@ -82,7 +129,20 @@ export const emailTemplates = {
         </p>
       </div>
     `,
-    text: `Account Approved!\n\nYour account has been approved and you now have access to the MCC Application.\n\nEmail: ${userEmail}\nUser Code: ${userCode}\n\nLogin at: ${typeof window !== 'undefined' ? window.location.origin : 'https://your-app.com'}/login`
+    text: [
+      'Account Approved!',
+      '',
+      'Great news! Your account has been approved and you now have access to the MCC Application.',
+      '',
+      'Your Account Details:',
+      `Email: ${userEmail}`,
+      `User Code: ${userCode}`,
+      '',
+      'You can now log in using either your email address or your user code:',
+      `${getAppOrigin()}/login`,
+      '',
+      'This is an automated notification from the MCC Application.',
+    ].join('\n')
   }),
 
   userRejectionNotification: (userEmail: string, userCode: string, reason?: string) => ({
@@ -107,7 +167,17 @@ export const emailTemplates = {
         </p>
       </div>
     `,
-    text: `Account Access Denied\n\nYour account access request has been denied.\n\nEmail: ${userEmail}\nUser Code: ${userCode}${reason ? `\nReason: ${reason}` : ''}\n\nIf you believe this is an error, please contact the administrator.`
+    text: [
+      'Account Access Denied',
+      '',
+      "We're sorry, but your account access request has been denied.",
+      '',
+      `Email: ${userEmail}`,
+      `User Code: ${userCode}`,
+      ...(reason ? [`Reason: ${reason}`] : []),
+      '',
+      'If you believe this is an error, please contact the administrator.',
+    ].join('\n')
   })
 };
 
@@ -140,7 +210,8 @@ export class EmailService {
         const templateParams = {
           to_email: emailData.to,
           subject: emailData.subject,
-          message: emailData.html,
+          message: resolveMessage(emailData),
+          html_message: emailData.html,
           user_email: userData.email,
           user_code: userData.userCode,
           signup_date: userData.createdAt.toLocaleDateString(),
@@ -177,7 +248,8 @@ export class EmailService {
         const templateParams = {
           to_email: emailData.to,
           subject: emailData.subject,
-          message: emailData.html,
+          message: resolveMessage(emailData),
+          html_message: emailData.html,
           user_email: userEmail,
           user_code: userCode,
           from_name: 'MCC Application',
@@ -212,7 +284,8 @@ export class EmailService {
         const templateParams = {
           to_email: emailData.to,
           subject: emailData.subject,
-          message: emailData.html,
+          message: resolveMessage(emailData),
+          html_message: emailData.html,
           user_email: userEmail,
           user_code: userCode,
           rejection_reason: reason || 'No reason provided',
@@ -247,7 +320,8 @@ export class EmailService {
         const templateParams = {
           to_email: emailData.to,
           subject: emailData.subject,
-          message: emailData.html,
+          message: resolveMessage(emailData),
+          html_message: emailData.html,
           from_name: 'MCC Application',
           reply_to: this.adminEmail,
         };
