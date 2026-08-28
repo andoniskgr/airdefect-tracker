@@ -4,15 +4,28 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { KeyRound, Loader2 } from "lucide-react";
 
 const UserProfile = () => {
-  const { currentUser, updateUserCode, getUserData } = useAuth();
+  const { currentUser, updateUserCode, getUserData, changePassword } = useAuth();
   const [userData, setUserData] = useState<any>(null);
   const [newUserCode, setNewUserCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordLoading, setPasswordLoading] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -63,6 +76,50 @@ const UserProfile = () => {
     }
   };
 
+  const resetPasswordForm = () => {
+    setCurrentPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
+  };
+
+  const handlePasswordDialogChange = (open: boolean) => {
+    setPasswordDialogOpen(open);
+    if (!open) {
+      resetPasswordForm();
+    }
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!currentPassword) {
+      return toast.error("Enter your current password");
+    }
+
+    if (newPassword.length < 6) {
+      return toast.error("New password must be at least 6 characters");
+    }
+
+    if (newPassword !== confirmPassword) {
+      return toast.error("New passwords do not match");
+    }
+
+    if (newPassword === currentPassword) {
+      return toast.error("New password must be different from current password");
+    }
+
+    try {
+      setPasswordLoading(true);
+      await changePassword(currentPassword, newPassword);
+      toast.success("Password updated successfully");
+      handlePasswordDialogChange(false);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to change password");
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
+
   if (dataLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -80,7 +137,7 @@ const UserProfile = () => {
         <CardHeader>
           <CardTitle>User Profile</CardTitle>
           <CardDescription>
-            Manage your account settings and user code
+            Manage your account settings, password, and user code
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -94,6 +151,23 @@ const UserProfile = () => {
             />
             <p className="text-xs text-muted-foreground">
               Email address cannot be changed
+            </p>
+          </div>
+
+          {/* Change Password */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Password</Label>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={() => setPasswordDialogOpen(true)}
+            >
+              <KeyRound className="mr-2 h-4 w-4" />
+              Change Password
+            </Button>
+            <p className="text-xs text-muted-foreground">
+              Update the password you use to sign in
             </p>
           </div>
 
@@ -159,6 +233,74 @@ const UserProfile = () => {
           </div>
         </CardContent>
       </Card>
+
+      <Dialog open={passwordDialogOpen} onOpenChange={handlePasswordDialogChange}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Change Password</DialogTitle>
+            <DialogDescription>
+              Enter your current password and choose a new one.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleChangePassword} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="current-password">Current password</Label>
+              <Input
+                id="current-password"
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                autoComplete="current-password"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new-password">New password</Label>
+              <Input
+                id="new-password"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                autoComplete="new-password"
+                minLength={6}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirm-new-password">Confirm new password</Label>
+              <Input
+                id="confirm-new-password"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                autoComplete="new-password"
+                minLength={6}
+                required
+              />
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => handlePasswordDialogChange(false)}
+                disabled={passwordLoading}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={passwordLoading}>
+                {passwordLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  "Update Password"
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -5,6 +5,9 @@ import {
   signOut,
   onAuthStateChanged,
   sendPasswordResetEmail,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  updatePassword,
   User,
 } from "firebase/auth";
 import {
@@ -43,6 +46,7 @@ type AuthContextType = {
   signup: (email: string, password: string, userCode: string) => Promise<void>;
   login: (emailOrCode: string, password: string) => Promise<void>;
   resetPassword: (emailOrCode: string) => Promise<void>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   logout: () => Promise<void>;
   updateUserCode: (newUserCode: string) => Promise<void>;
   getUserData: () => Promise<any>;
@@ -292,6 +296,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  const changePassword = async (
+    currentPassword: string,
+    newPassword: string
+  ) => {
+    if (!currentUser) {
+      throw new Error("No user logged in");
+    }
+
+    if (!currentUser.email) {
+      throw new Error("Unable to change password for this account.");
+    }
+
+    try {
+      const credential = EmailAuthProvider.credential(
+        currentUser.email,
+        currentPassword
+      );
+      await reauthenticateWithCredential(currentUser, credential);
+      await updatePassword(currentUser, newPassword);
+    } catch (error: any) {
+      if (
+        error.code === "auth/wrong-password" ||
+        error.code === "auth/invalid-credential" ||
+        error.code === "auth/invalid-login-credentials"
+      ) {
+        throw new Error("Current password is incorrect.");
+      }
+      if (error.code === "auth/weak-password") {
+        throw new Error("Please choose a stronger password.");
+      }
+      if (error.code === "auth/too-many-requests") {
+        throw new Error("Too many attempts. Please try again later.");
+      }
+      if (error.code === "auth/requires-recent-login") {
+        throw new Error("Please log in again and then change your password.");
+      }
+      throw new Error("Unable to change password. Please try again.");
+    }
+  };
+
   const logout = async () => {
     try {
       await signOut(auth);
@@ -408,6 +452,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     signup,
     login,
     resetPassword,
+    changePassword,
     logout,
     updateUserCode,
     getUserData,
