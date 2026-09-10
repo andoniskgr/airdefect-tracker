@@ -77,6 +77,17 @@
   }
 }
 
+/* Hide Lovable "Edit with Lovable" badge (bottom-right) */
+#lovable-badge,
+#gpteng-badge,
+[data-lovable-badge],
+[data-gpteng-badge],
+iframe[src*="gpteng.co"],
+a[href*="lovable.dev"][style*="position: fixed"],
+a[href*="gpteng.co"][style*="position: fixed"] {
+  display: none !important;
+}
+
 .fade-in {
   animation: fadeIn 0.3s ease-in;
 }
