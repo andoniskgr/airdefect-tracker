@@ -17,6 +17,7 @@ import ServiceOrder from "./pages/ServiceOrder";
 import AircraftAdmin from "./pages/AircraftAdmin";
 import ArchiveRecords from "./pages/ArchiveRecords";
 import InternalNotices from "./pages/InternalNotices";
+import FlightMovements from "./pages/FlightMovements";
 import UserProfile from "./pages/UserProfile";
 import UserManagement from "./pages/UserManagement";
 import AdminSetup from "./pages/AdminSetup";
@@ -58,6 +59,14 @@ const App = () => {
                   element={
                     <ProtectedRoute>
                       <ArchiveRecords />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/flight-movements"
+                  element={
+                    <ProtectedRoute>
+                      <FlightMovements />
                     </ProtectedRoute>
                   }
                 />
