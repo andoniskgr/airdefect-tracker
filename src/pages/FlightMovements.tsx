@@ -1,18 +1,57 @@
 import { Plane, PlaneLanding, PlaneTakeoff } from "lucide-react";
 import type { FlightMovement } from "@/types/flightMovement";
 
-/** Placeholder until an external takeoff/landing source is connected. */
-const movements: FlightMovement[] = [];
+/**
+ * Demo movements for SX-DVY until OpCenter HTML ingest is connected.
+ * Shape matches A80 Off Event (OFFRP) / On Event (ONRP) message summaries.
+ */
+const movements: FlightMovement[] = [
+  {
+    id: "sx-dvy-off-demo",
+    type: "off",
+    tailNumber: "SX-DVY",
+    flightId: "—",
+    departureStation: "—",
+    arrivalAirport: "—",
+    outTime: "—",
+    offTime: "—",
+    eta: "—",
+    fuelOnBoard: "—",
+    smi: "A80",
+    pattern: "OPC_A80_OFFRP_Collins",
+    messageTime: "Awaiting OpCenter",
+    freetext: undefined,
+  },
+  {
+    id: "sx-dvy-on-demo",
+    type: "on",
+    tailNumber: "SX-DVY",
+    flightId: "—",
+    departureStation: "—",
+    arrivalAirport: "—",
+    onTime: "—",
+    fuelOnBoard: "—",
+    smi: "A80",
+    pattern: "OPC_A80_ONRP_Collins",
+    messageTime: "Awaiting OpCenter",
+    freetext: undefined,
+  },
+];
 
-const formatOccurredAt = (iso: string) => {
-  try {
-    return new Date(iso).toLocaleString();
-  } catch {
-    return iso;
+
+const eventLabel = (type: FlightMovement["type"]) =>
+  type === "off" ? "Off Event (takeoff)" : "On Event (landing)";
+
+const eventTime = (m: FlightMovement) => {
+  if (m.type === "off") {
+    return `OUT ${m.outTime || "—"} / OFF ${m.offTime || "—"}`;
   }
+  return `ON ${m.onTime || "—"}`;
 };
 
 const FlightMovements = () => {
+  const sxDvy = movements.filter((m) => m.tailNumber === "SX-DVY");
+
   return (
     <div className="min-h-screen bg-slate-700 text-white p-4">
       <div className="container mx-auto">
@@ -21,60 +60,70 @@ const FlightMovements = () => {
           <div>
             <h1 className="text-2xl font-bold">Takeoffs / Landings</h1>
             <p className="text-sm text-slate-300">
-              Flight movements will appear here once a data source is connected.
+              SX-DVY — OpCenter A80 Off / On events (demo layout until live HTML
+              ingest is connected).
             </p>
           </div>
         </div>
 
-        {movements.length === 0 ? (
+        {sxDvy.length === 0 ? (
           <div className="rounded-lg border border-slate-500/50 bg-slate-800/50 p-8 text-center">
             <p className="text-lg font-medium text-slate-100">
               No flight movements yet
             </p>
             <p className="mt-2 text-sm text-slate-400">
-              Waiting for data source. Connect the external takeoff/landing feed
-              to populate this list.
+              Waiting for OpCenter data for SX-DVY.
             </p>
           </div>
         ) : (
           <div className="overflow-x-auto rounded-lg border border-slate-500/50">
-            <table className="w-full min-w-[640px] text-left text-sm">
+            <table className="w-full min-w-[720px] text-left text-sm">
               <thead className="bg-slate-800 text-slate-300">
                 <tr>
-                  <th className="px-4 py-3 font-medium">Type</th>
-                  <th className="px-4 py-3 font-medium">Aircraft</th>
+                  <th className="px-4 py-3 font-medium">Event</th>
+                  <th className="px-4 py-3 font-medium">Tail</th>
                   <th className="px-4 py-3 font-medium">Flight</th>
-                  <th className="px-4 py-3 font-medium">Airport</th>
-                  <th className="px-4 py-3 font-medium">Runway</th>
-                  <th className="px-4 py-3 font-medium">Time</th>
+                  <th className="px-4 py-3 font-medium">Dep</th>
+                  <th className="px-4 py-3 font-medium">Arr</th>
+                  <th className="px-4 py-3 font-medium">Times (z)</th>
+                  <th className="px-4 py-3 font-medium">FOB</th>
+                  <th className="px-4 py-3 font-medium">Message</th>
                 </tr>
               </thead>
               <tbody>
-                {movements.map((movement) => (
+                {sxDvy.map((movement) => (
                   <tr
                     key={movement.id}
                     className="border-t border-slate-600/60 bg-slate-800/30"
                   >
                     <td className="px-4 py-3">
-                      <span className="inline-flex items-center gap-2 capitalize">
-                        {movement.type === "takeoff" ? (
+                      <span className="inline-flex items-center gap-2">
+                        {movement.type === "off" ? (
                           <PlaneTakeoff className="h-4 w-4 text-emerald-400" />
                         ) : (
                           <PlaneLanding className="h-4 w-4 text-sky-400" />
                         )}
-                        {movement.type}
+                        {eventLabel(movement.type)}
                       </span>
                     </td>
                     <td className="px-4 py-3 font-mono">
-                      {movement.aircraftRegistration || "—"}
+                      {movement.tailNumber}
                     </td>
-                    <td className="px-4 py-3">
-                      {movement.flightNumber || "—"}
+                    <td className="px-4 py-3 font-mono">
+                      {movement.flightId}
                     </td>
-                    <td className="px-4 py-3">{movement.airport || "—"}</td>
-                    <td className="px-4 py-3">{movement.runway || "—"}</td>
-                    <td className="px-4 py-3">
-                      {formatOccurredAt(movement.occurredAt)}
+                    <td className="px-4 py-3 font-mono">
+                      {movement.departureStation}
+                    </td>
+                    <td className="px-4 py-3 font-mono">
+                      {movement.arrivalAirport}
+                    </td>
+                    <td className="px-4 py-3 font-mono">{eventTime(movement)}</td>
+                    <td className="px-4 py-3 font-mono">
+                      {movement.fuelOnBoard || "—"}
+                    </td>
+                    <td className="px-4 py-3 text-slate-400">
+                      {movement.messageTime || "—"}
                     </td>
                   </tr>
                 ))}
