@@ -70,13 +70,13 @@ const Index = () => {
     >
       <Toaster position="top-right" />
       <div className="w-full max-w-full px-2" style={{ margin: 0 }}>
-        <div className="mb-4 flex items-center justify-between sticky top-0 z-10 bg-slate-700 pt-4 pb-2">
-          <h1 className={`${isMobile ? "text-xl" : "text-2xl"} font-bold`}>
-            Defect Records
-          </h1>
-        </div>
+        <div className="sticky top-0 z-20 bg-slate-700 pt-4">
+          <div className="mb-2 flex items-center justify-between pb-2">
+            <h1 className={`${isMobile ? "text-xl" : "text-2xl"} font-bold`}>
+              Defect Records
+            </h1>
+          </div>
 
-        <div className="sticky top-16 z-10 bg-slate-700 pb-2">
           <FilterButtons
             filter={filter}
             setFilter={setFilter}

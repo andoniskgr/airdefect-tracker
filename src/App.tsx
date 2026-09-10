@@ -35,75 +35,79 @@ const App = () => {
             <TooltipProvider>
               <Toaster />
               <Sonner />
-              <Navbar />
-              <Routes>
-                <Route path="/test" element={<TestPage />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/signup" element={<Signup />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/auth/action" element={<ResetPassword />} />
-                <Route path="/pending-approval" element={<PendingApproval />} />
-                <Route path="/admin-setup" element={<AdminSetup />} />
-                <Route
-                  path="/"
-                  element={
-                    <ProtectedRoute>
-                      <Index />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/archive-records"
-                  element={
-                    <ProtectedRoute>
-                      <ArchiveRecords />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/internal-notices"
-                  element={
-                    <ProtectedRoute>
-                      <InternalNotices />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/service-order"
-                  element={
-                    <ProtectedRoute>
-                      <ServiceOrder />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/aircraft-admin"
-                  element={
-                    <ProtectedRoute>
-                      <AircraftAdmin />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/user-management"
-                  element={
-                    <ProtectedRoute>
-                      <UserManagement />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/profile"
-                  element={
-                    <ProtectedRoute>
-                      <UserProfile />
-                    </ProtectedRoute>
-                  }
-                />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+              <div className="app-shell flex h-dvh flex-col overflow-hidden">
+                <Navbar />
+                <main className="app-shell-main min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
+                  <Routes>
+                    <Route path="/test" element={<TestPage />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/signup" element={<Signup />} />
+                    <Route path="/forgot-password" element={<ForgotPassword />} />
+                    <Route path="/reset-password" element={<ResetPassword />} />
+                    <Route path="/auth/action" element={<ResetPassword />} />
+                    <Route path="/pending-approval" element={<PendingApproval />} />
+                    <Route path="/admin-setup" element={<AdminSetup />} />
+                    <Route
+                      path="/"
+                      element={
+                        <ProtectedRoute>
+                          <Index />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/archive-records"
+                      element={
+                        <ProtectedRoute>
+                          <ArchiveRecords />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/internal-notices"
+                      element={
+                        <ProtectedRoute>
+                          <InternalNotices />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/service-order"
+                      element={
+                        <ProtectedRoute>
+                          <ServiceOrder />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/aircraft-admin"
+                      element={
+                        <ProtectedRoute>
+                          <AircraftAdmin />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/user-management"
+                      element={
+                        <ProtectedRoute>
+                          <UserManagement />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/profile"
+                      element={
+                        <ProtectedRoute>
+                          <UserProfile />
+                        </ProtectedRoute>
+                      }
+                    />
+                    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </main>
+              </div>
             </TooltipProvider>
           </AuthProvider>
         </BrowserRouter>
