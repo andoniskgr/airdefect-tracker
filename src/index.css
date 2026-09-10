@@ -3,6 +3,15 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Hide the hosted "Edit with Lovable" badge (injected outside the React tree). */
+#lovable-badge,
+aside[aria-label="Edit with Lovable"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
 /* Cache bust: 2024-12-19 - Force column width changes */
  
 @layer base {

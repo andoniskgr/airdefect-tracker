@@ -7,12 +7,48 @@
     <meta name="description" content="Lovable Generated Project" />
     <meta name="author" content="Lovable" />
     <meta property="og:image" content="/og-image.png" />
+    <style>
+      /* Hide the hosted "Edit with Lovable" badge if the publisher injects it. */
+      #lovable-badge,
+      aside[aria-label="Edit with Lovable"] {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+      }
+    </style>
   </head>
 
   <body>
     <div id="root"></div>
-    <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
-    <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
+    <script>
+      (function hideLovableBadge() {
+        const badgeSelector = '#lovable-badge, aside[aria-label="Edit with Lovable"]';
+        const isBadge = (node) =>
+          node.nodeType === 1 &&
+          (node.id === "lovable-badge" ||
+            node.getAttribute?.("aria-label") === "Edit with Lovable");
+
+        const removeBadge = (root) => {
+          if (isBadge(root)) {
+            root.remove();
+            return;
+          }
+          root.querySelectorAll?.(badgeSelector).forEach((el) => el.remove());
+        };
+
+        removeBadge(document);
+        document.addEventListener("DOMContentLoaded", () => removeBadge(document));
+
+        if (typeof MutationObserver !== "undefined") {
+          new MutationObserver((mutations) => {
+            for (const mutation of mutations) {
+              mutation.addedNodes.forEach((node) => removeBadge(node));
+            }
+          }).observe(document.documentElement, { childList: true, subtree: true });
+        }
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
