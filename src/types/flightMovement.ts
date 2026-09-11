@@ -23,3 +23,20 @@ export interface FlightMovement {
   messageTime?: string; // e.g. 09/10 2217z
   freetext?: string;
 }
+
+/**
+ * One display line pairing dep OUT (Off event) with arr ON (On event):
+ * `tail - flight - dep(out) - arr(on)`
+ */
+export interface FlightMovementLine {
+  id: string;
+  tailNumber: string;
+  flightId: string;
+  departureStation: string;
+  outTime: string;
+  arrivalAirport: string;
+  onTime: string;
+}
+
+export const formatMovementLine = (line: FlightMovementLine): string =>
+  `${line.tailNumber} - ${line.flightId} - ${line.departureStation}(${line.outTime}) - ${line.arrivalAirport}(${line.onTime})`;
