@@ -1,27 +1,74 @@
+import { getApp } from "firebase/app";
+import { getFunctions, httpsCallable } from "firebase/functions";
+import "@/utils/firebaseDB";
 import type { FlightMovementLine } from "@/types/flightMovement";
 
-const REFRESH_MS = 10_000;
-const TARGET_TAIL = "SX-DVY";
+export const REFRESH_MS = 10_000;
+export const TARGET_TAIL = "SX-DVY";
 
-/**
- * Load movement lines for the Movements page.
- * Until OpCenter HTML ingest runs on a backend with a logged-in session,
- * this returns the SX-DVY placeholder line (live fetch cannot run from the
- * browser alone: Auth0 + HTML + CORS).
- */
-export async function fetchFlightMovementLines(): Promise<FlightMovementLine[]> {
-  // Placeholder: replace with Cloud Function / server poll of OpCenter HTML.
-  return [
-    {
-      id: "sx-dvy-current",
-      tailNumber: TARGET_TAIL,
-      flightId: "—",
-      departureStation: "—",
-      outTime: "—",
-      arrivalAirport: "—",
-      onTime: "—",
-    },
-  ];
+const functions = getFunctions(getApp(), "us-central1");
+
+const callableErrorMessage = (err: unknown, fallback: string) => {
+  if (err && typeof err === "object") {
+    const anyErr = err as {
+      message?: string;
+      details?: unknown;
+      code?: string;
+    };
+    if (typeof anyErr.message === "string" && anyErr.message.trim()) {
+      return anyErr.message.replace(/^Firebase:\s*/i, "").trim();
+    }
+  }
+  return fallback;
+};
+
+type LoginResult = { success: boolean };
+type LogoutResult = { success: boolean };
+type FetchResult = {
+  success: boolean;
+  lines?: FlightMovementLine[];
+  meta?: Record<string, unknown>;
+};
+
+export async function loginOpCenter(
+  username: string,
+  password: string
+): Promise<void> {
+  try {
+    const fn = httpsCallable(functions, "opCenterLogin");
+    const result = await fn({ username, password });
+    const data = result.data as LoginResult;
+    if (!data?.success) {
+      throw new Error("OpCenter login failed.");
+    }
+  } catch (err) {
+    throw new Error(callableErrorMessage(err, "OpCenter login failed."));
+  }
 }
 
-export { REFRESH_MS, TARGET_TAIL };
+export async function logoutOpCenter(): Promise<void> {
+  try {
+    const fn = httpsCallable(functions, "opCenterLogout");
+    await fn({});
+  } catch (err) {
+    throw new Error(callableErrorMessage(err, "OpCenter logout failed."));
+  }
+}
+
+export async function fetchFlightMovementLines(
+  tailNumber: string = TARGET_TAIL
+): Promise<FlightMovementLine[]> {
+  try {
+    const fn = httpsCallable(functions, "opCenterFetchMovements");
+    const result = await fn({ tailNumber });
+    const data = result.data as FetchResult;
+    if (!data?.success) {
+      throw new Error("Failed to fetch OpCenter movements.");
+    }
+    return Array.isArray(data.lines) ? data.lines : [];
+  } catch (err) {
+    throw new Error(
+      callableErrorMessage(err, "Failed to fetch OpCenter movements.")
+    );
+  }
+}
