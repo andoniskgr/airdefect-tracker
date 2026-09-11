@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import {
   FileText,
   Bell,
   Archive,
+  Plane,
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
@@ -75,6 +76,13 @@ const Navbar = () => {
               >
                 <Archive className="h-4 w-4" />
                 <span>Archive</span>
+              </Link>
+              <Link
+                to="/flight-movements"
+                className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
+              >
+                <Plane className="h-4 w-4" />
+                <span>Movements</span>
               </Link>
               <Link
                 to="/aircraft-admin"
@@ -169,6 +177,15 @@ const Navbar = () => {
               <Bell className="h-5 w-5" />
               <span className="text-base">Notes</span>
             </a>
+
+            <Link
+              to="/flight-movements"
+              className="flex items-center gap-3 text-blue-600 hover:text-blue-800 transition-colors py-2"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              <Plane className="h-5 w-5" />
+              <span className="text-base">Movements</span>
+            </Link>
 
             {/* Admin Links */}
             {userData?.role === "admin" && (

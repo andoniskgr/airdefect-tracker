@@ -401,3 +401,80 @@ exports.getUsers = functions.https.onCall(async (data, context) => {
     );
   }
 });
+
+const opcenter = require("./opcenter");
+
+/**
+ * Sign in to OpCenter with user-provided credentials.
+ * Stores session cookies for this Firebase user (password is not stored).
+ */
+exports.opCenterLogin = functions
+  .runWith({ timeoutSeconds: 120, memory: "512MB" })
+  .https.onCall(async (data, context) => {
+    const uid = opcenter.requireAuth(context);
+    const username = String(data?.username || "").trim();
+    const password = String(data?.password || "");
+
+    if (!username || !password) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "OpCenter username and password are required."
+      );
+    }
+
+    try {
+      await opcenter.loginAndStore(uid, username, password);
+      return { success: true };
+    } catch (error) {
+      throw new functions.https.HttpsError(
+        "failed-precondition",
+        error.message || "OpCenter login failed."
+      );
+    }
+  });
+
+/**
+ * Poll OpCenter messenger HTML using the stored session and return
+ * one-line movement rows for the requested tail (default SX-DVY).
+ */
+exports.opCenterFetchMovements = functions
+  .runWith({ timeoutSeconds: 120, memory: "512MB" })
+  .https.onCall(async (data, context) => {
+    const uid = opcenter.requireAuth(context);
+    const tailNumber = String(data?.tailNumber || opcenter.DEFAULT_TAIL)
+      .trim()
+      .toUpperCase();
+
+    try {
+      const jar = await opcenter.loadSessionJar(uid);
+      if (!jar) {
+        throw new functions.https.HttpsError(
+          "failed-precondition",
+          "OpCenter session missing or expired. Please sign in again."
+        );
+      }
+
+      const result = await opcenter.fetchMovementsForJar(jar, tailNumber);
+      await opcenter.saveSession(uid, jar);
+
+      return {
+        success: true,
+        lines: result.lines,
+        meta: result.meta,
+      };
+    } catch (error) {
+      if (error instanceof functions.https.HttpsError) throw error;
+      const message = error.message || "Failed to fetch OpCenter movements.";
+      if (/expired|sign in again|session/i.test(message)) {
+        await opcenter.clearSession(uid);
+      }
+      throw new functions.https.HttpsError("failed-precondition", message);
+    }
+  });
+
+/** Clear stored OpCenter session cookies for the current user. */
+exports.opCenterLogout = functions.https.onCall(async (data, context) => {
+  const uid = opcenter.requireAuth(context);
+  await opcenter.clearSession(uid);
+  return { success: true };
+});
